@@ -79,7 +79,8 @@ export const generateInitialState = () => {
     links: {},
     notes: {},
     globalTasks: {},
-    pomodoroSessions: [] // Array of { id, courseId, date, minutes }
+    pomodoroSessions: [], // Array of { id, courseId, date, minutes }
+    profile: { displayName: "" }
   };
   
   DEFAULT_COURSES.forEach(course => {

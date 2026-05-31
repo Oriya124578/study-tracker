@@ -28,6 +28,9 @@ export const useStore = create((set, get) => ({
   setIsUploading: (status) => set({ isUploading: status }),
   
   // Theme and Language Actions
+  setProfile: (name) => set((state) => ({ 
+    data: { ...state.data, profile: { ...state.data.profile, displayName: name } } 
+  })),
   setTheme: (theme) => {
     localStorage.setItem('theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
@@ -91,6 +94,11 @@ export const useStore = create((set, get) => ({
 
   updateCourse: (courseId, updates) => set((state) => {
     const courses = state.data.courses.map(c => c.id === courseId ? { ...c, ...updates } : c);
+    return { data: { ...state.data, courses } };
+  }),
+  
+  archiveCourse: (courseId, isArchived) => set((state) => {
+    const courses = state.data.courses.map(c => c.id === courseId ? { ...c, isArchived } : c);
     return { data: { ...state.data, courses } };
   }),
 

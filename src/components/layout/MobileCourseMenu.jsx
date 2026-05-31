@@ -22,7 +22,7 @@ export const MobileCourseMenu = () => {
           <DialogTitle className={language === 'he' ? 'text-right' : 'text-left'}>{t('selectCourse')}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-2 mt-4 pb-8 md:pb-0">
-          {data?.courses?.map(course => (
+          {data?.courses?.filter(c => !c.isArchived).map(course => (
             <Button 
               key={course.id} 
               variant="outline" 

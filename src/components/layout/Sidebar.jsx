@@ -57,7 +57,7 @@ export const Sidebar = () => {
           {/* Courses */}
           {sidebarOpen && <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2 uppercase tracking-wider">{t('myCourses')}</h2>}
           <div className="space-y-1">
-            {data?.courses?.map(course => {
+            {data?.courses?.filter(c => !c.isArchived).map(course => {
               const isActive = activeCourse?.id === course.id && activeCategory !== 'overview' && activeCategory !== 'calendar';
               return (
                 <Button
