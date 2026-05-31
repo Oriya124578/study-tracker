@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { WeeklyTasks } from './WeeklyTasks';
 import { GlobalTasks } from './GlobalTasks';
+import { CourseFiles } from '../files/CourseFiles';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Settings } from 'lucide-react';
@@ -119,6 +120,7 @@ export const CourseView = () => {
             </div>
             
             <WeeklyTasks courseId={activeCourse.id} selectedWeek={selectedWeek} />
+            <CourseFiles courseId={activeCourse.id} selectedWeek={selectedWeek} />
           </div>
         ) : (
           <GlobalTasks courseId={activeCourse.id} />

@@ -42,12 +42,12 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
       const storagePath = `${user.id}/${courseId}/${selectedWeek}/${Date.now()}_${file.name}`;
       
       const { error } = await supabase.storage
-        .from('files')
+        .from('course_files')
         .upload(storagePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
+      const { data: { publicUrl } } = supabase.storage.from('course_files').getPublicUrl(storagePath);
 
       attachFileToTask(courseId, selectedWeek, taskId, {
         name: file.name,

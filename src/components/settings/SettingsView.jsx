@@ -7,9 +7,11 @@ import { supabase } from '../../supabaseClient';
 import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe } from 'lucide-react';
 import { MigrateLocalFiles } from './MigrateLocalFiles';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const SettingsView = () => {
   const { data, resetSemester, addCourse, updateCourse, language, setLanguage } = useStore();
+  const { t } = useTranslation();
   const [editingCourse, setEditingCourse] = useState(null); // The course object being edited/added
   const [isAddMode, setIsAddMode] = useState(false);
 
@@ -85,8 +87,8 @@ export const SettingsView = () => {
           <Settings className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">הגדרות מערכת</h1>
-          <p className="text-muted-foreground">ניהול קורסים, נתונים והעדפות אישיות</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('settingsTitle')}</h1>
+          <p className="text-muted-foreground">{t('settingsDesc')}</p>
         </div>
       </div>
 
@@ -96,13 +98,13 @@ export const SettingsView = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
-              ניהול קורסים
+              {t('courseManagerTitle')}
             </CardTitle>
-            <CardDescription>הוסף קורסים חדשים, ערוך מבחנים וקישורים למחברות בינה מלאכותית.</CardDescription>
+            <CardDescription>{t('courseManagerDesc')}</CardDescription>
           </div>
           <Button onClick={openAddModal} className="flex items-center gap-1 bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="w-4 h-4" />
-            קורס חדש
+            {t('newCourse')}
           </Button>
         </CardHeader>
         <CardContent>
@@ -111,11 +113,11 @@ export const SettingsView = () => {
               <div key={course.id} className="border border-border p-4 rounded-xl flex justify-between items-center bg-card">
                 <div>
                   <h3 className="font-bold text-foreground">{course.name}</h3>
-                  <p className="text-sm text-muted-foreground">מועד א': {course.moedA ? new Date(course.moedA).toLocaleDateString('he-IL') : 'לא הוגדר'}</p>
+                  <p className="text-sm text-muted-foreground">{t('moedA')}: {course.moedA ? new Date(course.moedA).toLocaleDateString('he-IL') : t('notSet')}</p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => openEditModal(course)} className="text-muted-foreground hover:text-primary">
                   <Edit2 className="w-4 h-4 ml-1" />
-                  ערוך
+                  {t('edit')}
                 </Button>
               </div>
             ))}
@@ -129,30 +131,56 @@ export const SettingsView = () => {
       {/* Account & Data */}
       <Card className="shadow-sm border-border">
         <CardHeader>
-          <CardTitle>חשבון ונתונים</CardTitle>
-          <CardDescription>פעולות על חשבון המשתמש והנתונים שלך.</CardDescription>
+          <CardTitle>{t('accountDataTitle')}</CardTitle>
+          <CardDescription>{t('accountDataDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
+            <div>
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                {t('languageTitle')}
+              </h3>
+              <p className="text-sm text-muted-foreground">{t('languageDesc')}</p>
+            </div>
+            <div className="flex items-center gap-2 bg-secondary p-1 rounded-lg">
+              <Button 
+                variant={language === 'he' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setLanguage('he')}
+              >
+                {t('hebrew')}
+              </Button>
+              <Button 
+                variant={language === 'en' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setLanguage('en')}
+              >
+                {t('english')}
+              </Button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between p-4 rounded-xl bg-destructive/5 border border-destructive/20">
             <div>
               <h3 className="font-semibold text-destructive flex items-center gap-2">
                 <RefreshCcw className="w-4 h-4" />
-                איפוס סמסטר
+                {t('resetSemesterTitle')}
               </h3>
-              <p className="text-sm text-destructive/80">מוחק את כל המשימות וההערות, שומר את הקורסים.</p>
+              <p className="text-sm text-destructive/80">{t('resetSemesterDesc')}</p>
             </div>
-            <Button variant="destructive" onClick={handleReset}>איפוס עכשיו</Button>
+            <Button variant="destructive" onClick={handleReset}>{t('resetNow')}</Button>
           </div>
 
           <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
             <div>
               <h3 className="font-semibold text-foreground flex items-center gap-2">
                 <LogOut className="w-4 h-4" />
-                התנתקות
+                {t('logoutTitle')}
               </h3>
-              <p className="text-sm text-muted-foreground">התנתק מהמערכת.</p>
+              <p className="text-sm text-muted-foreground">{t('logoutDesc')}</p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>התנתק</Button>
+            <Button variant="outline" onClick={handleLogout}>{t('logoutBtn')}</Button>
           </div>
         </CardContent>
       </Card>

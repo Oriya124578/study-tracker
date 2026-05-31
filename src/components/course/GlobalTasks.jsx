@@ -31,12 +31,12 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
       const storagePath = `${user.id}/${courseId}/${category}/${Date.now()}_${file.name}`;
       
       const { error } = await supabase.storage
-        .from('files')
+        .from('course_files')
         .upload(storagePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
+      const { data: { publicUrl } } = supabase.storage.from('course_files').getPublicUrl(storagePath);
 
       attachFileToGlobalTask(courseId, category, taskId, {
         name: file.name,
@@ -146,10 +146,10 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
             placeholder="שם המשימה או הקובץ..." 
             value={newTaskLabel}
             onChange={(e) => setNewTaskLabel(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             className="flex-1"
           />
-          <Button onClick={handleAdd} className="shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80">
+          <Button type="button" onClick={handleAdd} className="shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80">
             <Plus className="w-4 h-4" />
           </Button>
         </div>

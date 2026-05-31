@@ -3,9 +3,11 @@ import { Home, Calendar, Settings, BookOpen, Clock, PanelLeftClose, PanelRightCl
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const Sidebar = () => {
   const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen } = useStore();
+  const { t } = useTranslation();
 
   const handleNavClick = (category, course = null) => {
     setActiveCategory(category);
@@ -36,24 +38,24 @@ export const Sidebar = () => {
               variant={activeCategory === 'overview' && !activeCourse ? 'secondary' : 'ghost'} 
               className={cn("w-full justify-start", !sidebarOpen && "justify-center px-0")}
               onClick={() => handleNavClick('overview')}
-              title="דשבורד"
+              title={t('dashboard')}
             >
               <Home className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
-              {sidebarOpen && <span>דשבורד ראשי</span>}
+              {sidebarOpen && <span>{t('dashboard')}</span>}
             </Button>
             <Button 
               variant={activeCategory === 'calendar' ? 'secondary' : 'ghost'} 
               className={cn("w-full justify-start", !sidebarOpen && "justify-center px-0")}
               onClick={() => handleNavClick('calendar')}
-              title="לוח שנה"
+              title={t('calendar')}
             >
               <Calendar className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
-              {sidebarOpen && <span>לוח שנה</span>}
+              {sidebarOpen && <span>{t('calendar')}</span>}
             </Button>
           </div>
 
           {/* Courses */}
-          {sidebarOpen && <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2 uppercase tracking-wider">הקורסים שלי</h2>}
+          {sidebarOpen && <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2 uppercase tracking-wider">{t('myCourses')}</h2>}
           <div className="space-y-1">
             {data?.courses?.map(course => {
               const isActive = activeCourse?.id === course.id && activeCategory !== 'overview' && activeCategory !== 'calendar';
@@ -79,20 +81,20 @@ export const Sidebar = () => {
             variant="ghost" 
             className={cn("w-full justify-start transition-colors", !sidebarOpen && "justify-center px-0", useStore.getState().pomodoro.active ? "text-primary bg-primary/10" : "text-muted-foreground")}
             onClick={() => useStore.getState().setShowPomodoroModal(true)}
-            title="פומודורו"
+            title={t('pomodoro')}
           >
             <Clock className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
-            {sidebarOpen && <span>טיימר פומודורו</span>}
+            {sidebarOpen && <span>{t('pomodoro')}</span>}
           </Button>
 
           <Button 
             variant={activeCategory === 'settings' ? 'secondary' : 'ghost'} 
             className={cn("w-full justify-start text-muted-foreground", !sidebarOpen && "justify-center px-0")}
             onClick={() => handleNavClick('settings')}
-            title="הגדרות"
+            title={t('settings')}
           >
             <Settings className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
-            {sidebarOpen && <span>הגדרות האתר</span>}
+            {sidebarOpen && <span>{t('settings')}</span>}
           </Button>
         </div>
       </aside>
