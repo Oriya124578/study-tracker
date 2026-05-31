@@ -8,7 +8,7 @@ import { supabase } from '../../supabaseClient';
 import { useTranslation } from '../../hooks/useTranslation';
 
 const CategorySection = ({ courseId, category, title, icon: Icon }) => {
-  const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask } = useStore();
+  const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask, setIsUploading } = useStore();
   const { t } = useTranslation();
   const [newTaskLabel, setNewTaskLabel] = useState('');
   const [uploadingTask, setUploadingTask] = useState(null);
@@ -28,17 +28,18 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
     if (!file) return;
 
     setUploadingTask(taskId);
+    setIsUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const storagePath = `${user.id}/${courseId}/${category}/${Date.now()}_${file.name}`;
       
       const { error } = await supabase.storage
-        .from('course_files')
+        .from('files')
         .upload(storagePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage.from('course_files').getPublicUrl(storagePath);
+      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
 
       attachFileToGlobalTask(courseId, category, taskId, {
         name: file.name,
@@ -48,9 +49,10 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
       
     } catch (error) {
       console.error("Upload failed", error);
-      alert(t('uploadError'));
+      alert("שגיאה בהעלאת הקובץ. ודא שיצרת את ה-Bucket בשם files כנדרש.");
     } finally {
       setUploadingTask(null);
+      setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };

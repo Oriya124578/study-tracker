@@ -6,7 +6,7 @@ import { supabase } from '../../supabaseClient';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const WeeklyTasks = ({ courseId, selectedWeek }) => {
-  const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask } = useStore();
+  const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask, setIsUploading } = useStore();
   const { t, language } = useTranslation();
   const [uploadingTask, setUploadingTask] = useState(null);
   
@@ -39,17 +39,18 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
     if (!file) return;
 
     setUploadingTask(taskId);
+    setIsUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const storagePath = `${user.id}/${courseId}/${selectedWeek}/${Date.now()}_${file.name}`;
       
       const { error } = await supabase.storage
-        .from('course_files')
+        .from('files')
         .upload(storagePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage.from('course_files').getPublicUrl(storagePath);
+      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
 
       attachFileToTask(courseId, selectedWeek, taskId, {
         name: file.name,
@@ -62,6 +63,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
       alert("שגיאה בהעלאת הקובץ. האם יצרת Bucket בשם 'files'?");
     } finally {
       setUploadingTask(null);
+      setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };

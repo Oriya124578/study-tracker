@@ -9,6 +9,7 @@ import { SmartDashboard } from '../dashboard/SmartDashboard';
 import { CourseView } from '../course/CourseView';
 import { CalendarView } from '../calendar/CalendarView';
 import { SettingsView } from '../settings/SettingsView';
+import { GlobalLoadingOverlay } from './GlobalLoadingOverlay';
 
 export const Layout = () => {
   const { activeCategory, showPomoSettings } = useStore();
@@ -43,6 +44,7 @@ export const Layout = () => {
       <MobileCourseMenu />
       
       <PomodoroTimer />
+      <GlobalLoadingOverlay />
     </div>
   );
 };

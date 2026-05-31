@@ -17,6 +17,7 @@ export const useStore = create((set, get) => ({
   sidebarOpen: false,
   showPomoSettings: false,
   showPomodoroModal: false,
+  isUploading: false,
   
   // Core Setters
   setData: (newData) => set({ data: newData }),
@@ -24,6 +25,7 @@ export const useStore = create((set, get) => ({
   setActiveCategory: (category) => set({ activeCategory: category }),
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
+  setIsUploading: (status) => set({ isUploading: status }),
   
   // Theme and Language Actions
   setTheme: (theme) => {
