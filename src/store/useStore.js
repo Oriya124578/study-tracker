@@ -14,12 +14,14 @@ export const useStore = create((set, get) => ({
   // Global App State UI
   sidebarOpen: false,
   showPomoSettings: false,
+  showPomodoroModal: false,
   
   // Core Setters
   setData: (newData) => set({ data: newData }),
   setActiveCourse: (course) => set({ activeCourse: course }),
   setActiveCategory: (category) => set({ activeCategory: category }),
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
+  setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   
   // Theme
   setTheme: (theme) => {

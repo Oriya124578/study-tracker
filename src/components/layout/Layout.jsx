@@ -41,9 +41,8 @@ export const Layout = () => {
       </main>
       <MobileNav />
       <MobileCourseMenu />
-      <PomodoroTimer />
       
-      {/* Settings Modal for Pomodoro can be added here or inside PomodoroTimer */}
+      <PomodoroTimer />
     </div>
   );
 };

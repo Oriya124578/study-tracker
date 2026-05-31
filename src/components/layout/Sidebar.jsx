@@ -77,6 +77,16 @@ export const Sidebar = () => {
         <div className="p-4 border-t border-border flex flex-col gap-2">
           <Button 
             variant="ghost" 
+            className={cn("w-full justify-start transition-colors", !sidebarOpen && "justify-center px-0", useStore.getState().pomodoro.active ? "text-primary bg-primary/10" : "text-muted-foreground")}
+            onClick={() => useStore.getState().setShowPomodoroModal(true)}
+            title="פומודורו"
+          >
+            <Clock className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
+            {sidebarOpen && <span>טיימר פומודורו</span>}
+          </Button>
+
+          <Button 
+            variant={activeCategory === 'settings' ? 'secondary' : 'ghost'} 
             className={cn("w-full justify-start text-muted-foreground", !sidebarOpen && "justify-center px-0")}
             onClick={() => handleNavClick('settings')}
             title="הגדרות"

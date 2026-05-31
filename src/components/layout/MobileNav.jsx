@@ -28,6 +28,11 @@ export const MobileNav = () => {
         <Calendar className="w-6 h-6" />
         <span className="text-[10px] font-medium">לוח שנה</span>
       </button>
+
+      <button onClick={() => useStore.getState().setShowPomodoroModal(true)} className={cn("flex flex-col items-center gap-1 transition-colors", useStore.getState().pomodoro.active ? "text-primary" : "text-muted-foreground")}>
+        <Clock className="w-6 h-6" />
+        <span className="text-[10px] font-medium">פומודורו</span>
+      </button>
       
       <button onClick={() => handleNavClick('settings')} className={cn("flex flex-col items-center gap-1 transition-colors", activeCategory === 'settings' ? "text-primary" : "text-muted-foreground")}>
         <Settings className="w-6 h-6" />

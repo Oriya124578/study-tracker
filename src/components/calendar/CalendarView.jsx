@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, getDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, getDay, differenceInDays } from 'date-fns';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
@@ -23,9 +23,9 @@ export const CalendarView = () => {
   const exams = [];
   data?.courses?.forEach(course => {
     ['moedA', 'moedB', 'moedC'].forEach(moed => {
-      if (course.exams && course.exams[moed]) {
+      if (course[moed]) {
         exams.push({
-          date: new Date(course.exams[moed]),
+          date: new Date(course[moed]),
           course: course.name,
           moed: moed === 'moedA' ? "מועד א'" : moed === 'moedB' ? "מועד ב'" : "מועד ג'"
         });
@@ -33,11 +33,16 @@ export const CalendarView = () => {
     });
   });
 
+  // Sort exams by date ascending
+  exams.sort((a, b) => a.date - b.date);
+
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-8">
+    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-8 space-y-6">
+      
+      {/* Calendar Card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border">
           <div className="flex items-center gap-4">
@@ -85,6 +90,46 @@ export const CalendarView = () => {
                 </div>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upcoming Exams List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            מבחנים קרובים
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {exams.filter(e => differenceInDays(e.date, new Date()) >= -1).length === 0 ? (
+              <p className="text-muted-foreground text-sm">אין מבחנים קרובים. איזה כיף!</p>
+            ) : (
+              exams
+                .filter(e => differenceInDays(e.date, new Date()) >= -1)
+                .map((exam, idx) => {
+                  const daysLeft = differenceInDays(exam.date, new Date());
+                  const isSoon = daysLeft <= 7 && daysLeft >= 0;
+                  
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                      <div>
+                        <h4 className="font-bold text-foreground">{exam.course}</h4>
+                        <p className="text-xs text-muted-foreground">{exam.moed} - {format(exam.date, 'dd/MM/yyyy')}</p>
+                      </div>
+                      <div className={cn(
+                        "px-3 py-1 rounded-full text-sm font-bold",
+                        daysLeft < 0 ? "bg-muted text-muted-foreground" :
+                        isSoon ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                      )}>
+                        {daysLeft < 0 ? 'עבר' : daysLeft === 0 ? 'היום!' : `בעוד ${daysLeft} ימים`}
+                      </div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </CardContent>
       </Card>
