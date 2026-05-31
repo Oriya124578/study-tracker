@@ -10,6 +10,8 @@ import { CourseView } from '../course/CourseView';
 import { CalendarView } from '../calendar/CalendarView';
 import { SettingsView } from '../settings/SettingsView';
 import { GlobalLoadingOverlay } from './GlobalLoadingOverlay';
+import { ErrorBoundary } from './ErrorBoundary';
+import { Toaster } from '../ui/Toaster';
 
 export const Layout = () => {
   const { activeCategory, showPomoSettings } = useStore();
@@ -37,14 +39,15 @@ export const Layout = () => {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-32 md:pb-8">
-        {renderContent()}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8">
+        <ErrorBoundary>{renderContent()}</ErrorBoundary>
       </main>
       <MobileNav />
       <MobileCourseMenu />
-      
+
       <PomodoroTimer />
       <GlobalLoadingOverlay />
+      <Toaster />
     </div>
   );
 };

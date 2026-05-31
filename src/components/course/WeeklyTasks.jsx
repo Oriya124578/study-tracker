@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Check, GripVertical, FileText, UploadCloud, X, Link as LinkIcon, Paperclip, Trash2 } from 'lucide-react';
+import { Check, GripVertical, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { supabase } from '../../supabaseClient';
+import { useCourseFiles } from '../../hooks/useCourseFiles';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const WeeklyTasks = ({ courseId, selectedWeek }) => {
-  const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask, setIsUploading } = useStore();
-  const { t, language } = useTranslation();
+  const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask, removeFileFromTask, setIsUploading } = useStore();
+  const { t } = useTranslation();
+  const { upload, remove, openSigned } = useCourseFiles(courseId);
   const [uploadingTask, setUploadingTask] = useState(null);
   
   const fileInputRef = useRef(null);
@@ -41,26 +42,10 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
     setUploadingTask(taskId);
     setIsUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const storagePath = `${user.id}/${courseId}/${selectedWeek}/${Date.now()}_${file.name}`;
-      
-      const { error } = await supabase.storage
-        .from('files')
-        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
-
-      attachFileToTask(courseId, selectedWeek, taskId, {
-        name: file.name,
-        url: publicUrl,
-        path: storagePath
-      });
-      
-    } catch (error) {
-      console.error("Upload failed", error);
-      alert("שגיאה בהעלאת הקובץ. האם יצרת Bucket בשם 'files'?");
+      const [uploaded] = await upload(`week_${selectedWeek}`, [file]);
+      if (uploaded) {
+        attachFileToTask(courseId, selectedWeek, taskId, uploaded);
+      }
     } finally {
       setUploadingTask(null);
       setIsUploading(false);
@@ -68,19 +53,10 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
     }
   };
 
-  const handleDeleteFile = async (taskId, filePath) => {
-    if (!window.confirm('האם אתה בטוח שברצונך למחוק קובץ זה?')) return;
-    
-    try {
-      // Remove from storage
-      await supabase.storage.from('course_files').remove([filePath]);
-      // Remove from state
-      const { removeFileFromTask } = useStore.getState();
-      removeFileFromTask(courseId, selectedWeek, taskId, filePath);
-    } catch (err) {
-      console.error("Failed to delete file", err);
-      alert("שגיאה במחיקת הקובץ");
-    }
+  const handleDeleteFile = async (taskId, file) => {
+    if (!window.confirm(t('confirmDeleteFile'))) return;
+    const ok = await remove(file.path);
+    if (ok) removeFileFromTask(courseId, selectedWeek, taskId, file.path);
   };
 
   const triggerUpload = (taskId) => {
@@ -133,6 +109,9 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                           
                           <button
                             onClick={() => toggleTask(courseId, selectedWeek, task.id)}
+                            role="checkbox"
+                            aria-checked={task.checked}
+                            aria-label={task.label}
                             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
                               task.checked ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground hover:border-primary'
                             }`}
@@ -149,20 +128,19 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                         <div className="ps-14 flex flex-wrap gap-2">
                           {task.files && task.files.map((file, i) => (
                             <div key={i} className="flex items-center group">
-                              <a 
-                                href={file.url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                download={file.name}
+                              <button
+                                type="button"
+                                onClick={() => openSigned(file)}
                                 className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-e-none rounded-s-md hover:bg-primary/20 transition-colors"
                               >
                                 <FileText className="w-3 h-3" />
                                 <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
-                              </a>
+                              </button>
                               <button
-                                onClick={() => handleDeleteFile(task.id, file.path)}
+                                onClick={() => handleDeleteFile(task.id, file)}
                                 className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
-                                title="מחק קובץ"
+                                title={t('deleteFileTitle')}
+                                aria-label={`${t('deleteFileTitle')}: ${file.name}`}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>

@@ -190,20 +190,20 @@ export const useStore = create((set, get) => ({
     return { data: newData };
   }),
 
-  addGlobalTask: (courseId, category, taskLabel) => set((state) => {
+  addGlobalTask: (courseId, category, taskLabel, files = []) => set((state) => {
     const newData = { ...state.data };
     if (!newData.globalTasks) newData.globalTasks = {};
     const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
-    
+
     if (!courseGlobalTasks[category]) {
       courseGlobalTasks[category] = [];
     }
-    
+
     const newTask = {
       id: `${Date.now()}`,
       label: taskLabel,
       checked: false,
-      files: []
+      files: files
     };
     
     courseGlobalTasks[category] = [...courseGlobalTasks[category], newTask];

@@ -8,6 +8,7 @@ import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe } fr
 import { MigrateLocalFiles } from './MigrateLocalFiles';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
+import { toast } from '../../store/useToast';
 
 export const SettingsView = () => {
   const { data, resetSemester, addCourse, updateCourse, language, setLanguage } = useStore();
@@ -20,9 +21,9 @@ export const SettingsView = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm("האם אתה בטוח שברצונך לאפס את הסמסטר? כל המשימות וההערות יימחקו, אך הקורסים יישמרו.")) {
+    if (window.confirm(t('confirmResetSemester'))) {
       resetSemester();
-      alert("הסמסטר אופס בהצלחה!");
+      toast.success(t('resetSemesterSuccess'));
     }
   };
 
@@ -46,7 +47,7 @@ export const SettingsView = () => {
   };
 
   const saveCourse = () => {
-    if (!editingCourse.name) return alert("חובה להזין שם קורס");
+    if (!editingCourse.name) return toast.error(t('courseNameRequired'));
     
     if (isAddMode) {
       addCourse({
@@ -188,41 +189,41 @@ export const SettingsView = () => {
       {/* Course Edit/Add Modal */}
       {editingCourse && (
         <Dialog open={true} onOpenChange={() => setEditingCourse(null)}>
-          <DialogContent className="sm:max-w-[425px]" dir="rtl">
+          <DialogContent className="sm:max-w-[425px]" dir={language === 'en' ? 'ltr' : 'rtl'}>
             <DialogHeader>
-              <DialogTitle>{isAddMode ? 'הוספת קורס חדש' : `עריכת קורס: ${editingCourse.name}`}</DialogTitle>
+              <DialogTitle>{isAddMode ? t('addNewCourse') : `${t('editCourse')}: ${editingCourse.name}`}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">שם הקורס</label>
+                <label className="text-sm font-medium">{t('courseName')}</label>
                 <Input value={editingCourse.name} onChange={e => setEditingCourse({...editingCourse, name: e.target.value})} />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">מספר שבועות</label>
+                <label className="text-sm font-medium">{t('weeksCountLabel')}</label>
                 <Input type="number" min="1" max="20" value={editingCourse.weeksCount} onChange={e => setEditingCourse({...editingCourse, weeksCount: parseInt(e.target.value)})} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">תאריך מועד א'</label>
+                  <label className="text-sm font-medium">{t('examDateA')}</label>
                   <Input type="date" value={editingCourse.moedA} onChange={e => setEditingCourse({...editingCourse, moedA: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">תאריך מועד ב'</label>
+                  <label className="text-sm font-medium">{t('examDateB')}</label>
                   <Input type="date" value={editingCourse.moedB} onChange={e => setEditingCourse({...editingCourse, moedB: e.target.value})} />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">קישור ל-NotebookLM</label>
+                <label className="text-sm font-medium">{t('notebookLmLink')}</label>
                 <Input value={editingCourse.notebookLm} onChange={e => setEditingCourse({...editingCourse, notebookLm: e.target.value})} placeholder="https://notebooklm.google.com/..." dir="ltr" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">קישור ל-Gemini / ChatGPT</label>
+                <label className="text-sm font-medium">{t('geminiLink')}</label>
                 <Input value={editingCourse.gemini} onChange={e => setEditingCourse({...editingCourse, gemini: e.target.value})} placeholder="https://gemini.google.com/..." dir="ltr" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingCourse(null)}>ביטול</Button>
-              <Button onClick={saveCourse}>שמור קורס</Button>
+              <Button variant="outline" onClick={() => setEditingCourse(null)}>{t('cancel')}</Button>
+              <Button onClick={saveCourse}>{t('saveCourse')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

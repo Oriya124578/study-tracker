@@ -117,6 +117,41 @@ export const translations = {
     learningHoursPomodoro: 'שעות למידה (פומודורו)',
     learningMinutes: 'דקות למידה',
     noPomodoroYet: 'עוד לא התחלת ללמוד עם פומודורו. קדימה לעבודה!',
+
+    // Files & toasts
+    fileUploadError: 'שגיאה בהעלאת הקובץ',
+    fileUploadSuccess: 'הקובץ הועלה בהצלחה',
+    fileDeleteError: 'שגיאה במחיקת הקובץ',
+    fileListError: 'שגיאה בטעינת הקבצים',
+    fileOpenError: 'שגיאה בפתיחת הקובץ',
+    confirmDeleteFile: 'האם אתה בטוח שברצונך למחוק קובץ זה?',
+    deleteFileTitle: 'מחק קובץ',
+    filesAndDocs: 'קבצים ומסמכים',
+    uploadFiles: 'העלה קבצים',
+    noFilesAvailable: 'אין קבצים זמינים. לחץ על "העלה קבצים" כדי להוסיף.',
+    uploadingFile: 'מעלה קובץ... אנא המתן',
+
+    // Calendar
+    moedB: "מועד ב'",
+    moedC: "מועד ג'",
+
+    // Settings dialogs
+    confirmResetSemester: 'האם אתה בטוח שברצונך לאפס את הסמסטר? כל המשימות וההערות יימחקו, אך הקורסים יישמרו.',
+    resetSemesterSuccess: 'הסמסטר אופס בהצלחה!',
+    courseNameRequired: 'חובה להזין שם קורס',
+    examDateA: "תאריך מועד א'",
+    examDateB: "תאריך מועד ב'",
+    examDateC: "תאריך מועד ג'",
+    addNewCourse: 'הוספת קורס חדש',
+    editCourse: 'עריכת קורס',
+    weeksCountLabel: 'מספר שבועות',
+    notebookLmLink: 'קישור ל-NotebookLM',
+    geminiLink: 'קישור ל-Gemini / ChatGPT',
+    saveCourse: 'שמור קורס',
+    loadingEnv: 'טוען את סביבת הלמידה שלך...',
+    addItem: 'הוסף',
+    addTask: 'הוסף משימה',
+    uploadFileOption: 'העלה קובץ',
   },
   en: {
     // General
@@ -236,5 +271,40 @@ export const translations = {
     learningHoursPomodoro: 'Study Hours (Pomodoro)',
     learningMinutes: 'Study minutes',
     noPomodoroYet: 'You haven\'t started studying with Pomodoro yet. Let\'s get to work!',
+
+    // Files & toasts
+    fileUploadError: 'Error uploading file',
+    fileUploadSuccess: 'File uploaded successfully',
+    fileDeleteError: 'Error deleting file',
+    fileListError: 'Error loading files',
+    fileOpenError: 'Error opening file',
+    confirmDeleteFile: 'Are you sure you want to delete this file?',
+    deleteFileTitle: 'Delete file',
+    filesAndDocs: 'Files & Documents',
+    uploadFiles: 'Upload Files',
+    noFilesAvailable: 'No files available. Click "Upload Files" to add.',
+    uploadingFile: 'Uploading file... please wait',
+
+    // Calendar
+    moedB: 'Exam B',
+    moedC: 'Exam C',
+
+    // Settings dialogs
+    confirmResetSemester: 'Are you sure you want to reset the semester? All tasks and notes will be deleted, but courses will be kept.',
+    resetSemesterSuccess: 'Semester reset successfully!',
+    courseNameRequired: 'Course name is required',
+    examDateA: 'Exam A date',
+    examDateB: 'Exam B date',
+    examDateC: 'Exam C date',
+    addNewCourse: 'Add New Course',
+    editCourse: 'Edit Course',
+    weeksCountLabel: 'Number of Weeks',
+    notebookLmLink: 'NotebookLM Link',
+    geminiLink: 'Gemini / ChatGPT Link',
+    saveCourse: 'Save Course',
+    loadingEnv: 'Loading your study environment...',
+    addItem: 'Add',
+    addTask: 'Add Task',
+    uploadFileOption: 'Upload File',
   }
 };

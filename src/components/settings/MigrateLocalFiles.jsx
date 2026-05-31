@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../../supabaseClient';
+import { getUserId, uploadFile } from '../../lib/courseFilesStorage';
 import { useStore } from '../../store/useStore';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
@@ -105,34 +105,18 @@ export const MigrateLocalFiles = () => {
         const blobRes = await fetch(item.localPath);
         if (!blobRes.ok) continue;
         const blob = await blobRes.blob();
+        const blobFile = new File([blob], item.fileName, { type: blob.type });
 
-        // Upload to Supabase Storage
-        // Path: userId/courseId/fileName
-        const { data: { user } } = await supabase.auth.getUser();
-        const storagePath = `${user.id}/${item.courseId}/${Date.now()}_${item.fileName}`;
-        
-        const { data: uploadData, error } = await supabase.storage
-          .from('files')
-          .upload(storagePath, blob, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (error) {
-          console.error("Upload error:", error);
+        // Upload to the single private `course_files` bucket.
+        let fileObj;
+        try {
+          const userId = await getUserId();
+          const folder = item.isGlobal ? item.category : `week_${item.week}`;
+          fileObj = await uploadFile({ userId, courseId: item.courseId, folder, file: blobFile });
+        } catch (err) {
+          console.error('Upload error:', err);
           continue; // Skip this file and continue
         }
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('files')
-          .getPublicUrl(storagePath);
-
-        const fileObj = {
-          name: item.fileName,
-          url: publicUrl,
-          path: storagePath
-        };
 
         // Attach to store
         if (item.isGlobal) {
@@ -184,7 +168,7 @@ export const MigrateLocalFiles = () => {
         <div className="bg-background border rounded-lg p-3 text-sm flex gap-3 text-muted-foreground">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
           <div>
-            <strong>חובה לפני ההפעלה:</strong> היכנס ללוח הבקרה של Supabase, עבור ל-Storage וצור Bucket חדש בשם <code>files</code>. הקפד לסמן אותו כ-<strong>Public</strong>!
+            <strong>חובה לפני ההפעלה:</strong> ודא שהרצת את ה-migrations תחת <code>supabase/migrations</code> (הם יוצרים את ה-Bucket <code>course_files</code> כ-<strong>Private</strong> עם הרשאות RLS). הקבצים נשמרים מאובטחים ונפתחים דרך קישורים חתומים.
           </div>
         </div>
 

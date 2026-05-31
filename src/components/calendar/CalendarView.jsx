@@ -30,7 +30,7 @@ export const CalendarView = () => {
         exams.push({
           date: new Date(course[moed]),
           course: course.name,
-          moed: moed === 'moedA' ? "מועד א'" : moed === 'moedB' ? "מועד ב'" : "מועד ג'"
+          moed: t(moed)
         });
       }
     });

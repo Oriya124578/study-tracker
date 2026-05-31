@@ -3,23 +3,42 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
-import { Plus, Trash2, CheckCircle2, Circle, FileText, Paperclip } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
+import { Plus, Trash2, CheckCircle2, Circle, FileText, Paperclip, Upload, X } from 'lucide-react';
+import { useCourseFiles } from '../../hooks/useCourseFiles';
 import { useTranslation } from '../../hooks/useTranslation';
 
 const CategorySection = ({ courseId, category, title, icon: Icon }) => {
-  const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask, setIsUploading } = useStore();
+  const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask, removeFileFromGlobalTask, setIsUploading } = useStore();
   const { t } = useTranslation();
+  const { upload, remove, openSigned } = useCourseFiles(courseId);
   const [newTaskLabel, setNewTaskLabel] = useState('');
   const [uploadingTask, setUploadingTask] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [addMode, setAddMode] = useState(false);
   const fileInputRef = useRef(null);
+  const newFileInputRef = useRef(null);
 
-  const tasks = data.globalTasks[courseId]?.[category] || [];
+  const tasks = data.globalTasks?.[courseId]?.[category] || [];
 
   const handleAdd = () => {
     if (newTaskLabel.trim()) {
       addGlobalTask(courseId, category, newTaskLabel);
       setNewTaskLabel('');
+      setAddMode(false);
+    }
+  };
+
+  // "+" menu → "Upload file": uploads and creates a task labelled by the file name.
+  const handleUploadAsTask = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const [uploaded] = await upload(category, [file]);
+      if (uploaded) addGlobalTask(courseId, category, uploaded.name, [uploaded]);
+    } finally {
+      setIsUploading(false);
+      if (newFileInputRef.current) newFileInputRef.current.value = '';
     }
   };
 
@@ -30,26 +49,10 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
     setUploadingTask(taskId);
     setIsUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const storagePath = `${user.id}/${courseId}/${category}/${Date.now()}_${file.name}`;
-      
-      const { error } = await supabase.storage
-        .from('files')
-        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath);
-
-      attachFileToGlobalTask(courseId, category, taskId, {
-        name: file.name,
-        url: publicUrl,
-        path: storagePath
-      });
-      
-    } catch (error) {
-      console.error("Upload failed", error);
-      alert("שגיאה בהעלאת הקובץ. ודא שיצרת את ה-Bucket בשם files כנדרש.");
+      const [uploaded] = await upload(category, [file]);
+      if (uploaded) {
+        attachFileToGlobalTask(courseId, category, taskId, uploaded);
+      }
     } finally {
       setUploadingTask(null);
       setIsUploading(false);
@@ -62,26 +65,25 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
-  const handleDeleteFile = async (taskId, filePath) => {
-    if (!window.confirm('האם אתה בטוח שברצונך למחוק קובץ זה?')) return;
-    
-    try {
-      await supabase.storage.from('course_files').remove([filePath]);
-      const { removeFileFromGlobalTask } = useStore.getState();
-      removeFileFromGlobalTask(courseId, category, taskId, filePath);
-    } catch (err) {
-      console.error("Failed to delete file", err);
-      alert("שגיאה במחיקת הקובץ");
-    }
+  const handleDeleteFile = async (taskId, file) => {
+    if (!window.confirm(t('confirmDeleteFile'))) return;
+    const ok = await remove(file.path);
+    if (ok) removeFileFromGlobalTask(courseId, category, taskId, file.path);
   };
 
   return (
     <Card className="border-border shadow-sm bg-card">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        style={{ display: 'none' }} 
-        onChange={(e) => handleFileUpload(e, uploadingTask)} 
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={(e) => handleFileUpload(e, uploadingTask)}
+      />
+      <input
+        type="file"
+        ref={newFileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleUploadAsTask}
       />
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-lg flex items-center gap-2 text-foreground">
@@ -104,7 +106,13 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <button onClick={() => toggleGlobalTask(courseId, category, task.id)} className="shrink-0">
+                  <button
+                    onClick={() => toggleGlobalTask(courseId, category, task.id)}
+                    role="checkbox"
+                    aria-checked={task.checked}
+                    aria-label={task.label}
+                    className="shrink-0"
+                  >
                     {task.checked ? (
                       <CheckCircle2 className="w-5 h-5 text-primary" />
                     ) : (
@@ -126,20 +134,19 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                 <div className="ps-8 flex flex-wrap gap-2">
                   {task.files && task.files.map((file, i) => (
                     <div key={i} className="flex items-center group">
-                      <a 
-                        href={file.url} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        download={file.name}
+                      <button
+                        type="button"
+                        onClick={() => openSigned(file)}
                         className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-e-none rounded-s-md hover:bg-primary/20 transition-colors"
                       >
                         <FileText className="w-3 h-3" />
                         <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
-                      </a>
+                      </button>
                       <button
-                        onClick={() => handleDeleteFile(task.id, file.path)}
+                        onClick={() => handleDeleteFile(task.id, file)}
                         className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
-                        title="מחק קובץ"
+                        title={t('deleteFileTitle')}
+                        aria-label={`${t('deleteFileTitle')}: ${file.name}`}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -165,19 +172,77 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
           )}
         </div>
 
-        {/* Add New Task */}
-        <div className="flex gap-2">
-          <Input 
-            placeholder={t('taskNamePlaceholder')} 
-            value={newTaskLabel}
-            onChange={(e) => setNewTaskLabel(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            className="flex-1"
-          />
-          <Button type="button" onClick={handleAdd} className="shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
+        {/* Add: task or file */}
+        {addMode ? (
+          <div className="flex gap-2">
+            <Input
+              autoFocus
+              placeholder={t('taskNamePlaceholder')}
+              value={newTaskLabel}
+              onChange={(e) => setNewTaskLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAdd();
+                if (e.key === 'Escape') { setAddMode(false); setNewTaskLabel(''); }
+              }}
+              className="flex-1"
+            />
+            <Button type="button" onClick={handleAdd} className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4" />
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => { setAddMode(false); setNewTaskLabel(''); }} className="shrink-0">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="relative">
+            <Button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className="w-full gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            >
+              <Plus className="w-4 h-4" />
+              {t('addItem')}
+            </Button>
+
+            {menuOpen && (
+              <>
+                {/* click-away backdrop */}
+                <button
+                  type="button"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <div
+                  role="menu"
+                  className="absolute bottom-full mb-2 inset-x-0 z-20 bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-1"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); setAddMode(true); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors text-start"
+                  >
+                    <Plus className="w-4 h-4 text-primary" />
+                    {t('addTask')}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); newFileInputRef.current?.click(); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors text-start border-t border-border"
+                  >
+                    <Upload className="w-4 h-4 text-primary" />
+                    {t('uploadFileOption')}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
       </CardContent>
     </Card>

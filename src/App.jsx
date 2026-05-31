@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { debounce } from 'lodash';
 import { useStore } from './store/useStore';
+import { useTranslation } from './hooks/useTranslation';
 import { Layout } from './components/layout/Layout';
 import { AuthView } from './components/auth/AuthView';
 import { generateInitialState } from './data';
@@ -14,6 +15,7 @@ function App() {
   const [dataLoaded, setDataLoaded] = useState(false);
   
   const { data, setData, theme, language } = useStore();
+  const { t } = useTranslation();
   const initialLoadDone = useRef(false);
 
   // Authentication Listener
@@ -117,7 +119,7 @@ function App() {
       <div className="h-screen w-full flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <BookOpen className="w-12 h-12 text-primary" />
-          <p className="text-muted-foreground font-medium">טוען...</p>
+          <p className="text-muted-foreground font-medium">{t('loading')}</p>
         </div>
       </div>
     );
@@ -132,7 +134,7 @@ function App() {
       <div className="h-screen w-full flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <BookOpen className="w-12 h-12 text-primary animate-bounce" />
-          <p className="text-muted-foreground font-medium">טוען את סביבת הלמידה שלך...</p>
+          <p className="text-muted-foreground font-medium">{t('loadingEnv')}</p>
         </div>
       </div>
     );
