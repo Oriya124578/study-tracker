@@ -90,20 +90,32 @@ export const CourseView = () => {
           <div className="space-y-6">
             {/* Week Selector */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {Array.from({ length: activeCourse.weeksCount || 14 }, (_, i) => i + 1).map((week) => (
-                <button
-                  key={week}
-                  onClick={() => setSelectedWeek(week)}
-                  className={cn(
-                    "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
-                    selectedWeek === week
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-card border border-border text-foreground hover:bg-secondary/50"
-                  )}
-                >
-                  שבוע {week}
-                </button>
-              ))}
+              {Array.from({ length: activeCourse.weeksCount || 14 }, (_, i) => i + 1).map((week) => {
+                const weekTasks = data.tasks[activeCourse.id]?.[week];
+                const isCompleted = weekTasks && weekTasks.length > 0 && weekTasks.every(t => t.checked);
+                
+                return (
+                  <button
+                    key={week}
+                    onClick={() => setSelectedWeek(week)}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2",
+                      selectedWeek === week
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-card border border-border text-foreground hover:bg-secondary/50",
+                      isCompleted && selectedWeek !== week ? "border-primary/50 text-primary" : ""
+                    )}
+                  >
+                    שבוע {week}
+                    {isCompleted && (
+                      <span className={cn(
+                        "w-2 h-2 rounded-full",
+                        selectedWeek === week ? "bg-primary-foreground" : "bg-primary"
+                      )} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
             
             <WeeklyTasks courseId={activeCourse.id} selectedWeek={selectedWeek} />

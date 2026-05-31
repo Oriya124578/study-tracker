@@ -62,18 +62,14 @@ export const SmartDashboard = () => {
   // 4. Quick Links
   const activeCourses = data.courses.slice(0, 4); // Quick access to top 4 courses
 
-  const handleStartStudy = (courseId) => {
-    setPomodoro(prev => ({ ...prev, active: true, courseId }));
-  };
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      {/* Top Row: Progress and Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Top Row: Progress */}
+      <div className="grid grid-cols-1 gap-6">
         
         {/* Progress Card */}
-        <Card className="md:col-span-1 shadow-sm border-primary/20 bg-card">
+        <Card className="shadow-sm border-primary/20 bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-primary" />
@@ -103,44 +99,7 @@ export const SmartDashboard = () => {
         </Card>
 
         {/* Quick Links & Actions */}
-        <Card className="md:col-span-2 shadow-sm border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ExternalLink className="w-5 h-5 text-primary" />
-              גישה מהירה לקורסים פעילים
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {activeCourses.map(course => {
-                const links = data.links[course.id] || {};
-                return (
-                  <div key={course.id} className="p-4 rounded-xl border border-border bg-background flex flex-col gap-3">
-                    <h3 className="font-semibold text-foreground">{course.name}</h3>
-                    <div className="flex gap-2 text-sm">
-                      {links.notebookLm ? (
-                        <a href={links.notebookLm} target="_blank" rel="noreferrer" className="flex-1 bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors">
-                          <BookIcon />
-                          NotebookLM
-                        </a>
-                      ) : (
-                        <span className="flex-1 bg-muted text-muted-foreground px-3 py-1.5 rounded-lg flex items-center justify-center text-xs text-center">אין קישור</span>
-                      )}
-                      
-                      <button 
-                        onClick={() => handleStartStudy(course.id)}
-                        className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
-                      >
-                        <Play className="w-3 h-3" />
-                        למד עכשיו
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Removed Quick Links as requested */}
       </div>
 
       {/* Middle Row: Exam Board and Pomodoro Chart */}

@@ -42,67 +42,15 @@ export const CalendarView = () => {
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       
-      {/* Calendar Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border">
-          <div className="flex items-center gap-4">
-            <button onClick={prevMonth} className="p-2 hover:bg-muted rounded-full transition-colors"><ChevronRight className="w-5 h-5"/></button>
-            <CardTitle className="text-xl md:text-2xl min-w-[150px] text-center">
-              {format(currentDate, 'MMMM yyyy')}
-            </CardTitle>
-            <button onClick={nextMonth} className="p-2 hover:bg-muted rounded-full transition-colors"><ChevronLeft className="w-5 h-5"/></button>
-          </div>
-          <button onClick={() => setCurrentDate(new Date())} className="text-sm font-medium text-primary hover:bg-primary/10 px-3 py-1.5 rounded-md transition-colors hidden md:block">
-            היום
-          </button>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-7 gap-1 md:gap-4 mb-2 text-center text-sm font-semibold text-muted-foreground">
-            {WEEKDAYS.map(day => <div key={day}>{day}</div>)}
-          </div>
-          <div className="grid grid-cols-7 gap-1 md:gap-4">
-            {paddingDays.map(i => <div key={`pad-${i}`} className="min-h-[80px] md:min-h-[120px]" />)}
-            
-            {days.map(day => {
-              const dayExams = exams.filter(e => isSameDay(e.date, day));
-              const isCurrDay = isToday(day);
-
-              return (
-                <div 
-                  key={day.toString()} 
-                  className={cn(
-                    "min-h-[80px] md:min-h-[120px] p-1 md:p-2 border rounded-lg md:rounded-xl transition-all relative group",
-                    isCurrDay ? "border-primary bg-primary/5 shadow-sm" : "border-border/50 hover:border-primary/30"
-                  )}
-                >
-                  <span className={cn("text-sm md:text-base font-medium flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full mx-auto md:mx-0 md:mb-2", isCurrDay && "bg-primary text-primary-foreground")}>
-                    {format(day, 'd')}
-                  </span>
-                  
-                  <div className="mt-1 flex flex-col gap-1 max-h-[80px] overflow-y-auto no-scrollbar">
-                    {dayExams.map((exam, idx) => (
-                      <div key={idx} className="bg-destructive/10 text-destructive text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-md leading-tight truncate" title={`${exam.course} - ${exam.moed}`}>
-                        <span className="hidden md:inline">{exam.course} - </span>
-                        {exam.moed}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Upcoming Exams List */}
-      <Card>
-        <CardHeader>
+      {/* Upcoming Exams List - NOW ON TOP */}
+      <Card className="border-primary/20 shadow-sm">
+        <CardHeader className="bg-primary/5 border-b border-border/50">
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
             מבחנים קרובים
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="space-y-3">
             {exams.filter(e => differenceInDays(e.date, new Date()) >= -1).length === 0 ? (
               <p className="text-muted-foreground text-sm">אין מבחנים קרובים. איזה כיף!</p>
@@ -114,22 +62,82 @@ export const CalendarView = () => {
                   const isSoon = daysLeft <= 7 && daysLeft >= 0;
                   
                   return (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors gap-4">
                       <div>
-                        <h4 className="font-bold text-foreground">{exam.course}</h4>
-                        <p className="text-xs text-muted-foreground">{exam.moed} - {format(exam.date, 'dd/MM/yyyy')}</p>
+                        <h4 className="font-bold text-lg text-foreground">{exam.course}</h4>
+                        <p className="text-sm text-muted-foreground">{exam.moed} - {format(exam.date, 'dd/MM/yyyy')}</p>
                       </div>
                       <div className={cn(
-                        "px-3 py-1 rounded-full text-sm font-bold",
+                        "px-6 py-3 rounded-xl text-center self-start sm:self-auto",
                         daysLeft < 0 ? "bg-muted text-muted-foreground" :
-                        isSoon ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                        isSoon ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-primary/10 text-primary border border-primary/20"
                       )}>
-                        {daysLeft < 0 ? 'עבר' : daysLeft === 0 ? 'היום!' : `בעוד ${daysLeft} ימים`}
+                        {daysLeft < 0 ? (
+                          <span className="font-medium text-sm">עבר</span>
+                        ) : daysLeft === 0 ? (
+                          <span className="font-bold text-lg">היום!</span>
+                        ) : (
+                          <div className="flex flex-col items-center leading-none">
+                            <span className="text-2xl font-bold">{daysLeft}</span>
+                            <span className="text-xs font-medium opacity-80">ימים</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Calendar Card - SECONDARY */}
+      <Card className="opacity-90 hover:opacity-100 transition-opacity">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border">
+          <div className="flex items-center gap-4">
+            <button onClick={prevMonth} className="p-2 hover:bg-muted rounded-full transition-colors"><ChevronRight className="w-4 h-4"/></button>
+            <CardTitle className="text-lg md:text-xl min-w-[120px] text-center">
+              {format(currentDate, 'MMMM yyyy')}
+            </CardTitle>
+            <button onClick={nextMonth} className="p-2 hover:bg-muted rounded-full transition-colors"><ChevronLeft className="w-4 h-4"/></button>
+          </div>
+          <button onClick={() => setCurrentDate(new Date())} className="text-xs font-medium text-primary hover:bg-primary/10 px-2 py-1 rounded-md transition-colors hidden md:block">
+            היום
+          </button>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-medium text-muted-foreground">
+            {WEEKDAYS.map(day => <div key={day}>{day}</div>)}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {paddingDays.map(i => <div key={`pad-${i}`} className="min-h-[40px] md:min-h-[80px]" />)}
+            
+            {days.map(day => {
+              const dayExams = exams.filter(e => isSameDay(e.date, day));
+              const isCurrDay = isToday(day);
+
+              return (
+                <div 
+                  key={day.toString()} 
+                  className={cn(
+                    "min-h-[40px] md:min-h-[80px] p-1 border rounded-md transition-all relative group flex flex-col items-center justify-start",
+                    isCurrDay ? "border-primary bg-primary/5 shadow-sm" : "border-border/50 hover:border-primary/30"
+                  )}
+                >
+                  <span className={cn("text-xs md:text-sm font-medium flex items-center justify-center w-5 h-5 rounded-full mb-1", isCurrDay && "bg-primary text-primary-foreground")}>
+                    {format(day, 'd')}
+                  </span>
+                  
+                  <div className="flex flex-col w-full gap-0.5 overflow-hidden">
+                    {dayExams.map((exam, idx) => (
+                      <div key={idx} className="bg-destructive/10 text-destructive text-[9px] font-bold px-1 py-0.5 rounded-sm leading-tight text-center truncate" title={`${exam.course} - ${exam.moed}`}>
+                        {exam.course.substring(0, 5)}..
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

@@ -5,7 +5,9 @@ export const useStore = create((set, get) => ({
   data: generateInitialState(),
   activeCourse: null,
   activeCategory: 'overview',
+  // Theme and Language
   theme: localStorage.getItem('theme') || 'dark',
+  language: localStorage.getItem('language') || 'he',
   
   // Pomodoro
   pomodoro: { active: false, timeLeft: 25 * 60, mode: 'work', courseId: null },
@@ -23,11 +25,15 @@ export const useStore = create((set, get) => ({
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   
-  // Theme
+  // Theme and Language Actions
   setTheme: (theme) => {
     localStorage.setItem('theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
     set({ theme });
+  },
+  setLanguage: (language) => {
+    localStorage.setItem('language', language);
+    set({ language });
   },
   
   // Pomodoro actions
@@ -118,7 +124,8 @@ export const useStore = create((set, get) => ({
 
   attachFileToGlobalTask: (courseId, category, taskId, file) => set((state) => {
     const newData = { ...state.data };
-    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    if (!newData.globalTasks) newData.globalTasks = {};
+    const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
     
     if (!courseGlobalTasks[category]) {
       courseGlobalTasks[category] = [];
@@ -138,7 +145,8 @@ export const useStore = create((set, get) => ({
 
   addGlobalTask: (courseId, category, taskLabel) => set((state) => {
     const newData = { ...state.data };
-    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    if (!newData.globalTasks) newData.globalTasks = {};
+    const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
     
     if (!courseGlobalTasks[category]) {
       courseGlobalTasks[category] = [];
@@ -158,7 +166,9 @@ export const useStore = create((set, get) => ({
 
   deleteGlobalTask: (courseId, category, taskId) => set((state) => {
     const newData = { ...state.data };
-    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    if (!newData.globalTasks) newData.globalTasks = {};
+    const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
+    if (!courseGlobalTasks[category]) courseGlobalTasks[category] = [];
     
     courseGlobalTasks[category] = courseGlobalTasks[category].filter(t => t.id !== taskId);
     newData.globalTasks = { ...newData.globalTasks, [courseId]: courseGlobalTasks };
@@ -191,7 +201,8 @@ export const useStore = create((set, get) => ({
 
   toggleGlobalTask: (courseId, category, taskId) => set((state) => {
     const newData = { ...state.data };
-    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    if (!newData.globalTasks) newData.globalTasks = {};
+    const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
     
     if (!courseGlobalTasks[category]) {
       courseGlobalTasks[category] = [];

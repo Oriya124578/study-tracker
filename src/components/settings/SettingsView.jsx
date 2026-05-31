@@ -4,12 +4,12 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
 import { supabase } from '../../supabaseClient';
-import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe } from 'lucide-react';
 import { MigrateLocalFiles } from './MigrateLocalFiles';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 
 export const SettingsView = () => {
-  const { data, resetSemester, addCourse, updateCourse } = useStore();
+  const { data, resetSemester, addCourse, updateCourse, language, setLanguage } = useStore();
   const [editingCourse, setEditingCourse] = useState(null); // The course object being edited/added
   const [isAddMode, setIsAddMode] = useState(false);
 

@@ -13,7 +13,7 @@ function App() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   
-  const { data, setData, theme } = useStore();
+  const { data, setData, theme, language } = useStore();
   const initialLoadDone = useRef(false);
 
   // Authentication Listener
@@ -101,10 +101,15 @@ function App() {
     }
   }, [data, session, dataLoaded, saveToSupabase]);
 
-  // Apply Theme
+  // Apply Theme and Language
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
+  }, [language]);
 
   // Render Logic
   if (loadingAuth) {

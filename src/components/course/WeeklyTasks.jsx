@@ -134,6 +134,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                               href={file.url} 
                               target="_blank" 
                               rel="noreferrer"
+                              download={file.name}
                               className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-md hover:bg-primary/20 transition-colors"
                             >
                               <FileText className="w-3 h-3" />
