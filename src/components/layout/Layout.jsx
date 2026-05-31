@@ -34,9 +34,9 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-background overflow-hidden selection:bg-primary/20">
+    <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-32 md:pb-8">
         {renderContent()}
       </main>
       <MobileNav />
