@@ -77,7 +77,7 @@ export const SettingsView = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-20 md:pb-0 animate-in fade-in duration-500">
+    <div className="space-y-6 max-w-4xl mx-auto p-6 md:p-8 animate-in fade-in duration-500">
       
       {/* Settings Header */}
       <div className="flex items-center gap-3 border-b pb-4">

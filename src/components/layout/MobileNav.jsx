@@ -12,7 +12,7 @@ export const MobileNav = () => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 px-6 py-3 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-safe">
+    <div className="md:hidden flex-none w-full bg-background border-t border-border z-50 px-6 py-3 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom,16px)]">
       <button onClick={() => handleNavClick('overview')} className={cn("flex flex-col items-center gap-1 transition-colors", activeCategory === 'overview' ? "text-primary" : "text-muted-foreground")}>
         <Home className="w-6 h-6" />
         <span className="text-[10px] font-medium">ראשי</span>

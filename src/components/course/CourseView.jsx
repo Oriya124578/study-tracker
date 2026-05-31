@@ -85,7 +85,7 @@ export const CourseView = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-24 md:pb-8">
+      <div className="flex-1">
         {activeTab === 'weekly' ? (
           <div className="space-y-6">
             {/* Week Selector */}

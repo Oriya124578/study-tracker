@@ -34,7 +34,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
+    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-background overflow-hidden selection:bg-primary/20">
       <Sidebar />
       <main className="flex-1 overflow-y-auto relative scroll-smooth">
         {renderContent()}
