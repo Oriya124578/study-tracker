@@ -1,87 +1,205 @@
 import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
 import { supabase } from '../../supabaseClient';
-import { LogOut, RotateCcw, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
+import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2 } from 'lucide-react';
+import { MigrateLocalFiles } from './MigrateLocalFiles';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 
 export const SettingsView = () => {
-  const { resetSemester } = useStore();
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [resetSuccess, setResetSuccess] = useState(false);
+  const { data, resetSemester, addCourse, updateCourse } = useStore();
+  const [editingCourse, setEditingCourse] = useState(null); // The course object being edited/added
+  const [isAddMode, setIsAddMode] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
 
   const handleReset = () => {
-    resetSemester();
-    setShowResetConfirm(false);
-    setResetSuccess(true);
-    setTimeout(() => setResetSuccess(false), 3000);
+    if (window.confirm("האם אתה בטוח שברצונך לאפס את הסמסטר? כל המשימות וההערות יימחקו, אך הקורסים יישמרו.")) {
+      resetSemester();
+      alert("הסמסטר אופס בהצלחה!");
+    }
+  };
+
+  const openEditModal = (course) => {
+    setIsAddMode(false);
+    setEditingCourse({ ...course, notebookLm: data.links[course.id]?.notebookLm || "", gemini: data.links[course.id]?.gemini || "" });
+  };
+
+  const openAddModal = () => {
+    setIsAddMode(true);
+    setEditingCourse({
+      id: `course-${Date.now()}`,
+      name: "",
+      weeksCount: 14,
+      moedA: "",
+      moedB: "",
+      moedC: "",
+      notebookLm: "",
+      gemini: ""
+    });
+  };
+
+  const saveCourse = () => {
+    if (!editingCourse.name) return alert("חובה להזין שם קורס");
+    
+    if (isAddMode) {
+      addCourse({
+        id: editingCourse.id,
+        name: editingCourse.name,
+        weeksCount: editingCourse.weeksCount,
+        moedA: editingCourse.moedA,
+        moedB: editingCourse.moedB,
+        moedC: editingCourse.moedC,
+        defaultNotebookLmLink: editingCourse.notebookLm,
+        defaultGeminiLink: editingCourse.gemini
+      });
+    } else {
+      updateCourse(editingCourse.id, {
+        name: editingCourse.name,
+        weeksCount: editingCourse.weeksCount,
+        moedA: editingCourse.moedA,
+        moedB: editingCourse.moedB,
+        moedC: editingCourse.moedC
+      });
+      // We also need to update links using the store's saveLinks function.
+      // But we don't have saveLinks directly accessible here easily, so we can dispatch it via useStore
+      useStore.getState().saveLinks(editingCourse.id, {
+        ...data.links[editingCourse.id],
+        notebookLm: editingCourse.notebookLm,
+        gemini: editingCourse.gemini
+      });
+    }
+    setEditingCourse(null);
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">הגדרות האתר</h1>
-        <p className="text-muted-foreground mt-1">ניהול חשבון, מראה ואיפוס סמסטר</p>
+    <div className="space-y-6 max-w-4xl mx-auto pb-20 md:pb-0 animate-in fade-in duration-500">
+      
+      {/* Settings Header */}
+      <div className="flex items-center gap-3 border-b pb-4">
+        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+          <Settings className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">הגדרות מערכת</h1>
+          <p className="text-muted-foreground">ניהול קורסים, נתונים והעדפות אישיות</p>
+        </div>
       </div>
 
-      {resetSuccess && (
-        <div className="bg-primary/10 border border-primary/20 text-primary p-4 rounded-xl flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5" />
-          <span>הסמסטר אופס בהצלחה! כל המטלות וההערות נוקו. בהצלחה בסמסטר החדש!</span>
-        </div>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>אזור סכנה ⚠️</CardTitle>
-          <CardDescription>פעולות אלו משפיעות על הנתונים שלך ואינן ניתנות לביטול.</CardDescription>
+      {/* Course Manager */}
+      <Card className="shadow-sm border-border">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              ניהול קורסים
+            </CardTitle>
+            <CardDescription>הוסף קורסים חדשים, ערוך מבחנים וקישורים למחברות בינה מלאכותית.</CardDescription>
+          </div>
+          <Button onClick={openAddModal} className="flex items-center gap-1 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="w-4 h-4" />
+            קורס חדש
+          </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-border rounded-lg bg-muted/10">
-            <div>
-              <h3 className="font-semibold text-foreground">איפוס סמסטר (Reset Semester)</h3>
-              <p className="text-sm text-muted-foreground">מוחק את כל הסימונים, המשימות, ההערות והפומודורו, אך שומר את הקורסים והלינקים. מומלץ בתחילת סמסטר חדש.</p>
-            </div>
-            <Button variant="destructive" onClick={() => setShowResetConfirm(true)} className="whitespace-nowrap flex items-center gap-2">
-              <RotateCcw className="w-4 h-4" /> אפס סמסטר
-            </Button>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.courses.map(course => (
+              <div key={course.id} className="border border-border p-4 rounded-xl flex justify-between items-center bg-card">
+                <div>
+                  <h3 className="font-bold text-foreground">{course.name}</h3>
+                  <p className="text-sm text-muted-foreground">מועד א': {course.moedA ? new Date(course.moedA).toLocaleDateString('he-IL') : 'לא הוגדר'}</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => openEditModal(course)} className="text-muted-foreground hover:text-primary">
+                  <Edit2 className="w-4 h-4 ml-1" />
+                  ערוך
+                </Button>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      {/* File Migration Tool */}
+      <MigrateLocalFiles />
+
+      {/* Account & Data */}
+      <Card className="shadow-sm border-border">
         <CardHeader>
-          <CardTitle>חשבון משתמש</CardTitle>
+          <CardTitle>חשבון ונתונים</CardTitle>
+          <CardDescription>פעולות על חשבון המשתמש והנתונים שלך.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button variant="secondary" onClick={handleLogout} className="flex items-center gap-2">
-            <LogOut className="w-4 h-4" /> התנתק מהחשבון
-          </Button>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-destructive/5 border border-destructive/20">
+            <div>
+              <h3 className="font-semibold text-destructive flex items-center gap-2">
+                <RefreshCcw className="w-4 h-4" />
+                איפוס סמסטר
+              </h3>
+              <p className="text-sm text-destructive/80">מוחק את כל המשימות וההערות, שומר את הקורסים.</p>
+            </div>
+            <Button variant="destructive" onClick={handleReset}>איפוס עכשיו</Button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
+            <div>
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                התנתקות
+              </h3>
+              <p className="text-sm text-muted-foreground">התנתק מהמערכת.</p>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>התנתק</Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Modal Confirm */}
-      <Dialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" /> האם אתה בטוח?
-            </DialogTitle>
-            <DialogDescription>
-              פעולה זו תמחק את כל ההתקדמות שלך בסמסטר הנוכחי (הסימונים במטלות, ההערות שכתבת, ונתוני הפומודורו). הקורסים עצמם והלינקים יישמרו. הפעולה בלתי הפיכה!
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowResetConfirm(false)}>ביטול</Button>
-            <Button variant="destructive" onClick={handleReset}>כן, אפס סמסטר</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Course Edit/Add Modal */}
+      {editingCourse && (
+        <Dialog open={true} onOpenChange={() => setEditingCourse(null)}>
+          <DialogContent className="sm:max-w-[425px]" dir="rtl">
+            <DialogHeader>
+              <DialogTitle>{isAddMode ? 'הוספת קורס חדש' : `עריכת קורס: ${editingCourse.name}`}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">שם הקורס</label>
+                <Input value={editingCourse.name} onChange={e => setEditingCourse({...editingCourse, name: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">מספר שבועות</label>
+                <Input type="number" min="1" max="20" value={editingCourse.weeksCount} onChange={e => setEditingCourse({...editingCourse, weeksCount: parseInt(e.target.value)})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">תאריך מועד א'</label>
+                  <Input type="date" value={editingCourse.moedA} onChange={e => setEditingCourse({...editingCourse, moedA: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">תאריך מועד ב'</label>
+                  <Input type="date" value={editingCourse.moedB} onChange={e => setEditingCourse({...editingCourse, moedB: e.target.value})} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">קישור ל-NotebookLM</label>
+                <Input value={editingCourse.notebookLm} onChange={e => setEditingCourse({...editingCourse, notebookLm: e.target.value})} placeholder="https://notebooklm.google.com/..." dir="ltr" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">קישור ל-Gemini / ChatGPT</label>
+                <Input value={editingCourse.gemini} onChange={e => setEditingCourse({...editingCourse, gemini: e.target.value})} placeholder="https://gemini.google.com/..." dir="ltr" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingCourse(null)}>ביטול</Button>
+              <Button onClick={saveCourse}>שמור קורס</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
     </div>
   );
 };

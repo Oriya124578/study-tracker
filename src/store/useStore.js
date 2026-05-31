@@ -36,7 +36,7 @@ export const useStore = create((set, get) => ({
   setShowPomoSettings: (show) => set({ showPomoSettings: show }),
   
   addPomodoroSession: (session) => set((state) => {
-    if (!session.courseId) return state; // Don't save if no course selected
+    if (!session.courseId) return state;
     const newSession = {
       id: Date.now().toString(),
       ...session
@@ -54,7 +54,6 @@ export const useStore = create((set, get) => ({
     const newCourses = [...state.data.courses, course];
     const newData = { ...state.data, courses: newCourses };
     
-    // Initialize tasks and notes for the new course
     newData.tasks[course.id] = {};
     newData.notes[course.id] = {};
     newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [] };
@@ -67,9 +66,9 @@ export const useStore = create((set, get) => ({
     for (let week = 1; week <= course.weeksCount; week++) {
       newData.notes[course.id][week] = "";
       newData.tasks[course.id][week] = [
-        { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false },
-        { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false },
-        { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false }
+        { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false, files: [] },
+        { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false, files: [] },
+        { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false, files: [] }
       ];
     }
     return { data: newData };
@@ -96,6 +95,74 @@ export const useStore = create((set, get) => ({
     return { data: newData };
   }),
 
+  attachFileToTask: (courseId, week, taskId, file) => set((state) => {
+    const newData = { ...state.data };
+    const courseTasks = { ...newData.tasks[courseId] };
+    const weekTasks = [...courseTasks[week]];
+    
+    const taskIndex = weekTasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1) {
+      const task = weekTasks[taskIndex];
+      weekTasks[taskIndex] = { 
+        ...task, 
+        files: [...(task.files || []), file] 
+      };
+    }
+    
+    courseTasks[week] = weekTasks;
+    newData.tasks = { ...newData.tasks, [courseId]: courseTasks };
+    return { data: newData };
+  }),
+
+  attachFileToGlobalTask: (courseId, category, taskId, file) => set((state) => {
+    const newData = { ...state.data };
+    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    
+    if (!courseGlobalTasks[category]) {
+      courseGlobalTasks[category] = [];
+    }
+    
+    const categoryTasks = courseGlobalTasks[category].map(t => {
+      if (t.id === taskId) {
+        return { ...t, files: [...(t.files || []), file] };
+      }
+      return t;
+    });
+    
+    courseGlobalTasks[category] = categoryTasks;
+    newData.globalTasks = { ...newData.globalTasks, [courseId]: courseGlobalTasks };
+    return { data: newData };
+  }),
+
+  addGlobalTask: (courseId, category, taskLabel) => set((state) => {
+    const newData = { ...state.data };
+    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    
+    if (!courseGlobalTasks[category]) {
+      courseGlobalTasks[category] = [];
+    }
+    
+    const newTask = {
+      id: `${Date.now()}`,
+      label: taskLabel,
+      checked: false,
+      files: []
+    };
+    
+    courseGlobalTasks[category] = [...courseGlobalTasks[category], newTask];
+    newData.globalTasks = { ...newData.globalTasks, [courseId]: courseGlobalTasks };
+    return { data: newData };
+  }),
+
+  deleteGlobalTask: (courseId, category, taskId) => set((state) => {
+    const newData = { ...state.data };
+    const courseGlobalTasks = { ...newData.globalTasks[courseId] };
+    
+    courseGlobalTasks[category] = courseGlobalTasks[category].filter(t => t.id !== taskId);
+    newData.globalTasks = { ...newData.globalTasks, [courseId]: courseGlobalTasks };
+    return { data: newData };
+  }),
+
   reorderTasks: (courseId, week, newTasksOrder) => set((state) => {
     const newData = { ...state.data };
     const courseTasks = { ...newData.tasks[courseId] };
@@ -112,9 +179,6 @@ export const useStore = create((set, get) => ({
     const destList = sourceWeek === destWeek ? sourceList : [...courseTasks[destWeek]];
     
     const [movedTask] = sourceList.splice(sourceIndex, 1);
-    
-    // Update task ID slightly to avoid dupes if moved back? Usually not needed if strictly moved.
-    // We'll keep the same task ID.
     destList.splice(destIndex, 0, movedTask);
     
     courseTasks[sourceWeek] = sourceList;
@@ -159,10 +223,8 @@ export const useStore = create((set, get) => ({
   // Semester Reset
   resetSemester: () => set((state) => {
     const newData = generateInitialState();
-    // Keep courses but reset tasks, notes, etc.
     newData.courses = [...state.data.courses];
     
-    // We need to re-initialize the internal structure based on the kept courses
     newData.courses.forEach(course => {
       newData.tasks[course.id] = {};
       newData.notes[course.id] = {};
@@ -176,9 +238,9 @@ export const useStore = create((set, get) => ({
       for (let week = 1; week <= course.weeksCount; week++) {
         newData.notes[course.id][week] = "";
         newData.tasks[course.id][week] = [
-          { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false },
-          { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false },
-          { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false }
+          { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false, files: [] },
+          { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false, files: [] },
+          { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false, files: [] }
         ];
       }
     });
