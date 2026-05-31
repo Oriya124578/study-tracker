@@ -39,7 +39,7 @@ export const Layout = () => {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8 pt-[env(safe-area-inset-top,16px)] md:pt-0">
         <ErrorBoundary>{renderContent()}</ErrorBoundary>
       </main>
       <MobileNav />

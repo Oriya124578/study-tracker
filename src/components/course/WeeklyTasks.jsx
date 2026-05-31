@@ -103,7 +103,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                       >
                         {/* Task Header */}
                         <div className="flex items-center gap-3">
-                          <div {...provided.dragHandleProps} className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing p-1">
+                          <div {...provided.dragHandleProps} className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing p-2 md:p-1 -ml-1">
                             <GripVertical className="w-5 h-5" />
                           </div>
                           
@@ -112,11 +112,13 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                             role="checkbox"
                             aria-checked={task.checked}
                             aria-label={task.label}
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
-                              task.checked ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground hover:border-primary'
-                            }`}
+                            className="p-2 -mx-2 shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
                           >
-                            {task.checked && <Check className="w-4 h-4" />}
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              task.checked ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground hover:border-primary'
+                            }`}>
+                              {task.checked && <Check className="w-4 h-4" />}
+                            </div>
                           </button>
                           
                           <span className={`font-medium flex-1 ${task.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
@@ -138,7 +140,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                               </button>
                               <button
                                 onClick={() => handleDeleteFile(task.id, file)}
-                                className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
+                                className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-2.5 py-1.5 md:px-1.5 md:py-1 rounded-e-md rounded-s-none transition-colors"
                                 title={t('deleteFileTitle')}
                                 aria-label={`${t('deleteFileTitle')}: ${file.name}`}
                               >

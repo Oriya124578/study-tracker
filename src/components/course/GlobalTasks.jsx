@@ -111,7 +111,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                     role="checkbox"
                     aria-checked={task.checked}
                     aria-label={task.label}
-                    className="shrink-0"
+                    className="p-2 -mx-2 shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
                     {task.checked ? (
                       <CheckCircle2 className="w-5 h-5 text-primary" />
@@ -124,7 +124,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                   </span>
                   <button 
                     onClick={() => deleteGlobalTask(courseId, category, task.id)}
-                    className="text-muted-foreground hover:text-destructive opacity-50 hover:opacity-100 transition-opacity p-1"
+                    className="text-muted-foreground hover:text-destructive opacity-50 hover:opacity-100 transition-opacity p-2 md:p-1 -mr-1 md:mr-0 rounded-full"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -144,7 +144,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                       </button>
                       <button
                         onClick={() => handleDeleteFile(task.id, file)}
-                        className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
+                        className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-2.5 py-1.5 md:px-1.5 md:py-1 rounded-e-md rounded-s-none transition-colors"
                         title={t('deleteFileTitle')}
                         aria-label={`${t('deleteFileTitle')}: ${file.name}`}
                       >

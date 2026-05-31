@@ -80,7 +80,7 @@ export const SettingsView = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto p-6 md:p-8 animate-in fade-in duration-500">
+    <div className="space-y-6 max-w-4xl mx-auto p-4 sm:p-6 md:p-8 animate-in fade-in duration-500">
       
       {/* Settings Header */}
       <div className="flex items-center gap-3 border-b pb-4">
@@ -202,7 +202,7 @@ export const SettingsView = () => {
                 <label className="text-sm font-medium">{t('weeksCountLabel')}</label>
                 <Input type="number" min="1" max="20" value={editingCourse.weeksCount} onChange={e => setEditingCourse({...editingCourse, weeksCount: parseInt(e.target.value)})} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('examDateA')}</label>
                   <Input type="date" value={editingCourse.moedA} onChange={e => setEditingCourse({...editingCourse, moedA: e.target.value})} />

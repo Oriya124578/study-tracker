@@ -44,7 +44,7 @@ export const CourseView = () => {
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto w-full pt-4 md:pt-8 px-4 md:px-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between gap-4 border-b pb-4">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">{activeCourse.name}</h1>
           <div className="flex gap-4 mt-2 text-sm text-muted-foreground">

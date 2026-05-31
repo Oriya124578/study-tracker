@@ -43,7 +43,7 @@ export const CalendarView = () => {
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+    <div className="p-3 sm:p-6 md:p-8 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       
       {/* Upcoming Exams List - NOW ON TOP */}
       <Card className="border-primary/20 shadow-sm">
@@ -109,10 +109,10 @@ export const CalendarView = () => {
           </button>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-medium text-muted-foreground">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2 text-center text-xs font-medium text-muted-foreground">
             {(language === 'en' ? WEEKDAYS_EN : WEEKDAYS).map((day, i) => <div key={i}>{day}</div>)}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {paddingDays.map(i => <div key={`pad-${i}`} className="min-h-[40px] md:min-h-[80px]" />)}
             
             {days.map(day => {
@@ -123,7 +123,7 @@ export const CalendarView = () => {
                 <div 
                   key={day.toString()} 
                   className={cn(
-                    "min-h-[40px] md:min-h-[80px] p-1 border rounded-md transition-all relative group flex flex-col items-center justify-start",
+                    "min-h-[40px] md:min-h-[80px] p-0.5 sm:p-1 border rounded-md transition-all relative group flex flex-col items-center justify-start",
                     isCurrDay ? "border-primary bg-primary/5 shadow-sm" : "border-border/50 hover:border-primary/30"
                   )}
                 >

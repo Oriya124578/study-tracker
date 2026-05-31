@@ -79,7 +79,7 @@ export const AuthView = () => {
                 required 
                 placeholder={t('emailPlaceholder')}
                 dir="ltr"
-                className="text-start"
+                className="text-start h-11 md:h-10"
               />
             </div>
             
@@ -92,7 +92,7 @@ export const AuthView = () => {
                 required 
                 placeholder={t('passwordPlaceholder')}
                 dir="ltr"
-                className="text-start"
+                className="text-start h-11 md:h-10"
               />
             </div>
 

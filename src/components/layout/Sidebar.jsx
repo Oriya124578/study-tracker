@@ -24,8 +24,8 @@ export const Sidebar = () => {
         )}
       >
         <div className="p-4 flex items-center justify-between border-b border-border h-16">
-          {sidebarOpen && <h1 className="font-bold text-xl text-primary flex items-center gap-2"><BookOpen className="w-6 h-6"/> Study Tracker</h1>}
-          {!sidebarOpen && <BookOpen className="w-6 h-6 text-primary mx-auto"/>}
+          {sidebarOpen && <h1 className="font-bold text-xl text-primary flex items-center gap-2"><img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain" /> Study Tracker</h1>}
+          {!sidebarOpen && <img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain mx-auto" />}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-muted-foreground hover:text-foreground hidden lg:block">
             {sidebarOpen ? <PanelRightClose className="w-5 h-5"/> : <PanelLeftClose className="w-5 h-5"/>}
           </button>

@@ -10,7 +10,7 @@ const Dialog = ({ open, onOpenChange, children }) => {
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" 
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative z-50 w-full max-w-lg bg-background rounded-xl border border-border shadow-lg animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-50 w-full max-w-lg bg-background rounded-xl border border-border shadow-lg animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {children}
       </div>
     </div>
