@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, getDay, differenceInDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfDay, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, getDay, differenceInDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';

@@ -9,6 +9,7 @@ import { DEFAULT_COURSES } from '../../data';
 import confetti from 'canvas-confetti';
 import { BookOpen, User, Calendar, CheckCircle2, ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { toast } from '../../store/useToast';
 
 export const OnboardingScreen = () => {
   const { t } = useTranslation();
@@ -20,8 +21,8 @@ export const OnboardingScreen = () => {
   
   // Form State
   const [displayName, setDisplayName] = useState('');
-  const [academicYear, setAcademicYear] = useState('שנה א\'');
-  const [semester, setSemester] = useState('סמסטר א\'');
+  const [academicYear, setAcademicYear] = useState(language === 'en' ? 'Year 1' : 'שנה א\'');
+  const [semester, setSemester] = useState(language === 'en' ? 'Semester A' : 'סמסטר א\'');
   const [selectedCourseIds, setSelectedCourseIds] = useState(
     DEFAULT_COURSES.slice(0, 3).map(c => c.id) // pre-select some
   );
@@ -47,18 +48,25 @@ export const OnboardingScreen = () => {
   };
 
   const handleFinish = () => {
+    if (selectedCourseIds.length === 0) return; // shouldn't happen (button disabled)
+
     confetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
       colors: ['#4ade80', '#3b82f6', '#f43f5e', '#fbbf24']
     });
-    
+
     // Map IDs to actual course objects
     const selectedCourses = DEFAULT_COURSES.filter(c => selectedCourseIds.includes(c.id));
-    
+
     setTimeout(() => {
-      completeOnboarding({ displayName, academicYear, semester }, selectedCourses);
+      try {
+        completeOnboarding({ displayName: (displayName || '').trim(), academicYear, semester }, selectedCourses);
+      } catch (err) {
+        console.error('Onboarding failed', err);
+        toast.error(t('saveError'));
+      }
     }, 1000);
   };
 

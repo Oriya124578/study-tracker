@@ -54,6 +54,9 @@ export const translations = {
     forgotPassword: 'שכחת סיסמה? שחזר כאן',
     resetPasswordEmailSent: 'נשלח מייל לאיפוס סיסמה!',
     emailRequiredReset: 'יש להזין אימייל כדי לשחזר סיסמה.',
+    invalidCredentials: 'אימייל או סיסמה שגויים.',
+    passwordTooWeak: 'הסיסמה חייבת להכיל לפחות 8 תווים.',
+    tooManyAttempts: 'יותר מדי ניסיונות. נסה שוב בעוד מספר שניות.',
 
     // Dashboard
     semesterProgress: 'התקדמות סמסטר',
@@ -186,6 +189,9 @@ export const translations = {
     workTime: 'זמן מיקוד (דקות)',
     breakTime: 'זמן הפסקה (דקות)',
     dangerZone: 'אזור סכנה',
+    exportData: 'ייצוא נתונים',
+    exportDataDesc: 'הורד גיבוי של כל הנתונים שלך כקובץ JSON.',
+    exportDataBtn: 'הורד גיבוי',
     // Onboarding
     welcomeTo: 'ברוך הבא ל-',
     onboardingDesc: 'בואו נגדיר את סביבת הלמידה שלך כדי שתפיק את המקסימום מהסמסטר.',
@@ -263,6 +269,9 @@ export const translations = {
     forgotPassword: 'Forgot password? Reset here',
     resetPasswordEmailSent: 'Password reset email sent!',
     emailRequiredReset: 'Email is required to reset password.',
+    invalidCredentials: 'Invalid email or password.',
+    passwordTooWeak: 'Password must be at least 8 characters.',
+    tooManyAttempts: 'Too many attempts. Please try again in a few seconds.',
 
     // Dashboard
     semesterProgress: 'Semester Progress',
@@ -395,6 +404,9 @@ export const translations = {
     workTime: 'Focus Time (minutes)',
     breakTime: 'Break Time (minutes)',
     dangerZone: 'Danger Zone',
+    exportData: 'Export Data',
+    exportDataDesc: 'Download a backup of all your data as a JSON file.',
+    exportDataBtn: 'Download Backup',
     // Onboarding
     welcomeTo: 'Welcome to ',
     onboardingDesc: 'Let\'s set up your learning environment so you can get the most out of this semester.',

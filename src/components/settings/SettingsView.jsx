@@ -26,6 +26,26 @@ export const SettingsView = () => {
   const [pomoWork, setPomoWork] = useState(pomoSettings?.work || 25);
   const [pomoBreak, setPomoBreak] = useState(pomoSettings?.break || 5);
 
+  // Convert a possibly-ISO date string to YYYY-MM-DD for <input type="date">.
+  const toDateInput = (val) => {
+    if (!val) return '';
+    try {
+      const d = new Date(val);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toISOString().split('T')[0];
+    } catch { return ''; }
+  };
+
+  const handleExportData = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `study-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -49,13 +69,13 @@ export const SettingsView = () => {
 
   const openEditModal = (course) => {
     setIsAddMode(false);
-    setEditingCourse({ 
-      ...course, 
-      moedA: course.moedA || course.exams?.moedA || "",
-      moedB: course.moedB || course.exams?.moedB || "",
-      moedC: course.moedC || course.exams?.moedC || "",
-      notebookLm: data.links[course.id]?.notebookLm || "", 
-      gemini: data.links[course.id]?.gemini || "" 
+    setEditingCourse({
+      ...course,
+      moedA: toDateInput(course.moedA || course.exams?.moedA),
+      moedB: toDateInput(course.moedB || course.exams?.moedB),
+      moedC: toDateInput(course.moedC || course.exams?.moedC),
+      notebookLm: data.links?.[course.id]?.notebookLm || "",
+      gemini: data.links?.[course.id]?.gemini || ""
     });
   };
 
@@ -324,6 +344,15 @@ export const SettingsView = () => {
               </div>
               <Button onClick={handleSavePomodoro} className="w-full sm:w-auto">{t('save')}</Button>
             </div>
+          </div>
+
+          {/* Data Export */}
+          <div className="p-4 rounded-xl border bg-card flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-foreground">{t('exportData')}</h3>
+              <p className="text-sm text-muted-foreground">{t('exportDataDesc')}</p>
+            </div>
+            <Button variant="outline" onClick={handleExportData}>{t('exportDataBtn')}</Button>
           </div>
 
           {/* Danger Zone */}

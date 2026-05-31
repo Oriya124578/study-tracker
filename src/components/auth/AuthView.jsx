@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useTranslation } from '../../hooks/useTranslation';
+import { toast } from '../../store/useToast';
+
+// Map Supabase error messages to generic, non-leaking user-facing keys.
+const mapAuthError = (message = '') => {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login') || m.includes('invalid credentials') || m.includes('user not found'))
+    return 'invalidCredentials';
+  if (m.includes('rate limit') || m.includes('too many'))
+    return 'tooManyAttempts';
+  return null; // use raw message as fallback
+};
 
 export const AuthView = () => {
   const [email, setEmail] = useState('');
@@ -14,8 +25,21 @@ export const AuthView = () => {
   const [error, setError] = useState(null);
   const { t } = useTranslation();
 
+  // Simple client-side rate limiter: disable the button for a few seconds after
+  // a failed attempt to slow brute-force attempts.
+  const cooldownUntil = useRef(0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (Date.now() < cooldownUntil.current) {
+      setError(t('tooManyAttempts'));
+      return;
+    }
+    // Client-side password strength check (signup only).
+    if (!isLogin && password.length < 8) {
+      setError(t('passwordTooWeak'));
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -27,7 +51,10 @@ export const AuthView = () => {
         if (error) throw error;
       }
     } catch (err) {
-      setError(err.message);
+      const key = mapAuthError(err.message);
+      setError(key ? t(key) : err.message);
+      // After a failure, impose a short cooldown to slow down automated attacks.
+      cooldownUntil.current = Date.now() + 3000;
     } finally {
       setLoading(false);
     }
@@ -42,9 +69,10 @@ export const AuthView = () => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
-      alert(t('resetPasswordEmailSent'));
+      toast.success(t('resetPasswordEmailSent'));
     } catch (err) {
-      setError(err.message);
+      const key = mapAuthError(err.message);
+      setError(key ? t(key) : err.message);
     } finally {
       setLoading(false);
     }
