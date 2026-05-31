@@ -39,9 +39,17 @@ export const Layout = () => {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8 pt-[env(safe-area-inset-top,16px)] md:pt-0">
-        <ErrorBoundary>{renderContent()}</ErrorBoundary>
-      </main>
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        <header className="md:hidden flex items-center justify-center p-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0">
+          <h1 className="font-bold text-lg text-primary flex items-center gap-2">
+            <img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain" />
+            Study Tracker
+          </h1>
+        </header>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8 pt-4 md:pt-0">
+          <ErrorBoundary>{renderContent()}</ErrorBoundary>
+        </main>
+      </div>
       <MobileNav />
       <MobileCourseMenu />
 
