@@ -9,6 +9,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 export const SmartDashboard = () => {
   const { data, activeCourse, setActiveCourse, setActiveCategory, setPomodoro } = useStore();
   const { t, language } = useTranslation();
+  const displayName = data?.profile?.displayName || '';
 
   // 1. Weekly Progress Calculation
   const progressStats = useMemo(() => {
@@ -68,6 +69,15 @@ export const SmartDashboard = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
+      {/* Greeting */}
+      {displayName && (
+        <div className="flex items-center gap-2 mb-2">
+          <h2 className="text-2xl font-bold text-foreground">
+            {t('welcomeTo', 'היי, ')} {displayName}!
+          </h2>
+        </div>
+      )}
+
       {/* Top Row: Progress */}
       <div className="grid grid-cols-1 gap-6">
         

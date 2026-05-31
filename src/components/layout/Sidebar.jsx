@@ -6,8 +6,9 @@ import { Button } from '../ui/button';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const Sidebar = () => {
-  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen } = useStore();
+  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen, language } = useStore();
   const { t } = useTranslation();
+  const displayName = data?.profile?.displayName || 'User';
 
   const handleNavClick = (category, course = null) => {
     setActiveCategory(category);
@@ -23,12 +24,23 @@ export const Sidebar = () => {
           sidebarOpen ? "w-64" : "w-20"
         )}
       >
-        <div className="p-4 flex items-center justify-between border-b border-border h-16">
-          {sidebarOpen && <h1 className="font-bold text-xl text-primary flex items-center gap-2"><img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain" /> Study Tracker</h1>}
-          {!sidebarOpen && <img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain mx-auto" />}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-muted-foreground hover:text-foreground hidden lg:block">
-            {sidebarOpen ? <PanelRightClose className="w-5 h-5"/> : <PanelLeftClose className="w-5 h-5"/>}
-          </button>
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between mb-4">
+             {sidebarOpen && (
+               <div className="flex items-center gap-2">
+                 <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                 </div>
+                 <div>
+                    <h1 className="font-bold text-sm text-foreground">Study Tracker</h1>
+                    <p className="text-[10px] text-muted-foreground">{displayName}</p>
+                 </div>
+               </div>
+             )}
+             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-muted-foreground hover:text-foreground hidden lg:block">
+               {sidebarOpen ? <PanelRightClose className="w-5 h-5"/> : <PanelLeftClose className="w-5 h-5"/>}
+             </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-2 px-2">

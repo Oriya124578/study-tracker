@@ -5,6 +5,7 @@ import { useStore } from './store/useStore';
 import { useTranslation } from './hooks/useTranslation';
 import { Layout } from './components/layout/Layout';
 import { AuthView } from './components/auth/AuthView';
+import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
 import { generateInitialState } from './data';
 import { BookOpen } from 'lucide-react';
 import './index.css';
@@ -14,7 +15,7 @@ function App() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   
-  const { data, setData, theme, language } = useStore();
+  const { data, setData, theme, language, hasCompletedOnboarding, setHasCompletedOnboarding } = useStore();
   const { t } = useTranslation();
   const initialLoadDone = useRef(false);
 
@@ -59,6 +60,10 @@ function App() {
               setData(freshState);
             } else {
               setData(userData.app_state);
+              // Migration check: If they already have courses, mark onboarding as complete
+              if (userData.app_state.courses.length > 0) {
+                setHasCompletedOnboarding(true);
+              }
             }
           } else {
             // New user -> initialize state
@@ -79,7 +84,7 @@ function App() {
       };
       loadData();
     }
-  }, [session, setData]);
+  }, [session, setData, setHasCompletedOnboarding]);
 
   // Debounced Save to Supabase
   const saveToSupabase = useCallback(
@@ -138,6 +143,11 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  // If data is loaded but onboarding not complete, show Onboarding
+  if (!hasCompletedOnboarding) {
+    return <OnboardingScreen />;
   }
 
   return <Layout />;

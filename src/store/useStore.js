@@ -3,6 +3,7 @@ import { generateInitialState } from '../data';
 
 export const useStore = create((set, get) => ({
   data: generateInitialState(),
+  hasCompletedOnboarding: undefined, // undefined indicates we haven't checked migration yet
   activeCourse: null,
   activeCategory: 'overview',
   // Theme and Language
@@ -21,6 +22,7 @@ export const useStore = create((set, get) => ({
   
   // Core Setters
   setData: (newData) => set({ data: newData }),
+  setHasCompletedOnboarding: (val) => set({ hasCompletedOnboarding: val }),
   setActiveCourse: (course) => set({ activeCourse: course }),
   setActiveCategory: (category) => set({ activeCategory: category }),
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
@@ -28,8 +30,8 @@ export const useStore = create((set, get) => ({
   setIsUploading: (status) => set({ isUploading: status }),
   
   // Theme and Language Actions
-  setProfile: (name) => set((state) => ({ 
-    data: { ...state.data, profile: { ...state.data.profile, displayName: name } } 
+  setProfile: (profileData) => set((state) => ({ 
+    data: { ...state.data, profile: { ...state.data.profile, ...profileData } } 
   })),
   setTheme: (theme) => {
     localStorage.setItem('theme', theme);
@@ -60,6 +62,40 @@ export const useStore = create((set, get) => ({
         pomodoroSessions: [...(state.data.pomodoroSessions || []), newSession]
       }
     };
+  }),
+
+  // Onboarding
+  completeOnboarding: (profileData, selectedCourses) => set((state) => {
+    const newData = { ...state.data, profile: { ...state.data.profile, ...profileData } };
+    const lang = state.language || 'he';
+    const labels = {
+      he: { lecture: 'הרצאה', tutorial: 'תרגול', homework: 'שיעורי בית' },
+      en: { lecture: 'Lecture', tutorial: 'Tutorial', homework: 'Homework' }
+    };
+    
+    newData.courses = selectedCourses;
+    
+    selectedCourses.forEach(course => {
+      newData.tasks[course.id] = {};
+      newData.notes[course.id] = {};
+      newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [], general_tasks: [] };
+      newData.links[course.id] = {
+        notebookLm: course.defaultNotebookLmLink || "",
+        gemini: course.defaultGeminiLink || "",
+        localFolder: course.defaultLocalFolder || ""
+      };
+
+      for (let week = 1; week <= course.weeksCount; week++) {
+        newData.notes[course.id][week] = "";
+        newData.tasks[course.id][week] = [
+          { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: labels[lang].lecture, checked: false, files: [] },
+          { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: labels[lang].tutorial, checked: false, files: [] },
+          { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: labels[lang].homework, checked: false, files: [] }
+        ];
+      }
+    });
+    
+    return { data: newData, hasCompletedOnboarding: true };
   }),
 
   // Course Management

@@ -19,6 +19,8 @@ export const SettingsView = () => {
 
   // Profile local state
   const [displayName, setDisplayName] = useState(data?.profile?.displayName || "");
+  const [academicYear, setAcademicYear] = useState(data?.profile?.academicYear || "שנה א'");
+  const [semester, setSemester] = useState(data?.profile?.semester || "סמסטר א'");
 
   // Pomodoro local state
   const [pomoWork, setPomoWork] = useState(pomoSettings?.work || 25);
@@ -36,7 +38,7 @@ export const SettingsView = () => {
   };
 
   const handleSaveProfile = () => {
-    setProfile(displayName);
+    setProfile({ displayName, academicYear, semester });
     toast.success(t('profileSaved', 'פרופיל עודכן בהצלחה'));
   };
 
@@ -141,16 +143,44 @@ export const SettingsView = () => {
           <CardDescription>{t('profileDesc', 'הגדר את השם שלך שיוצג באפליקציה')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="space-y-2 flex-1 w-full">
-              <label className="text-sm font-medium text-foreground">{t('displayName', 'שם תצוגה')}</label>
-              <Input 
-                value={displayName} 
-                onChange={(e) => setDisplayName(e.target.value)} 
-                placeholder={t('displayNamePlaceholder', 'לדוגמה: אוריה')}
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="space-y-2 flex-1 w-full">
+                <label className="text-sm font-medium text-foreground">{t('displayName', 'שם תצוגה')}</label>
+                <Input 
+                  value={displayName} 
+                  onChange={(e) => setDisplayName(e.target.value)} 
+                  placeholder={t('displayNamePlaceholder', 'לדוגמה: אוריה')}
+                />
+              </div>
+              <div className="space-y-2 flex-1 w-full">
+                <label className="text-sm font-medium text-foreground">{t('academicYear', 'שנת לימודים')}</label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={academicYear} 
+                  onChange={(e) => setAcademicYear(e.target.value)}
+                >
+                  {['שנה א\'', 'שנה ב\'', 'שנה ג\'', 'שנה ד\''].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2 flex-1 w-full">
+                <label className="text-sm font-medium text-foreground">{t('semester', 'סמסטר')}</label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={semester} 
+                  onChange={(e) => setSemester(e.target.value)}
+                >
+                  {['סמסטר א\'', 'סמסטר ב\'', 'סמסטר קיץ'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <Button onClick={handleSaveProfile} className="w-full sm:w-auto">{t('saveChanges')}</Button>
+            <div className="flex justify-end">
+              <Button onClick={handleSaveProfile} className="w-full sm:w-auto">{t('saveChanges')}</Button>
+            </div>
           </div>
         </CardContent>
       </Card>

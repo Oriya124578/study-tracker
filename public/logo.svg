@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <style>
-      .bg { fill: transparent; }
+      .bg { fill: #FFFFFF; }
       .page-left { fill: #f8f6f0; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
       .page-right { fill: #FDFBF7; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
       .page-stack-left { fill: #e8e4db; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }

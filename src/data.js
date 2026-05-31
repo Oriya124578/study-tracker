@@ -74,40 +74,14 @@ export const DEFAULT_TASKS = [
 
 export const generateInitialState = () => {
   const state = {
-    courses: [...DEFAULT_COURSES],
+    courses: [],
     tasks: {}, // courseId -> week -> array of tasks { id, type, label, checked }
     links: {},
     notes: {},
     globalTasks: {},
     pomodoroSessions: [], // Array of { id, courseId, date, minutes }
-    profile: { displayName: "" }
+    profile: { displayName: "", academicYear: "שנה א'", semester: "סמסטר א'" }
   };
-  
-  DEFAULT_COURSES.forEach(course => {
-    state.tasks[course.id] = {};
-    state.notes[course.id] = {};
-    state.globalTasks[course.id] = {
-      past_exams: [],
-      summaries: [],
-      quizzes: []
-    };
-    
-    state.links[course.id] = {
-      notebookLm: course.defaultNotebookLmLink,
-      gemini: course.defaultGeminiLink,
-      localFolder: course.defaultLocalFolder
-    };
-
-    for (let week = 1; week <= course.weeksCount; week++) {
-      state.notes[course.id][week] = "";
-      state.tasks[course.id][week] = DEFAULT_TASKS.map((task, idx) => ({
-        id: `${course.id}-w${week}-${task.type}-${idx}`,
-        type: task.type,
-        label: task.label,
-        checked: false
-      }));
-    }
-  });
   
   return state;
 };
