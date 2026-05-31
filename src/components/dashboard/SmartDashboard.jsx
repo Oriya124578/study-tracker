@@ -11,6 +11,14 @@ export const SmartDashboard = () => {
   const { t, language } = useTranslation();
   const displayName = data?.profile?.displayName || '';
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return t('goodMorning', 'בוקר טוב');
+    if (hour >= 12 && hour < 17) return t('goodAfternoon', 'צהריים טובים');
+    if (hour >= 17 && hour < 21) return t('goodEvening', 'ערב טוב');
+    return t('goodNight', 'לילה טוב');
+  };
+
   // 1. Weekly Progress Calculation
   const progressStats = useMemo(() => {
     let totalTasks = 0;
@@ -73,7 +81,7 @@ export const SmartDashboard = () => {
       {displayName && (
         <div className="flex items-center gap-2 mb-2">
           <h2 className="text-2xl font-bold text-foreground">
-            {t('welcomeTo', 'היי, ')} {displayName}!
+            {getGreeting()} {displayName}!
           </h2>
         </div>
       )}

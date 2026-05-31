@@ -188,6 +188,11 @@ export const translations = {
     allReady: 'הכל מוכן!',
     allReadyDesc: 'סביבת העבודה שלך הוגדרה בהצלחה. שיהיה סמסטר מוצלח!',
     letsGo: 'קדימה, בואו נתחיל!',
+    // Time-based greetings
+    goodMorning: 'בוקר טוב',
+    goodAfternoon: 'צהריים טובים',
+    goodEvening: 'ערב טוב',
+    goodNight: 'לילה טוב',
   },
   en: {
     // General
@@ -378,5 +383,10 @@ export const translations = {
     allReady: 'All Set!',
     allReadyDesc: 'Your workspace has been successfully set up. Have a great semester!',
     letsGo: 'Let\'s Go!',
+    // Time-based greetings
+    goodMorning: 'Good morning',
+    goodAfternoon: 'Good afternoon',
+    goodEvening: 'Good evening',
+    goodNight: 'Good night',
   }
 };
