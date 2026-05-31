@@ -26,9 +26,10 @@ export const CalendarView = () => {
   const exams = [];
   data?.courses?.forEach(course => {
     ['moedA', 'moedB', 'moedC'].forEach(moed => {
-      if (course[moed]) {
+      const examDate = course[moed] || course.exams?.[moed];
+      if (examDate) {
         exams.push({
-          date: new Date(course[moed]),
+          date: new Date(examDate),
           course: course.name,
           moed: t(moed)
         });

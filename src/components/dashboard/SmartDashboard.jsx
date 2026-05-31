@@ -36,8 +36,9 @@ export const SmartDashboard = () => {
     const exams = [];
     data.courses.forEach(course => {
       ['moedA', 'moedB', 'moedC'].forEach(moed => {
-        if (course[moed]) {
-          const date = new Date(course[moed]);
+        const examDate = course[moed] || course.exams?.[moed];
+        if (examDate) {
+          const date = new Date(examDate);
           const daysLeft = differenceInDays(date, new Date());
           if (daysLeft >= 0) {
             exams.push({ course, moed, date, daysLeft });

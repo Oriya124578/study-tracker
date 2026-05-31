@@ -29,7 +29,14 @@ export const SettingsView = () => {
 
   const openEditModal = (course) => {
     setIsAddMode(false);
-    setEditingCourse({ ...course, notebookLm: data.links[course.id]?.notebookLm || "", gemini: data.links[course.id]?.gemini || "" });
+    setEditingCourse({ 
+      ...course, 
+      moedA: course.moedA || course.exams?.moedA || "",
+      moedB: course.moedB || course.exams?.moedB || "",
+      moedC: course.moedC || course.exams?.moedC || "",
+      notebookLm: data.links[course.id]?.notebookLm || "", 
+      gemini: data.links[course.id]?.gemini || "" 
+    });
   };
 
   const openAddModal = () => {
@@ -114,7 +121,7 @@ export const SettingsView = () => {
               <div key={course.id} className="border border-border p-4 rounded-xl flex justify-between items-center bg-card">
                 <div>
                   <h3 className="font-bold text-foreground">{course.name}</h3>
-                  <p className="text-sm text-muted-foreground">{t('moedA')}: {course.moedA ? new Date(course.moedA).toLocaleDateString('he-IL') : t('notSet')}</p>
+                  <p className="text-sm text-muted-foreground">{t('moedA')}: {(course.moedA || course.exams?.moedA) ? new Date(course.moedA || course.exams.moedA).toLocaleDateString('he-IL') : t('notSet')}</p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => openEditModal(course)} className="text-muted-foreground hover:text-primary">
                   <Edit2 className="w-4 h-4 ml-1" />

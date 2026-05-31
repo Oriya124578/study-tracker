@@ -46,7 +46,7 @@ export const Layout = () => {
             Study Tracker
           </h1>
         </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-24 md:pb-8 pt-4 md:pt-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-28 md:pb-8 pt-4 md:pt-0">
           <ErrorBoundary>{renderContent()}</ErrorBoundary>
         </main>
       </div>
