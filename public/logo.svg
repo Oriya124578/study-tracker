@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .page-left { fill: #f8f6f0; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
+      .page-right { fill: #FDFBF7; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
+      .page-stack-left { fill: #e8e4db; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
+      .page-stack-right { fill: #ebe8e0; stroke: #2D2926; stroke-width: 12; stroke-linejoin: round; }
+      .binding { fill: #2D2926; }
+      .accent { fill: none; stroke: #A3B18A; stroke-width: 32; stroke-linecap: round; stroke-linejoin: round; }
+      .line { fill: none; stroke: #A3B18A; stroke-width: 12; stroke-linecap: round; stroke-opacity: 0.5; }
+    </style>
+  </defs>
+  
+  <rect class="bg" width="512" height="512"/>
+
+  <!-- We use an isometric projection roughly. Center is 256, 256. -->
+  <g transform="translate(256, 300) scale(1.1)">
+    
+    <!-- Left stack (bottom) -->
+    <path class="page-stack-left" d="M 0,110 L -160,30 L -160,-130 L 0,-50 Z" />
+    <path class="page-stack-left" d="M 0,100 L -160,20 L -160,-140 L 0,-60 Z" />
+    <!-- Right stack (bottom) -->
+    <path class="page-stack-right" d="M 0,110 L 160,30 L 160,-130 L 0,-50 Z" />
+    <path class="page-stack-right" d="M 0,100 L 160,20 L 160,-140 L 0,-60 Z" />
+    
+    <!-- Left Page Top -->
+    <path class="page-left" d="M 0,90 L -160,10 L -160,-150 L 0,-70 Z" />
+    
+    <!-- Right Page Top -->
+    <path class="page-right" d="M 0,90 L 160,10 L 160,-150 L 0,-70 Z" />
+
+    <!-- Binding rings -->
+    <circle class="binding" cx="0" cy="70" r="12" />
+    <circle class="binding" cx="0" cy="30" r="12" />
+    <circle class="binding" cx="0" cy="-10" r="12" />
+    <circle class="binding" cx="0" cy="-50" r="12" />
+
+    <!-- Lines on the left page -->
+    <line class="line" x1="-130" y1="-100" x2="-30" y2="-50" />
+    <line class="line" x1="-130" y1="-70" x2="-30" y2="-20" />
+    <line class="line" x1="-130" y1="-40" x2="-30" y2="10" />
+
+    <!-- Checkmark on the right page -->
+    <!-- Isometric 'V' shape -->
+    <path class="accent" d="M 40,-40 L 70,-10 L 120,-80" />
+    
+  </g>
+</svg>
