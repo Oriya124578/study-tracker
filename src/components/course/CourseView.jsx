@@ -5,13 +5,13 @@ import { AllTasksByType } from './AllTasksByType';
 import { CategorySection } from './GlobalTasks';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { Settings, FileText, ListTodo } from 'lucide-react';
+import { Settings, FileText, ListTodo, Book, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const CourseView = () => {
-  const { activeCourse, data, updateCourse } = useStore();
+  const { activeCourse, data, updateCourse, saveLinks } = useStore();
   const { t, language } = useTranslation();
   const [activeTab, setActiveTab] = useState('weekly');
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -28,6 +28,8 @@ export const CourseView = () => {
       weeksCount: activeCourse.weeksCount || 14,
       credits: activeCourse.credits || 0,
       semester: activeCourse.semester || "א'",
+      geminiLink: data.links?.[activeCourse.id]?.gemini || "",
+      notebookLmLink: data.links?.[activeCourse.id]?.notebookLm || "",
     });
     setIsSettingsOpen(true);
   };
@@ -39,6 +41,11 @@ export const CourseView = () => {
       credits: parseFloat(editData.credits),
       semester: editData.semester
     });
+    saveLinks(activeCourse.id, {
+      ...data.links?.[activeCourse.id],
+      gemini: editData.geminiLink,
+      notebookLm: editData.notebookLmLink
+    });
     setIsSettingsOpen(false);
   };
 
@@ -47,7 +54,35 @@ export const CourseView = () => {
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{activeCourse.name}</h1>
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="text-3xl font-bold text-foreground">{activeCourse.name}</h1>
+            <div className="flex items-center gap-2">
+              {data.links?.[activeCourse.id]?.gemini ? (
+                <a href={data.links[activeCourse.id].gemini} target="_blank" rel="noopener noreferrer" 
+                   className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  Gemini
+                </a>
+              ) : (
+                <button onClick={handleOpenSettings} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-dashed border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 text-muted-foreground shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  הוסף קישור Gemini
+                </button>
+              )}
+              {data.links?.[activeCourse.id]?.notebookLm ? (
+                <a href={data.links[activeCourse.id].notebookLm} target="_blank" rel="noopener noreferrer"
+                   className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 shadow-sm">
+                  <Book className="w-3.5 h-3.5 text-primary" />
+                  NotebookLM
+                </a>
+              ) : (
+                <button onClick={handleOpenSettings} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-dashed border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 text-muted-foreground shadow-sm">
+                  <Book className="w-3.5 h-3.5" />
+                  הוסף קישור NotebookLM
+                </button>
+              )}
+            </div>
+          </div>
           <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
             {activeCourse.credits > 0 && <span>{activeCourse.credits} {t('credits')}</span>}
             {activeCourse.semester && <span>{t('semester')} {activeCourse.semester}</span>}
@@ -190,6 +225,26 @@ export const CourseView = () => {
                 value={editData.semester} 
                 onChange={(e) => setEditData({...editData, semester: e.target.value})} 
                 className="text-start"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">קישור ל-Gemini</label>
+              <Input 
+                placeholder="https://gemini.google.com/..."
+                value={editData.geminiLink} 
+                onChange={(e) => setEditData({...editData, geminiLink: e.target.value})} 
+                className="text-start"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">קישור ל-NotebookLM</label>
+              <Input 
+                placeholder="https://notebooklm.google.com/..."
+                value={editData.notebookLmLink} 
+                onChange={(e) => setEditData({...editData, notebookLmLink: e.target.value})} 
+                className="text-start"
+                dir="ltr"
               />
             </div>
           </div>
