@@ -12,9 +12,11 @@ import { SettingsView } from '../settings/SettingsView';
 import { GlobalLoadingOverlay } from './GlobalLoadingOverlay';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from '../ui/Toaster';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const Layout = () => {
-  const { activeCategory, showPomoSettings } = useStore();
+  const { activeCategory, activeCourse, showPomoSettings } = useStore();
+  const { t } = useTranslation();
 
   const renderContent = () => {
     switch (activeCategory) {
@@ -41,9 +43,13 @@ export const Layout = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="md:hidden flex items-center justify-center p-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0">
-          <h1 className="font-bold text-lg text-primary flex items-center gap-2">
-            <img src="/logo-192.png" alt="Logo" className="w-6 h-6 object-contain" />
-            Study Tracker
+          <h1 className="font-bold text-lg text-primary flex items-center gap-2 truncate px-4">
+            <img src="/logo-192.png" alt="Logo" className="w-6 h-6 shrink-0 object-contain" />
+            <span className="truncate">
+              {activeCategory === 'course' && activeCourse ? activeCourse.name : 
+               activeCategory === 'calendar' ? t('navCalendar') :
+               activeCategory === 'settings' ? t('navSettings') : t('navOverview')}
+            </span>
           </h1>
         </header>
         <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-28 md:pb-8 pt-4 md:pt-0">

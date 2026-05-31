@@ -100,7 +100,6 @@ function App() {
   useEffect(() => {
     if (dataLoaded && session && initialLoadDone.current) {
       saveToSupabase(session.user.id, data);
-      fetch('http://localhost:9999', { method: 'POST', body: JSON.stringify(data.courses) }).catch(() => {});
     }
   }, [data, session, dataLoaded, saveToSupabase]);
 
