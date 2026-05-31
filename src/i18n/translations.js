@@ -112,14 +112,6 @@ export const translations = {
     navPomodoro: "פומודורו",
     navSettings: "הגדרות",
     selectCourse: "בחר קורס",
-    semesterProgress: 'התקדמות סמסטר',
-    tasks: 'משימות',
-    fullExamBoard: 'לוח מבחנים מלא',
-    moed: 'מועד',
-    days: 'ימים',
-    learningHoursPomodoro: 'שעות למידה (פומודורו)',
-    learningMinutes: 'דקות למידה',
-    noPomodoroYet: 'עוד לא התחלת ללמוד עם פומודורו. קדימה לעבודה!',
 
     // Files & toasts
     fileUploadError: 'שגיאה בהעלאת הקובץ',
@@ -269,14 +261,6 @@ export const translations = {
     navPomodoro: "Pomodoro",
     navSettings: "Settings",
     selectCourse: "Select Course",
-    semesterProgress: 'Semester Progress',
-    tasks: 'Tasks',
-    fullExamBoard: 'Full Exam Board',
-    moed: 'Moed',
-    days: 'days',
-    learningHoursPomodoro: 'Study Hours (Pomodoro)',
-    learningMinutes: 'Study minutes',
-    noPomodoroYet: 'You haven\'t started studying with Pomodoro yet. Let\'s get to work!',
 
     // Files & toasts
     fileUploadError: 'Error uploading file',
