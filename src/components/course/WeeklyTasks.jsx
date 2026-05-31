@@ -4,6 +4,7 @@ import { Check, GripVertical, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useCourseFiles } from '../../hooks/useCourseFiles';
 import { useTranslation } from '../../hooks/useTranslation';
+import { toast } from '../../store/useToast';
 
 export const WeeklyTasks = ({ courseId, selectedWeek }) => {
   const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask, removeFileFromTask, setIsUploading } = useStore();
@@ -36,16 +37,22 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
   };
 
   const handleFileUpload = async (e, taskId) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selected = Array.from(e.target.files || []);
+    if (selected.length === 0) return;
 
     setUploadingTask(taskId);
     setIsUploading(true);
     try {
-      const [uploaded] = await upload(`week_${selectedWeek}`, [file]);
-      if (uploaded) {
-        attachFileToTask(courseId, selectedWeek, taskId, uploaded);
+      const uploaded = await upload(`week_${selectedWeek}`, selected);
+      const existing = currentTasks.find((tk) => tk.id === taskId)?.files || [];
+      for (const file of uploaded) {
+        // Skip files already attached (dedupe by path/name).
+        if (existing.some((f) => f.path === file.path || f.name === file.name)) continue;
+        attachFileToTask(courseId, selectedWeek, taskId, file);
       }
+    } catch (err) {
+      console.error('Upload failed', err);
+      toast.error(t('fileUploadError'));
     } finally {
       setUploadingTask(null);
       setIsUploading(false);
@@ -68,11 +75,12 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
       
       {/* Hidden File Input */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        style={{ display: 'none' }} 
-        onChange={(e) => handleFileUpload(e, uploadingTask)} 
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={(e) => handleFileUpload(e, uploadingTask)}
       />
 
       <div className="lg:col-span-2 space-y-4">
@@ -91,6 +99,9 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                   snapshot.isDraggingOver ? 'bg-secondary/20 border-2 border-dashed border-secondary' : ''
                 }`}
               >
+                {currentTasks.length === 0 && !snapshot.isDraggingOver && (
+                  <p className="text-sm text-muted-foreground text-center py-8">{t('noTasksThisWeek')}</p>
+                )}
                 {currentTasks.map((task, index) => (
                   <Draggable key={task.id} draggableId={task.id} index={index}>
                     {(provided, snapshot) => (
@@ -133,6 +144,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                               <button
                                 type="button"
                                 onClick={() => openSigned(file)}
+                                title={file.name}
                                 className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-e-none rounded-s-md hover:bg-primary/20 transition-colors"
                               >
                                 <FileText className="w-3 h-3" />

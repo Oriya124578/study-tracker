@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const Sidebar = () => {
-  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen, language } = useStore();
+  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen, language, pomodoro, setShowPomodoroModal } = useStore();
   const { t } = useTranslation();
   const displayName = data?.profile?.displayName || 'User';
 
@@ -91,8 +91,8 @@ export const Sidebar = () => {
         <div className="p-4 border-t border-border flex flex-col gap-2">
           <Button 
             variant="ghost" 
-            className={cn("w-full justify-start transition-colors", !sidebarOpen && "justify-center px-0", useStore.getState().pomodoro.active ? "text-primary bg-primary/10" : "text-muted-foreground")}
-            onClick={() => useStore.getState().setShowPomodoroModal(true)}
+            className={cn("w-full justify-start transition-colors", !sidebarOpen && "justify-center px-0", pomodoro.active ? "text-primary bg-primary/10" : "text-muted-foreground")}
+            onClick={() => setShowPomodoroModal(true)}
             title={t('pomodoro')}
           >
             <Clock className={cn("w-5 h-5", sidebarOpen && "ml-3")} />

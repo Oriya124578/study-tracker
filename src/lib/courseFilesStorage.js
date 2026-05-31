@@ -11,6 +11,19 @@ import { supabase } from '../supabaseClient';
 
 export const BUCKET = 'course_files';
 
+// Reject oversized uploads client-side (Supabase bucket quota protection).
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+// Storage keys must stay ASCII and free of path-traversal segments. userId is a
+// UUID and folder is a controlled slug (`week_3`, `past_exams`, …), but validate
+// defensively so a crafted value can't escape the user's prefix.
+const SAFE_SEGMENT = /^[A-Za-z0-9_-]+$/;
+const assertSafeSegment = (value, label) => {
+  if (!SAFE_SEGMENT.test(String(value))) {
+    throw new Error(`Invalid ${label}: "${value}"`);
+  }
+};
+
 // --- Hex helpers (legacy display support) ---------------------------------
 
 export const stringToHex = (str) =>
@@ -72,11 +85,24 @@ export const getUserId = async () => {
 // The storage key hex-encodes the filename so non-ASCII names (e.g. Hebrew)
 // and spaces don't produce an invalid Supabase storage key.
 export const uploadFile = async ({ userId, courseId, folder, file }) => {
+  if (file.size > MAX_FILE_SIZE) {
+    const err = new Error('FILE_TOO_LARGE');
+    err.code = 'FILE_TOO_LARGE';
+    throw err;
+  }
+  assertSafeSegment(courseId, 'courseId');
+  assertSafeSegment(folder, 'folder');
+
   const storedName = `${Date.now()}_${stringToHex(file.name)}`;
   const path = buildPath(userId, courseId, folder, storedName);
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(path, file, { cacheControl: '3600', upsert: false });
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      // Preserve MIME type so the file opens correctly via signed URL.
+      contentType: file.type || 'application/octet-stream',
+    });
   if (error) throw error;
   return { name: file.name, path };
 };

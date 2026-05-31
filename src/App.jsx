@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { debounce } from 'lodash';
 import { useStore } from './store/useStore';
@@ -7,6 +7,7 @@ import { Layout } from './components/layout/Layout';
 import { AuthView } from './components/auth/AuthView';
 import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
 import { generateInitialState } from './data';
+import { toast } from './store/useToast';
 import { BookOpen } from 'lucide-react';
 import './index.css';
 
@@ -86,20 +87,29 @@ function App() {
     }
   }, [session, setData, setHasCompletedOnboarding]);
 
-  // Debounced Save to Supabase
-  const saveToSupabase = useCallback(
-    debounce(async (userId, appData) => {
-      try {
-        await supabase
+  // Debounced Save to Supabase, with retry + error toast.
+  // Created once via useRef so we can flush it on tab close (avoids losing the
+  // last edit when the user closes within the debounce window).
+  const saveToSupabase = useRef(
+    debounce((userId, appData) => {
+      const attempt = async (retriesLeft) => {
+        // Supabase resolves with { error } rather than throwing, so check it.
+        const { error } = await supabase
           .from('user_data')
           .update({ app_state: appData })
           .eq('id', userId);
-      } catch (err) {
-        console.error("Failed to save:", err);
-      }
-    }, 2000),
-    []
-  );
+        if (error) {
+          if (retriesLeft > 0) {
+            setTimeout(() => attempt(retriesLeft - 1), 1500);
+          } else {
+            console.error('Failed to save:', error);
+            toast.error(t('saveError'));
+          }
+        }
+      };
+      attempt(2);
+    }, 2000)
+  ).current;
 
   // Trigger Save when data changes
   useEffect(() => {
@@ -107,6 +117,14 @@ function App() {
       saveToSupabase(session.user.id, data);
     }
   }, [data, session, dataLoaded, saveToSupabase]);
+
+  // Flush any pending save before the tab closes / reloads, so the last edit
+  // made within the 2s debounce window is not lost.
+  useEffect(() => {
+    const handler = () => saveToSupabase.flush();
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [saveToSupabase]);
 
   // Apply Theme and Language
   useEffect(() => {

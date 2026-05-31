@@ -50,7 +50,7 @@ export const Layout = () => {
           </h1>
           
           <div className="flex items-center gap-1.5 shrink-0" dir="ltr">
-            <span className="text-xs font-bold text-primary opacity-80 uppercase tracking-wide hidden sm:inline-block">Study Tracker</span>
+            <span className="text-xs font-bold text-primary opacity-80 uppercase tracking-wide hidden sm:inline-block">{t('appName')}</span>
             <img src="/logo-192.png" alt="Study Tracker Logo" className="w-6 h-6 object-contain drop-shadow-sm" />
           </div>
         </header>

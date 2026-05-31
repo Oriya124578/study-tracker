@@ -28,77 +28,67 @@
 
 @layer base {
   :root {
-    /* Background: Soft Cream #FDFBF7 */
-    --background: 40 40% 98%; 
-    /* Foreground/Text: Deep Charcoal #2D2926 */
-    --foreground: 20 8% 16%;
-
-    /* Cards: Pure White #FFFFFF */
-    --card: 0 0% 100%;
-    --card-foreground: 20 8% 16%;
- 
-    /* Popovers: Pure White */
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 8% 16%;
- 
-    /* Primary Accent: Pale Sage Green #A3B18A */
-    --primary: 94 21% 62%;
+    /* Calori Light Mode */
+    --background: 240 14% 96%; /* canvas #F5F5F7 */
+    --foreground: 240 3% 12%; /* ink #1D1D1F */
+    
+    --card: 0 0% 100%; /* surface #FFFFFF */
+    --card-foreground: 240 3% 12%; /* ink #1D1D1F */
+    
+    --popover: 0 0% 100%; /* surface #FFFFFF */
+    --popover-foreground: 240 3% 12%; /* ink #1D1D1F */
+    
+    --primary: 262 83% 58%; /* purple #7C3AED */
     --primary-foreground: 0 0% 100%;
- 
-    /* Secondary Accent: Soft Warm Grey / Sand */
-    --secondary: 40 15% 90%;
-    --secondary-foreground: 20 8% 16%;
- 
-    /* Muted: Lighter Grey for subtle text */
-    --muted: 40 15% 94%;
-    --muted-foreground: 36 10% 45%;
- 
-    /* Accent for hover states */
-    --accent: 40 15% 92%;
-    --accent-foreground: 20 8% 16%;
- 
-    /* Destructive: Soft Terracotta/Red for errors #D4A373 */
-    --destructive: 24 53% 64%;
+    
+    --secondary: 240 11% 93%; /* canvasDeep #ECECEF */
+    --secondary-foreground: 240 3% 30%; /* ink2 #4A4A4F */
+    
+    --muted: 240 25% 98%; /* surface2 #FAFAFB */
+    --muted-foreground: 240 2% 57%; /* ink3 #8E8E93 */
+    
+    --accent: 251 84% 95%; /* purpleSoft #EDE9FE */
+    --accent-foreground: 262 83% 58%; /* purple #7C3AED */
+    
+    --destructive: 0 72% 51%; /* danger #DC2626 */
     --destructive-foreground: 0 0% 100%;
-
-    /* Border: Warm Soft Border */
-    --border: 40 15% 90%;
-    --input: 40 15% 90%;
-    --ring: 94 21% 62%;
- 
-    --radius: 0.75rem;
+    
+    --border: 240 9% 91%; /* hairline #E5E5EA */
+    --input: 240 6% 83%; /* hairlineStrong #D2D2D7 */
+    --ring: 262 83% 58%; /* purple #7C3AED */
+    
+    --radius: 1rem; /* 16px */
   }
- 
+
   .dark {
-    /* For now, dark mode variables are kept basic dark, 
-       but you requested sticking to the cream palette. */
-    --background: 20 14% 4%;
-    --foreground: 60 9% 98%;
- 
-    --card: 20 14% 6%;
-    --card-foreground: 60 9% 98%;
- 
-    --popover: 20 14% 6%;
-    --popover-foreground: 60 9% 98%;
- 
-    --primary: 94 21% 62%;
-    --primary-foreground: 0 0% 100%;
- 
-    --secondary: 12 6.5% 15%;
-    --secondary-foreground: 60 9% 98%;
- 
-    --muted: 12 6.5% 15%;
-    --muted-foreground: 24 5.4% 63.9%;
- 
-    --accent: 12 6.5% 15%;
-    --accent-foreground: 60 9% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 9% 98%;
- 
-    --border: 12 6.5% 15%;
-    --input: 12 6.5% 15%;
-    --ring: 94 21% 62%;
+    /* Calori Dark Mode */
+    --background: 240 5% 4%; /* canvas #0A0A0B */
+    --foreground: 240 8% 93%; /* ink #EDEDEF */
+    
+    --card: 240 5% 8%; /* surface #141416 */
+    --card-foreground: 240 8% 93%; /* ink #EDEDEF */
+    
+    --popover: 240 5% 8%; /* surface #141416 */
+    --popover-foreground: 240 8% 93%; /* ink #EDEDEF */
+    
+    --primary: 255 92% 76%; /* purple #A78BFA */
+    --primary-foreground: 240 5% 4%;
+    
+    --secondary: 240 4% 11%; /* surface2 #1A1A1C */
+    --secondary-foreground: 240 2% 71%; /* ink2 #B4B4B8 */
+    
+    --muted: 240 4% 11%; /* surface2 #1A1A1C */
+    --muted-foreground: 219 7% 57%; /* ink3 #8A8F98 */
+    
+    --accent: 258 41% 19%; /* purpleGlow approx */
+    --accent-foreground: 255 92% 76%; /* purple #A78BFA */
+    
+    --destructive: 0 72% 51%; /* danger #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 240 3% 16%; /* hairline dark approx */
+    --input: 240 3% 22%; /* hairlineStrong dark approx */
+    --ring: 255 92% 76%; /* purple #A78BFA */
   }
 }
  

@@ -51,7 +51,11 @@ export const useCourseFiles = (courseId, { browse = false } = {}) => {
             uploaded.push(await uploadFile({ userId, courseId, folder, file }));
           } catch (err) {
             console.error('Upload failed', err);
-            toast.error(`${t('fileUploadError')}: ${file.name}`);
+            if (err?.code === 'FILE_TOO_LARGE') {
+              toast.error(`${t('fileTooLarge')}: ${file.name}`);
+            } else {
+              toast.error(`${t('fileUploadError')}: ${file.name}`);
+            }
           }
         }
         if (uploaded.length > 0) toast.success(t('fileUploadSuccess'));

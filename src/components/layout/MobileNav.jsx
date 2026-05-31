@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const MobileNav = () => {
-  const { activeCategory, setActiveCategory, setActiveCourse } = useStore();
+  const { activeCategory, setActiveCategory, setActiveCourse, pomodoro, setShowPomodoroModal } = useStore();
   const { t } = useTranslation();
 
   const handleNavClick = (category) => {
@@ -31,7 +31,7 @@ export const MobileNav = () => {
         <span className="text-[10px] font-medium">{t('navCalendar')}</span>
       </button>
 
-      <button onClick={() => useStore.getState().setShowPomodoroModal(true)} className={cn("flex flex-col items-center gap-1 transition-colors", useStore.getState().pomodoro.active ? "text-primary" : "text-muted-foreground")}>
+      <button onClick={() => setShowPomodoroModal(true)} className={cn("flex flex-col items-center gap-1 transition-colors", pomodoro.active ? "text-primary" : "text-muted-foreground")}>
         <Clock className="w-6 h-6" />
         <span className="text-[10px] font-medium">{t('navPomodoro')}</span>
       </button>

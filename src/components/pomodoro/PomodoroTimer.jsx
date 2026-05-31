@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { Play, Pause, RotateCcw, X, Clock, Settings2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
+import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
 
 export const PomodoroTimer = () => {
@@ -13,10 +14,17 @@ export const PomodoroTimer = () => {
   } = useStore();
   const { t, language } = useTranslation();
 
+  // Track the real wall-clock start so we can correct for tab-sleep drift.
+  const startedAt = useRef(null);
+
   const toggleTimer = () => {
     if (!pomodoro.active && !pomodoro.courseId) {
-      alert(t('selectCourseAlert'));
+      toast.error(t('selectCourseAlert'));
       return;
+    }
+    if (!pomodoro.active) {
+      // Starting — remember real start time.
+      startedAt.current = Date.now();
     }
     setPomodoro(prev => ({ ...prev, active: !prev.active }));
   };
@@ -38,25 +46,38 @@ export const PomodoroTimer = () => {
     }));
   };
 
+  // Drift-corrected timer: on each tick we compute elapsed wall-clock time
+  // rather than blindly subtracting 1. This stays accurate even when the tab
+  // is throttled or the laptop sleeps and resumes.
   useEffect(() => {
     let interval = null;
-    
+
     if (pomodoro.active && pomodoro.timeLeft > 0) {
+      // Checkpoint for this run segment.
+      const segmentStart = Date.now();
+      const segmentTimeLeft = pomodoro.timeLeft;
+
       interval = setInterval(() => {
-        setPomodoro(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
+        const elapsed = Math.floor((Date.now() - segmentStart) / 1000);
+        const remaining = Math.max(0, segmentTimeLeft - elapsed);
+        setPomodoro(prev => ({ ...prev, timeLeft: remaining }));
       }, 1000);
     } else if (pomodoro.active && pomodoro.timeLeft === 0) {
       // Session finished
+      new Audio('/notification.mp3').play().catch(() => {});
       if (pomodoro.mode === 'work') {
-        new Audio('/notification.mp3').play().catch(() => {});
+        // Record the actual elapsed time, not just the configured duration.
+        const actualDuration = startedAt.current
+          ? Math.round((Date.now() - startedAt.current) / 1000)
+          : pomoSettings.work * 60;
         addPomodoroSession({
           courseId: pomodoro.courseId,
-          duration: pomoSettings.work * 60,
+          duration: actualDuration,
           timestamp: new Date().toISOString()
         });
+        startedAt.current = null;
         switchMode('break');
       } else {
-        new Audio('/notification.mp3').play().catch(() => {});
         switchMode('work');
       }
     }
@@ -106,7 +127,12 @@ export const PomodoroTimer = () => {
           </div>
 
           {/* Timer Display */}
-          <div className="text-7xl font-bold text-foreground font-mono tracking-wider mb-8 drop-shadow-md">
+          <div
+            className="text-7xl font-bold text-foreground font-mono tracking-wider mb-8 drop-shadow-md"
+            role="timer"
+            aria-live="polite"
+            aria-label={formatTime(pomodoro.timeLeft)}
+          >
             {formatTime(pomodoro.timeLeft)}
           </div>
 

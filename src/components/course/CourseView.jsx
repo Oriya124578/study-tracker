@@ -9,6 +9,7 @@ import { Settings, FileText, ListTodo, Book, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useTranslation } from '../../hooks/useTranslation';
+import { toast } from '../../store/useToast';
 
 export const CourseView = () => {
   const { activeCourse, data, updateCourse, saveLinks } = useStore();
@@ -35,18 +36,36 @@ export const CourseView = () => {
   };
 
   const handleSaveSettings = () => {
-    updateCourse(activeCourse.id, {
-      name: editData.name,
-      weeksCount: parseInt(editData.weeksCount, 10),
-      credits: parseFloat(editData.credits),
-      semester: editData.semester
-    });
-    saveLinks(activeCourse.id, {
-      ...data.links?.[activeCourse.id],
-      gemini: editData.geminiLink,
-      notebookLm: editData.notebookLmLink
-    });
-    setIsSettingsOpen(false);
+    const name = (editData.name || '').trim();
+    if (!name) {
+      toast.error(t('courseNameRequired'));
+      return;
+    }
+    // Clamp weeks to a sane range; fall back to current value on bad input.
+    let weeksCount = parseInt(editData.weeksCount, 10);
+    if (Number.isNaN(weeksCount)) weeksCount = activeCourse.weeksCount || 14;
+    weeksCount = Math.min(20, Math.max(1, weeksCount));
+
+    let credits = parseFloat(editData.credits);
+    if (Number.isNaN(credits) || credits < 0) credits = 0;
+
+    try {
+      updateCourse(activeCourse.id, {
+        name,
+        weeksCount,
+        credits,
+        semester: editData.semester,
+      });
+      saveLinks(activeCourse.id, {
+        ...data.links?.[activeCourse.id],
+        gemini: (editData.geminiLink || '').trim(),
+        notebookLm: (editData.notebookLmLink || '').trim(),
+      });
+      setIsSettingsOpen(false);
+    } catch (err) {
+      console.error('Failed to save course settings', err);
+      toast.error(t('saveError'));
+    }
   };
 
   return (
@@ -66,7 +85,7 @@ export const CourseView = () => {
               ) : (
                 <button onClick={handleOpenSettings} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-dashed border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 text-muted-foreground shadow-sm">
                   <Sparkles className="w-3.5 h-3.5" />
-                  הוסף קישור Gemini
+                  {t('addGeminiLink')}
                 </button>
               )}
               {data.links?.[activeCourse.id]?.notebookLm ? (
@@ -78,7 +97,7 @@ export const CourseView = () => {
               ) : (
                 <button onClick={handleOpenSettings} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-dashed border-border bg-background hover:bg-secondary/50 h-8 px-3 gap-1.5 text-muted-foreground shadow-sm">
                   <Book className="w-3.5 h-3.5" />
-                  הוסף קישור NotebookLM
+                  {t('addNotebookLmLink')}
                 </button>
               )}
             </div>
@@ -228,7 +247,7 @@ export const CourseView = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">קישור ל-Gemini</label>
+              <label className="text-sm font-medium text-foreground">{t('geminiLink')}</label>
               <Input 
                 placeholder="https://gemini.google.com/..."
                 value={editData.geminiLink} 
@@ -238,7 +257,7 @@ export const CourseView = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">קישור ל-NotebookLM</label>
+              <label className="text-sm font-medium text-foreground">{t('notebookLmLink')}</label>
               <Input 
                 placeholder="https://notebooklm.google.com/..."
                 value={editData.notebookLmLink} 

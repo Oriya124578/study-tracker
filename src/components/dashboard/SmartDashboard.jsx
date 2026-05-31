@@ -47,11 +47,14 @@ export const SmartDashboard = () => {
       ['moedA', 'moedB', 'moedC'].forEach(moed => {
         const examDate = course[moed] || course.exams?.[moed];
         if (examDate) {
-          const date = new Date(examDate);
-          const daysLeft = differenceInDays(date, new Date());
-          if (daysLeft >= 0) {
-            exams.push({ course, moed, date, daysLeft });
-          }
+          try {
+            const date = new Date(examDate);
+            if (Number.isNaN(date.getTime())) return; // invalid date string
+            const daysLeft = differenceInDays(date, new Date());
+            if (daysLeft >= 0) {
+              exams.push({ course, moed, date, daysLeft });
+            }
+          } catch { /* skip malformed dates */ }
         }
       });
     });
@@ -143,7 +146,7 @@ export const SmartDashboard = () => {
                     exam.daysLeft <= 30 ? 'border-primary/30 bg-primary/5' : 'border-border bg-background'
                   }`}>
                     <div>
-                      <h4 className="font-bold text-foreground">{exam.course.name}</h4>
+                      <h4 className="font-bold text-foreground">{exam.course?.name || t('unknownCourse')}</h4>
                       <p className="text-sm text-muted-foreground">{t('moed')} {exam.moed.replace('moed', '')} • {exam.date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}</p>
                     </div>
                     <div className={`text-center px-4 py-2 rounded-lg ${

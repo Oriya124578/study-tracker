@@ -125,6 +125,18 @@ export const translations = {
     uploadFiles: 'העלה קבצים',
     noFilesAvailable: 'אין קבצים זמינים. לחץ על "העלה קבצים" כדי להוסיף.',
     uploadingFile: 'מעלה קובץ... אנא המתן',
+    fileTooLarge: 'הקובץ גדול מדי (מקסימום 50MB)',
+    fileListLoadError: 'טעינת הקבצים נכשלה. נסה שוב.',
+    retry: 'נסה שוב',
+
+    // System / sync
+    saveError: 'שגיאה בשמירת הנתונים. בודקים חיבור...',
+    offline: 'אין חיבור לאינטרנט — שינויים יישמרו כשהחיבור יחזור.',
+    noTasksThisWeek: 'אין משימות לשבוע זה.',
+    unknownCourse: 'קורס לא ידוע',
+    appName: 'Study Tracker',
+    somethingWentWrong: 'משהו השתבש',
+    reloadPage: 'רענן את הדף',
 
     // Calendar
     moedB: "מועד ב'",
@@ -142,6 +154,8 @@ export const translations = {
     weeksCountLabel: 'מספר שבועות',
     notebookLmLink: 'קישור ל-NotebookLM',
     geminiLink: 'קישור ל-Gemini / ChatGPT',
+    addGeminiLink: 'הוסף קישור Gemini',
+    addNotebookLmLink: 'הוסף קישור NotebookLM',
     saveCourse: 'שמור קורס',
     loadingEnv: 'טוען את סביבת הלמידה שלך...',
     addItem: 'הוסף',
@@ -320,6 +334,18 @@ export const translations = {
     uploadFiles: 'Upload Files',
     noFilesAvailable: 'No files available. Click "Upload Files" to add.',
     uploadingFile: 'Uploading file... please wait',
+    fileTooLarge: 'File is too large (max 50MB)',
+    fileListLoadError: 'Failed to load files. Try again.',
+    retry: 'Retry',
+
+    // System / sync
+    saveError: 'Error saving data. Checking connection...',
+    offline: 'You are offline — changes will sync when you reconnect.',
+    noTasksThisWeek: 'No tasks for this week.',
+    unknownCourse: 'Unknown course',
+    appName: 'Study Tracker',
+    somethingWentWrong: 'Something went wrong',
+    reloadPage: 'Reload page',
 
     // Calendar
     moedB: 'Exam B',
@@ -337,6 +363,8 @@ export const translations = {
     weeksCountLabel: 'Number of Weeks',
     notebookLmLink: 'NotebookLM Link',
     geminiLink: 'Gemini / ChatGPT Link',
+    addGeminiLink: 'Add Gemini link',
+    addNotebookLmLink: 'Add NotebookLM link',
     saveCourse: 'Save Course',
     loadingEnv: 'Loading your study environment...',
     addItem: 'Add',
