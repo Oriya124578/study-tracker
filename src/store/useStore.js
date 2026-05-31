@@ -71,7 +71,7 @@ export const useStore = create((set, get) => ({
     
     newData.tasks[course.id] = {};
     newData.notes[course.id] = {};
-    newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [] };
+    newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [], general_tasks: [] };
     newData.links[course.id] = {
       notebookLm: course.defaultNotebookLmLink || "",
       gemini: course.defaultGeminiLink || "",
@@ -293,7 +293,7 @@ export const useStore = create((set, get) => ({
     newData.courses.forEach(course => {
       newData.tasks[course.id] = {};
       newData.notes[course.id] = {};
-      newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [] };
+      newData.globalTasks[course.id] = { past_exams: [], summaries: [], quizzes: [], general_tasks: [] };
       newData.links[course.id] = state.data.links[course.id] || {
         notebookLm: course.defaultNotebookLmLink || "",
         gemini: course.defaultGeminiLink || "",

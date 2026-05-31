@@ -7,7 +7,7 @@ import { Plus, Trash2, CheckCircle2, Circle, FileText, Paperclip, Upload, X } fr
 import { useCourseFiles } from '../../hooks/useCourseFiles';
 import { useTranslation } from '../../hooks/useTranslation';
 
-const CategorySection = ({ courseId, category, title, icon: Icon }) => {
+export const CategorySection = ({ courseId, category, title, icon: Icon }) => {
   const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask, removeFileFromGlobalTask, setIsUploading } = useStore();
   const { t } = useTranslation();
   const { upload, remove, openSigned } = useCourseFiles(courseId);

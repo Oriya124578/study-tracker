@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { WeeklyTasks } from './WeeklyTasks';
-import { GlobalTasks } from './GlobalTasks';
+import { AllTasksByType } from './AllTasksByType';
+import { CategorySection } from './GlobalTasks';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, FileText, ListTodo } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -12,7 +13,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 export const CourseView = () => {
   const { activeCourse, data, updateCourse } = useStore();
   const { t, language } = useTranslation();
-  const [activeTab, setActiveTab] = useState('weekly'); // 'weekly' or 'global'
+  const [activeTab, setActiveTab] = useState('weekly');
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
@@ -59,36 +60,35 @@ export const CourseView = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border mb-6">
-        <button
-          onClick={() => setActiveTab('weekly')}
-          className={cn(
-            "pb-3 px-4 text-sm font-medium transition-colors relative",
-            activeTab === 'weekly' ? "text-primary" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {t('weeklyTasksTab')}
-          {activeTab === 'weekly' && (
-            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-t-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('global')}
-          className={cn(
-            "pb-3 px-4 text-sm font-medium transition-colors relative",
-            activeTab === 'global' ? "text-primary" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {t('globalTasksTab')}
-          {activeTab === 'global' && (
-            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-t-full" />
-          )}
-        </button>
+      <div className="flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-border mb-6 gap-2 pb-1">
+        {[
+          { id: 'weekly', label: t('weeklyTasksTab') },
+          { id: 'lectures', label: t('allLecturesTab') },
+          { id: 'practices', label: t('allPracticesTab') },
+          { id: 'general_tasks', label: t('generalTasksTab') },
+          { id: 'past_exams', label: t('pastExams') },
+          { id: 'quizzes', label: t('quizzes') },
+          { id: 'summaries', label: t('summaries') }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "pb-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
+              activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab.label}
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-t-full" />
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Content */}
       <div className="flex-1">
-        {activeTab === 'weekly' ? (
+        {activeTab === 'weekly' && (
           <div className="space-y-6">
             {/* Week Selector */}
             <div className="flex flex-wrap gap-2 mb-6">
@@ -122,8 +122,25 @@ export const CourseView = () => {
             
             <WeeklyTasks courseId={activeCourse.id} selectedWeek={selectedWeek} />
           </div>
-        ) : (
-          <GlobalTasks courseId={activeCourse.id} />
+        )}
+        
+        {activeTab === 'lectures' && <AllTasksByType courseId={activeCourse.id} type="lecture" />}
+        {activeTab === 'practices' && <AllTasksByType courseId={activeCourse.id} type="tutorial" />}
+        
+        {['general_tasks', 'past_exams', 'quizzes', 'summaries'].includes(activeTab) && (
+          <div className="max-w-2xl mx-auto">
+            <CategorySection 
+              courseId={activeCourse.id} 
+              category={activeTab} 
+              title={
+                activeTab === 'general_tasks' ? t('generalTasksTab') :
+                activeTab === 'past_exams' ? t('pastExams') :
+                activeTab === 'quizzes' ? t('quizzes') :
+                t('summaries')
+              } 
+              icon={activeTab === 'general_tasks' ? ListTodo : FileText} 
+            />
+          </div>
         )}
       </div>
 
