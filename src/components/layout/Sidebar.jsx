@@ -19,7 +19,7 @@ export const Sidebar = () => {
       {/* Desktop & Tablet Sidebar */}
       <aside 
         className={cn(
-          "hidden md:flex flex-col h-screen bg-background border-l border-border transition-all duration-300",
+          "hidden md:flex flex-col h-[100dvh] sticky top-0 bg-background border-l border-border transition-all duration-300",
           sidebarOpen ? "w-64" : "w-20"
         )}
       >

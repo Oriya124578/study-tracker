@@ -116,7 +116,7 @@ export const SmartDashboard = () => {
               {t('fullExamBoard')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto max-h-[400px] pe-2 custom-scrollbar" dir={language === 'he' ? 'rtl' : 'ltr'}>
+          <CardContent className="flex-1 overflow-y-auto overscroll-contain max-h-[400px] pe-2 custom-scrollbar" dir={language === 'he' ? 'rtl' : 'ltr'}>
             {upcomingExams.length > 0 ? (
               <div className="space-y-3">
                 {upcomingExams.map((exam, i) => (

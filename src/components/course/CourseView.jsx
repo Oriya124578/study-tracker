@@ -60,7 +60,7 @@ export const CourseView = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-border mb-6 gap-2 pb-1">
+      <div className="flex flex-wrap border-b border-border mb-6 gap-2 pb-1 w-full">
         {[
           { id: 'weekly', label: t('weeklyTasksTab') },
           { id: 'lectures', label: t('allLecturesTab') },
@@ -74,7 +74,7 @@ export const CourseView = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "pb-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
+              "pb-2 px-3 text-sm font-medium transition-colors relative whitespace-nowrap",
               activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >

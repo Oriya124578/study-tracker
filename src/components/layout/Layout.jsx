@@ -39,7 +39,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
+    <div className="flex min-h-[100dvh] w-full bg-background selection:bg-primary/20">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0" dir={language === 'he' ? 'rtl' : 'ltr'}>
@@ -54,7 +54,7 @@ export const Layout = () => {
             <img src="/logo-192.png" alt="Study Tracker Logo" className="w-6 h-6 object-contain drop-shadow-sm" />
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth min-h-0 min-w-0 pb-28 md:pb-8 pt-4 md:pt-0">
+        <main className="flex-1 relative scroll-smooth min-w-0 pb-28 md:pb-8 pt-4 md:pt-0">
           <ErrorBoundary>{renderContent()}</ErrorBoundary>
         </main>
       </div>
