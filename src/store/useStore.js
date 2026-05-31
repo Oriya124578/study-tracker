@@ -61,6 +61,11 @@ export const useStore = create((set, get) => ({
   addCourse: (course) => set((state) => {
     const newCourses = [...state.data.courses, course];
     const newData = { ...state.data, courses: newCourses };
+    const lang = state.language || 'he';
+    const labels = {
+      he: { lecture: 'הרצאה', tutorial: 'תרגול', homework: 'שיעורי בית' },
+      en: { lecture: 'Lecture', tutorial: 'Tutorial', homework: 'Homework' }
+    };
     
     newData.tasks[course.id] = {};
     newData.notes[course.id] = {};
@@ -74,9 +79,9 @@ export const useStore = create((set, get) => ({
     for (let week = 1; week <= course.weeksCount; week++) {
       newData.notes[course.id][week] = "";
       newData.tasks[course.id][week] = [
-        { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false, files: [] },
-        { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false, files: [] },
-        { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false, files: [] }
+        { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: labels[lang].lecture, checked: false, files: [] },
+        { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: labels[lang].tutorial, checked: false, files: [] },
+        { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: labels[lang].homework, checked: false, files: [] }
       ];
     }
     return { data: newData };
@@ -134,6 +139,46 @@ export const useStore = create((set, get) => ({
     const categoryTasks = courseGlobalTasks[category].map(t => {
       if (t.id === taskId) {
         return { ...t, files: [...(t.files || []), file] };
+      }
+      return t;
+    });
+    
+    courseGlobalTasks[category] = categoryTasks;
+    newData.globalTasks = { ...newData.globalTasks, [courseId]: courseGlobalTasks };
+    return { data: newData };
+  }),
+
+  removeFileFromTask: (courseId, week, taskId, filePath) => set((state) => {
+    const newData = { ...state.data };
+    const courseTasks = { ...newData.tasks[courseId] };
+    const weekTasks = [...courseTasks[week]];
+    
+    const taskIndex = weekTasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1 && weekTasks[taskIndex].files) {
+      const task = weekTasks[taskIndex];
+      weekTasks[taskIndex] = { 
+        ...task, 
+        files: task.files.filter(f => f.path !== filePath)
+      };
+    }
+    
+    courseTasks[week] = weekTasks;
+    newData.tasks = { ...newData.tasks, [courseId]: courseTasks };
+    return { data: newData };
+  }),
+
+  removeFileFromGlobalTask: (courseId, category, taskId, filePath) => set((state) => {
+    const newData = { ...state.data };
+    if (!newData.globalTasks) newData.globalTasks = {};
+    const courseGlobalTasks = newData.globalTasks[courseId] ? { ...newData.globalTasks[courseId] } : {};
+    
+    if (!courseGlobalTasks[category]) {
+      courseGlobalTasks[category] = [];
+    }
+    
+    const categoryTasks = courseGlobalTasks[category].map(t => {
+      if (t.id === taskId && t.files) {
+        return { ...t, files: t.files.filter(f => f.path !== filePath) };
       }
       return t;
     });
@@ -237,6 +282,11 @@ export const useStore = create((set, get) => ({
   resetSemester: () => set((state) => {
     const newData = generateInitialState();
     newData.courses = [...state.data.courses];
+    const lang = state.language || 'he';
+    const labels = {
+      he: { lecture: 'הרצאה', tutorial: 'תרגול', homework: 'שיעורי בית' },
+      en: { lecture: 'Lecture', tutorial: 'Tutorial', homework: 'Homework' }
+    };
     
     newData.courses.forEach(course => {
       newData.tasks[course.id] = {};
@@ -251,9 +301,9 @@ export const useStore = create((set, get) => ({
       for (let week = 1; week <= course.weeksCount; week++) {
         newData.notes[course.id][week] = "";
         newData.tasks[course.id][week] = [
-          { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: 'הרצאה', checked: false, files: [] },
-          { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: 'תרגול', checked: false, files: [] },
-          { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: 'שיעורי בית', checked: false, files: [] }
+          { id: `${course.id}-w${week}-lecture-0`, type: 'lecture', label: labels[lang].lecture, checked: false, files: [] },
+          { id: `${course.id}-w${week}-tutorial-1`, type: 'tutorial', label: labels[lang].tutorial, checked: false, files: [] },
+          { id: `${course.id}-w${week}-homework-2`, type: 'homework', label: labels[lang].homework, checked: false, files: [] }
         ];
       }
     });

@@ -5,9 +5,11 @@ import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
 import { Plus, Trash2, CheckCircle2, Circle, FileText, Paperclip } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const CategorySection = ({ courseId, category, title, icon: Icon }) => {
   const { data, addGlobalTask, deleteGlobalTask, toggleGlobalTask, attachFileToGlobalTask } = useStore();
+  const { t } = useTranslation();
   const [newTaskLabel, setNewTaskLabel] = useState('');
   const [uploadingTask, setUploadingTask] = useState(null);
   const fileInputRef = useRef(null);
@@ -46,7 +48,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
       
     } catch (error) {
       console.error("Upload failed", error);
-      alert("שגיאה בהעלאת הקובץ. ודא שיצרת את ה-Bucket בשם files כנדרש.");
+      alert(t('uploadError'));
     } finally {
       setUploadingTask(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -56,6 +58,19 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
   const triggerUpload = (taskId) => {
     setUploadingTask(taskId);
     if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleDeleteFile = async (taskId, filePath) => {
+    if (!window.confirm('האם אתה בטוח שברצונך למחוק קובץ זה?')) return;
+    
+    try {
+      await supabase.storage.from('course_files').remove([filePath]);
+      const { removeFileFromGlobalTask } = useStore.getState();
+      removeFileFromGlobalTask(courseId, category, taskId, filePath);
+    } catch (err) {
+      console.error("Failed to delete file", err);
+      alert("שגיאה במחיקת הקובץ");
+    }
   };
 
   return (
@@ -77,7 +92,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
         {/* Task List */}
         <div className="space-y-3">
           {tasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">אין משימות בקטגוריה זו. הוסף אחת למטה!</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('noTasksInCategory')}</p>
           ) : (
             tasks.map(task => (
               <div 
@@ -106,24 +121,32 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                 </div>
 
                 {/* File Attachment Area */}
-                <div className="pl-8 flex flex-wrap gap-2">
+                <div className="ps-8 flex flex-wrap gap-2">
                   {task.files && task.files.map((file, i) => (
-                    <a 
-                      key={i} 
-                      href={file.url} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      download={file.name}
-                      className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-md hover:bg-primary/20 transition-colors"
-                    >
-                      <FileText className="w-3 h-3" />
-                      <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
-                    </a>
+                    <div key={i} className="flex items-center group">
+                      <a 
+                        href={file.url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        download={file.name}
+                        className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-e-none rounded-s-md hover:bg-primary/20 transition-colors"
+                      >
+                        <FileText className="w-3 h-3" />
+                        <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
+                      </a>
+                      <button
+                        onClick={() => handleDeleteFile(task.id, file.path)}
+                        className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
+                        title="מחק קובץ"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   ))}
                   
                   {uploadingTask === task.id ? (
                     <span className="text-xs text-muted-foreground flex items-center gap-1 px-2 py-1 animate-pulse">
-                      מעלה...
+                      {t('uploading')}
                     </span>
                   ) : (
                     <button 
@@ -131,7 +154,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
                       className="flex items-center gap-1 text-xs text-muted-foreground bg-muted hover:bg-secondary hover:text-secondary-foreground px-2 py-1 rounded-md transition-colors"
                     >
                       <Paperclip className="w-3 h-3" />
-                      הוסף קובץ
+                      {t('addFile')}
                     </button>
                   )}
                 </div>
@@ -143,7 +166,7 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
         {/* Add New Task */}
         <div className="flex gap-2">
           <Input 
-            placeholder="שם המשימה או הקובץ..." 
+            placeholder={t('taskNamePlaceholder')} 
             value={newTaskLabel}
             onChange={(e) => setNewTaskLabel(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -160,11 +183,12 @@ const CategorySection = ({ courseId, category, title, icon: Icon }) => {
 };
 
 export const GlobalTasks = ({ courseId }) => {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-      <CategorySection courseId={courseId} category="past_exams" title="מבחנים משנים קודמות" icon={FileText} />
-      <CategorySection courseId={courseId} category="summaries" title="סיכומי שיעור" icon={FileText} />
-      <CategorySection courseId={courseId} category="quizzes" title="בחנים ועבודות" icon={FileText} />
+      <CategorySection courseId={courseId} category="past_exams" title={t('pastExams')} icon={FileText} />
+      <CategorySection courseId={courseId} category="summaries" title={t('summaries')} icon={FileText} />
+      <CategorySection courseId={courseId} category="quizzes" title={t('quizzes')} icon={FileText} />
     </div>
   );
 };

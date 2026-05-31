@@ -4,9 +4,11 @@ import { useStore } from '../../store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Clock, Calendar as CalendarIcon, CheckCircle, ExternalLink, Play } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const SmartDashboard = () => {
   const { data, activeCourse, setActiveCourse, setActiveCategory, setPomodoro } = useStore();
+  const { t, language } = useTranslation();
 
   // 1. Weekly Progress Calculation
   const progressStats = useMemo(() => {
@@ -73,7 +75,7 @@ export const SmartDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-primary" />
-              התקדמות סמסטר
+              {t('semesterProgress')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -91,7 +93,7 @@ export const SmartDashboard = () => {
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center text-center">
                   <span className="text-3xl font-bold">{progressStats.percentage}%</span>
-                  <span className="text-xs text-muted-foreground">{progressStats.completedTasks}/{progressStats.totalTasks} משימות</span>
+                  <span className="text-xs text-muted-foreground">{progressStats.completedTasks}/{progressStats.totalTasks} {t('tasks')}</span>
                 </div>
               </div>
             </div>
@@ -110,10 +112,10 @@ export const SmartDashboard = () => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-primary" />
-              לוח מבחנים מלא
+              {t('fullExamBoard')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+          <CardContent className="flex-1 overflow-y-auto max-h-[400px] pe-2 custom-scrollbar" dir={language === 'he' ? 'rtl' : 'ltr'}>
             {upcomingExams.length > 0 ? (
               <div className="space-y-3">
                 {upcomingExams.map((exam, i) => (
@@ -123,14 +125,14 @@ export const SmartDashboard = () => {
                   }`}>
                     <div>
                       <h4 className="font-bold text-foreground">{exam.course.name}</h4>
-                      <p className="text-sm text-muted-foreground">מועד {exam.moed.replace('moed', '')} • {exam.date.toLocaleDateString('he-IL')}</p>
+                      <p className="text-sm text-muted-foreground">{t('moed')} {exam.moed.replace('moed', '')} • {exam.date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}</p>
                     </div>
                     <div className={`text-center px-4 py-2 rounded-lg ${
                       exam.daysLeft <= 14 ? 'bg-destructive/10 text-destructive font-bold' : 
                       exam.daysLeft <= 30 ? 'bg-primary/10 text-primary font-semibold' : 'bg-secondary text-secondary-foreground'
                     }`}>
                       <div className="text-xl">{exam.daysLeft}</div>
-                      <div className="text-xs">ימים</div>
+                      <div className="text-xs">{t('days')}</div>
                     </div>
                   </div>
                 ))}
@@ -138,7 +140,7 @@ export const SmartDashboard = () => {
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8">
                 <CalendarIcon className="w-12 h-12 mb-2 opacity-20" />
-                <p>אין מבחנים קרובים, איזה כיף!</p>
+                <p>{t('noUpcomingExams')}</p>
               </div>
             )}
           </CardContent>
@@ -149,7 +151,7 @@ export const SmartDashboard = () => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
-              שעות למידה (פומודורו)
+              {t('learningHoursPomodoro')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -170,7 +172,7 @@ export const SmartDashboard = () => {
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                       itemStyle={{ color: 'hsl(var(--foreground))' }}
                     />
-                    <Bar dataKey="minutes" name="דקות למידה" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="minutes" name={t('learningMinutes')} radius={[4, 4, 0, 0]}>
                       {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={`hsl(${94 + (index * 15)} 21% 62%)`} />
                       ))}
@@ -179,9 +181,9 @@ export const SmartDashboard = () => {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
+              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground text-center">
                 <Clock className="w-12 h-12 mb-2 opacity-20" />
-                <p>עוד לא התחלת ללמוד עם הפומודורו.</p>
+                <p>{t('noPomodoroYet')}</p>
               </div>
             )}
           </CardContent>

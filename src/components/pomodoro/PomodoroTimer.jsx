@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Play, Pause, RotateCcw, X, Clock, Settings2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+import { useTranslation } from '../../hooks/useTranslation';
+import { cn } from '../../lib/utils';
 
 export const PomodoroTimer = () => {
   const { 
@@ -9,10 +11,11 @@ export const PomodoroTimer = () => {
     pomoSettings, setShowPomoSettings, showPomoSettings,
     addPomodoroSession, data, showPomodoroModal, setShowPomodoroModal
   } = useStore();
+  const { t, language } = useTranslation();
 
   const toggleTimer = () => {
     if (!pomodoro.active && !pomodoro.courseId) {
-      alert("יש לבחור קורס כדי להתחיל למידה!");
+      alert(t('selectCourseAlert'));
       return;
     }
     setPomodoro(prev => ({ ...prev, active: !prev.active }));
@@ -69,14 +72,14 @@ export const PomodoroTimer = () => {
 
   return (
     <Dialog open={showPomodoroModal} onOpenChange={setShowPomodoroModal}>
-      <DialogContent className="sm:max-w-md bg-card border-primary/20 shadow-2xl" dir="rtl">
+      <DialogContent className="sm:max-w-md bg-card border-primary/20 shadow-2xl" dir={language === 'he' ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-primary">
+          <DialogTitle className={cn("flex items-center gap-2 text-primary", language === 'he' ? "" : "flex-row-reverse justify-end")}>
             <Clock className="w-5 h-5" />
-            טיימר פומודורו
+            {t('pomodoroTimerTitle')}
           </DialogTitle>
-          <DialogDescription>
-            נהל את זמני הלמידה שלך. כל סשן למידה שתסיים יישמר בסטטיסטיקות הדשבורד!
+          <DialogDescription className={language === 'he' ? 'text-right' : 'text-left'}>
+            {t('pomodoroDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,7 +93,7 @@ export const PomodoroTimer = () => {
                 pomodoro.mode === 'work' ? 'bg-background shadow text-primary' : 'text-muted-foreground'
               }`}
             >
-              למידה
+              {t('workMode')}
             </button>
             <button 
               onClick={() => switchMode('break')}
@@ -98,7 +101,7 @@ export const PomodoroTimer = () => {
                 pomodoro.mode === 'break' ? 'bg-background shadow text-primary' : 'text-muted-foreground'
               }`}
             >
-              הפסקה
+              {t('breakMode')}
             </button>
           </div>
 
@@ -119,14 +122,14 @@ export const PomodoroTimer = () => {
 
           {/* Course Selector */}
           <div className="w-full">
-            <label className="text-xs font-medium text-muted-foreground mb-2 block text-center">שייך את זמן הלמידה לקורס:</label>
+            <label className="text-xs font-medium text-muted-foreground mb-2 block text-center">{t('assignSessionToCourse')}</label>
             <select 
               value={pomodoro.courseId || ''} 
               onChange={(e) => setPomodoro(prev => ({ ...prev, courseId: e.target.value }))}
-              className="w-full bg-background border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-              dir="rtl"
+              className="w-full bg-background border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none text-center"
+              dir={language === 'he' ? 'rtl' : 'ltr'}
             >
-              <option value="" disabled>-- בחר קורס --</option>
+              <option value="" disabled>{t('selectCoursePlaceholder')}</option>
               {data.courses.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}

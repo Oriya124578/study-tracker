@@ -1,11 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Check, GripVertical, FileText, UploadCloud, X, Link as LinkIcon, Paperclip } from 'lucide-react';
+import { Check, GripVertical, FileText, UploadCloud, X, Link as LinkIcon, Paperclip, Trash2 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { supabase } from '../../supabaseClient';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const WeeklyTasks = ({ courseId, selectedWeek }) => {
   const { data, toggleTask, reorderTasks, moveTaskBetweenWeeks, saveNote, attachFileToTask } = useStore();
+  const { t, language } = useTranslation();
   const [uploadingTask, setUploadingTask] = useState(null);
   
   const fileInputRef = useRef(null);
@@ -64,6 +66,21 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
     }
   };
 
+  const handleDeleteFile = async (taskId, filePath) => {
+    if (!window.confirm('האם אתה בטוח שברצונך למחוק קובץ זה?')) return;
+    
+    try {
+      // Remove from storage
+      await supabase.storage.from('course_files').remove([filePath]);
+      // Remove from state
+      const { removeFileFromTask } = useStore.getState();
+      removeFileFromTask(courseId, selectedWeek, taskId, filePath);
+    } catch (err) {
+      console.error("Failed to delete file", err);
+      alert("שגיאה במחיקת הקובץ");
+    }
+  };
+
   const triggerUpload = (taskId) => {
     setUploadingTask(taskId); // Temporary mark to know which task requested upload
     if (fileInputRef.current) fileInputRef.current.click();
@@ -83,7 +100,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
       <div className="lg:col-span-2 space-y-4">
         <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
           <Check className="w-5 h-5 text-primary" />
-          משימות שבועיות
+          {t('weeklyTasksTab')}
         </h3>
         
         <DragDropContext onDragEnd={onDragEnd}>
@@ -127,24 +144,32 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                         </div>
 
                         {/* Task Files */}
-                        <div className="pl-14 flex flex-wrap gap-2">
+                        <div className="ps-14 flex flex-wrap gap-2">
                           {task.files && task.files.map((file, i) => (
-                            <a 
-                              key={i} 
-                              href={file.url} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              download={file.name}
-                              className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-md hover:bg-primary/20 transition-colors"
-                            >
-                              <FileText className="w-3 h-3" />
-                              <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
-                            </a>
+                            <div key={i} className="flex items-center group">
+                              <a 
+                                href={file.url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                download={file.name}
+                                className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-e-none rounded-s-md hover:bg-primary/20 transition-colors"
+                              >
+                                <FileText className="w-3 h-3" />
+                                <span className="truncate max-w-[150px]" dir="ltr">{file.name}</span>
+                              </a>
+                              <button
+                                onClick={() => handleDeleteFile(task.id, file.path)}
+                                className="bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground px-1.5 py-1 rounded-e-md rounded-s-none transition-colors"
+                                title="מחק קובץ"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
                           ))}
                           
                           {uploadingTask === task.id ? (
                             <span className="text-xs text-muted-foreground flex items-center gap-1 px-2 py-1 animate-pulse">
-                              מעלה...
+                              {t('uploading')}
                             </span>
                           ) : (
                             <button 
@@ -152,7 +177,7 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
                               className="flex items-center gap-1 text-xs text-muted-foreground bg-muted hover:bg-secondary hover:text-secondary-foreground px-2 py-1 rounded-md transition-colors"
                             >
                               <Paperclip className="w-3 h-3" />
-                              הוסף קובץ
+                              {t('addFile')}
                             </button>
                           )}
                         </div>
@@ -171,16 +196,17 @@ export const WeeklyTasks = ({ courseId, selectedWeek }) => {
       <div className="space-y-4">
         <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
           <FileText className="w-5 h-5 text-primary" />
-          הערות לשבוע {selectedWeek}
+          {t('notesForWeek')} {selectedWeek}
         </h3>
         <textarea
           value={note}
           onChange={(e) => saveNote(courseId, selectedWeek, e.target.value)}
-          placeholder="הוסף הערות, שאלות או נקודות חשובות לזכור מהשבוע הזה..."
-          className="w-full h-64 p-4 rounded-xl border border-border bg-card text-foreground focus:ring-2 focus:ring-primary focus:outline-none resize-none shadow-sm"
+          placeholder={t('notesPlaceholder')}
+          className="w-full h-64 p-4 rounded-xl border border-border bg-card text-foreground focus:ring-2 focus:ring-primary focus:outline-none resize-none shadow-sm text-start"
+          dir="auto"
         />
         <p className="text-xs text-muted-foreground mt-2">
-          הערות נשמרות אוטומטית. (לעיצוב טקסט בעתיד ניתן להשתמש ב-*מודגש* או _נטוי_)
+          {t('notesAutoSaved')}
         </p>
       </div>
     </div>

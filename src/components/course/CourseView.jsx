@@ -8,9 +8,11 @@ import { Button } from '../ui/button';
 import { Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const CourseView = () => {
   const { activeCourse, data, updateCourse } = useStore();
+  const { t, language } = useTranslation();
   const [activeTab, setActiveTab] = useState('weekly'); // 'weekly' or 'global'
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -47,13 +49,13 @@ export const CourseView = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">{activeCourse.name}</h1>
           <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-            {activeCourse.credits > 0 && <span>{activeCourse.credits} נק"ז</span>}
-            {activeCourse.semester && <span>סמסטר {activeCourse.semester}</span>}
+            {activeCourse.credits > 0 && <span>{activeCourse.credits} {t('credits')}</span>}
+            {activeCourse.semester && <span>{t('semester')} {activeCourse.semester}</span>}
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={handleOpenSettings} className="gap-2">
           <Settings className="w-4 h-4" />
-          הגדרות קורס
+          {t('courseSettings')}
         </Button>
       </div>
 
@@ -66,9 +68,9 @@ export const CourseView = () => {
             activeTab === 'weekly' ? "text-primary" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          משימות שבועיות
+          {t('weeklyTasksTab')}
           {activeTab === 'weekly' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-t-full" />
           )}
         </button>
         <button
@@ -78,9 +80,9 @@ export const CourseView = () => {
             activeTab === 'global' ? "text-primary" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          מאגר (מבחנים וסיכומים)
+          {t('globalTasksTab')}
           {activeTab === 'global' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-t-full" />
           )}
         </button>
       </div>
@@ -107,7 +109,7 @@ export const CourseView = () => {
                       isCompleted && selectedWeek !== week ? "border-primary/50 text-primary" : ""
                     )}
                   >
-                    שבוע {week}
+                    {t('week')} {week}
                     {isCompleted && (
                       <span className={cn(
                         "w-2 h-2 rounded-full",
@@ -129,52 +131,56 @@ export const CourseView = () => {
 
       {/* Course Settings Modal */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent dir="rtl">
+        <DialogContent dir={language === 'he' ? 'rtl' : 'ltr'} className={language === 'he' ? 'text-right' : 'text-left'}>
           <DialogHeader>
-            <DialogTitle>הגדרות קורס: {activeCourse.name}</DialogTitle>
+            <DialogTitle>{t('courseSettings')}: {activeCourse.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 text-start">
             <div className="space-y-2">
-              <label className="text-sm font-medium">שם הקורס</label>
+              <label className="text-sm font-medium text-foreground">{t('courseName')}</label>
               <Input 
                 value={editData.name} 
                 onChange={(e) => setEditData({...editData, name: e.target.value})} 
+                className="text-start"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">מספר שבועות למידה</label>
+                <label className="text-sm font-medium text-foreground">{t('learningWeeks')}</label>
                 <Input 
                   type="number" 
                   min="1" 
                   max="20" 
                   value={editData.weeksCount} 
                   onChange={(e) => setEditData({...editData, weeksCount: e.target.value})} 
+                  className="text-start"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">נקודות זכות (נ"ז)</label>
+                <label className="text-sm font-medium text-foreground">{t('credits')}</label>
                 <Input 
                   type="number" 
                   step="0.5" 
                   min="0"
                   value={editData.credits} 
                   onChange={(e) => setEditData({...editData, credits: e.target.value})} 
+                  className="text-start"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">סמסטר</label>
+              <label className="text-sm font-medium text-foreground">{t('semester')}</label>
               <Input 
-                placeholder="לדוגמה: א', ב', קיץ"
+                placeholder={t('semesterPlaceholder')}
                 value={editData.semester} 
                 onChange={(e) => setEditData({...editData, semester: e.target.value})} 
+                className="text-start"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>ביטול</Button>
-            <Button onClick={handleSaveSettings}>שמור שינויים</Button>
+          <DialogFooter className="gap-2 sm:justify-start">
+            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>{t('cancel')}</Button>
+            <Button onClick={handleSaveSettings}>{t('saveChanges')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

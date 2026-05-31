@@ -4,11 +4,14 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const WEEKDAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+const WEEKDAYS_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export const CalendarView = () => {
   const { data } = useStore();
+  const { t, language } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const monthStart = startOfMonth(currentDate);
@@ -47,13 +50,13 @@ export const CalendarView = () => {
         <CardHeader className="bg-primary/5 border-b border-border/50">
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
-            מבחנים קרובים
+            {t('upcomingExams')}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-3">
             {exams.filter(e => differenceInDays(e.date, new Date()) >= -1).length === 0 ? (
-              <p className="text-muted-foreground text-sm">אין מבחנים קרובים. איזה כיף!</p>
+              <p className="text-muted-foreground text-sm">{t('noUpcomingExams')}</p>
             ) : (
               exams
                 .filter(e => differenceInDays(e.date, new Date()) >= -1)
@@ -73,13 +76,13 @@ export const CalendarView = () => {
                         isSoon ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-primary/10 text-primary border border-primary/20"
                       )}>
                         {daysLeft < 0 ? (
-                          <span className="font-medium text-sm">עבר</span>
+                          <span className="font-medium text-sm">{t('passed')}</span>
                         ) : daysLeft === 0 ? (
-                          <span className="font-bold text-lg">היום!</span>
+                          <span className="font-bold text-lg">{t('todayExclamation')}</span>
                         ) : (
                           <div className="flex flex-col items-center leading-none">
                             <span className="text-2xl font-bold">{daysLeft}</span>
-                            <span className="text-xs font-medium opacity-80">ימים</span>
+                            <span className="text-xs font-medium opacity-80">{t('daysLabel')}</span>
                           </div>
                         )}
                       </div>
@@ -102,12 +105,12 @@ export const CalendarView = () => {
             <button onClick={nextMonth} className="p-2 hover:bg-muted rounded-full transition-colors"><ChevronLeft className="w-4 h-4"/></button>
           </div>
           <button onClick={() => setCurrentDate(new Date())} className="text-xs font-medium text-primary hover:bg-primary/10 px-2 py-1 rounded-md transition-colors hidden md:block">
-            היום
+            {t('today')}
           </button>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-medium text-muted-foreground">
-            {WEEKDAYS.map(day => <div key={day}>{day}</div>)}
+            {(language === 'en' ? WEEKDAYS_EN : WEEKDAYS).map((day, i) => <div key={i}>{day}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {paddingDays.map(i => <div key={`pad-${i}`} className="min-h-[40px] md:min-h-[80px]" />)}

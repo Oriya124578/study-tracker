@@ -4,6 +4,7 @@ import { BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const AuthView = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export const AuthView = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,14 +35,14 @@ export const AuthView = () => {
 
   const handleResetPassword = async () => {
     if (!email) {
-      setError('יש להזין אימייל כדי לשחזר סיסמה.');
+      setError(t('emailRequiredReset'));
       return;
     }
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
-      alert('נשלח מייל לאיפוס סיסמה!');
+      alert(t('resetPasswordEmailSent'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -55,13 +57,13 @@ export const AuthView = () => {
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
             <BookOpen className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Study Tracker</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('loginTitle')}</CardTitle>
           <CardDescription>
-            {isLogin ? 'התחבר כדי להמשיך לנהל את הלימודים שלך' : 'צור חשבון חדש והתחל ללמוד חכם'}
+            {isLogin ? t('loginDesc') : t('registerDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4 text-right" dir="rtl">
+          <form onSubmit={handleSubmit} className="space-y-4 text-start">
             {error && (
               <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
                 {error}
@@ -69,42 +71,44 @@ export const AuthView = () => {
             )}
             
             <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">אימייל</label>
+              <label className="text-sm font-medium text-foreground">{t('email')}</label>
               <Input 
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required 
-                placeholder="כתובת אימייל"
+                placeholder={t('emailPlaceholder')}
                 dir="ltr"
+                className="text-start"
               />
             </div>
             
             <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">סיסמה</label>
+              <label className="text-sm font-medium text-foreground">{t('password')}</label>
               <Input 
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
-                placeholder="סיסמה (מינימום 6 תווים)"
+                placeholder={t('passwordPlaceholder')}
                 dir="ltr"
+                className="text-start"
               />
             </div>
 
             <Button type="submit" className="w-full h-11 text-base mt-2" disabled={loading}>
-              {loading ? 'טוען...' : (isLogin ? 'התחבר' : 'הרשם')}
+              {loading ? t('loading') : (isLogin ? t('loginBtn') : t('registerBtn'))}
             </Button>
           </form>
 
           <div className="mt-6 flex flex-col gap-2">
             <Button variant="ghost" className="w-full" onClick={() => setIsLogin(!isLogin)} disabled={loading}>
-              {isLogin ? 'אין לך חשבון? הרשם עכשיו' : 'כבר יש לך חשבון? התחבר'}
+              {isLogin ? t('noAccount') : t('hasAccount')}
             </Button>
             
             {isLogin && (
               <Button variant="link" className="w-full text-muted-foreground" onClick={handleResetPassword} disabled={loading}>
-                שכחת סיסמה? שחזר כאן
+                {t('forgotPassword')}
               </Button>
             )}
           </div>
