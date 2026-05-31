@@ -1,87 +1,114 @@
-:root {
-  --background: 60 4.8% 95.9%;
-  --foreground: 24 9.8% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 24 9.8% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 24 9.8% 10%;
-  --primary: 213 89% 51%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 90%;
-  --secondary-foreground: 24 9.8% 10%;
-  --muted: 0 0% 90%;
-  --muted-foreground: 25 5.3% 44.7%;
-  --accent: 213 89% 51%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --ring: 24 9.8% 10%;
-  --radius: 0.5rem;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Assistant', system-ui, sans-serif;
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
-[data-theme="dark"] {
-  --background: 0 0% 10%;
-  --foreground: 0 0% 83%;
-  --card: 0 0% 13%;
-  --card-foreground: 0 0% 83%;
-  --popover: 0 0% 13%;
-  --popover-foreground: 0 0% 83%;
-  --primary: 131 55% 40%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 15%;
-  --secondary-foreground: 0 0% 83%;
-  --muted: 0 0% 20%;
-  --muted-foreground: 0 0% 55%;
-  --accent: 131 55% 40%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 91% 64%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 25%;
-  --input: 0 0% 25%;
-  --ring: 0 0% 83%;
-}
+@layer base {
+  :root {
+    /* Background: Soft Cream #FDFBF7 */
+    --background: 40 40% 98%; 
+    /* Foreground/Text: Deep Charcoal #2D2926 */
+    --foreground: 20 8% 16%;
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  border-color: hsl(var(--border));
-}
+    /* Cards: Pure White #FFFFFF */
+    --card: 0 0% 100%;
+    --card-foreground: 20 8% 16%;
+ 
+    /* Popovers: Pure White */
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 8% 16%;
+ 
+    /* Primary Accent: Pale Sage Green #A3B18A */
+    --primary: 94 21% 62%;
+    --primary-foreground: 0 0% 100%;
+ 
+    /* Secondary Accent: Soft Warm Grey / Sand */
+    --secondary: 40 15% 90%;
+    --secondary-foreground: 20 8% 16%;
+ 
+    /* Muted: Lighter Grey for subtle text */
+    --muted: 40 15% 94%;
+    --muted-foreground: 36 10% 45%;
+ 
+    /* Accent for hover states */
+    --accent: 40 15% 92%;
+    --accent-foreground: 20 8% 16%;
+ 
+    /* Destructive: Soft Terracotta/Red for errors #D4A373 */
+    --destructive: 24 53% 64%;
+    --destructive-foreground: 0 0% 100%;
 
-body {
-  margin: 0;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  direction: rtl;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif;
-}
-
-/* Utility classes previously from Tailwind */
-.app-container {
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.main-content {
-  flex: 1;
-  padding: 1rem;
-  max-width: 72rem;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-@media (min-width: 768px) {
-  .main-content {
-    padding: 2rem;
-    padding-right: 260px;
+    /* Border: Warm Soft Border */
+    --border: 40 15% 90%;
+    --input: 40 15% 90%;
+    --ring: 94 21% 62%;
+ 
+    --radius: 0.75rem;
+  }
+ 
+  .dark {
+    /* For now, dark mode variables are kept basic dark, 
+       but you requested sticking to the cream palette. */
+    --background: 20 14% 4%;
+    --foreground: 60 9% 98%;
+ 
+    --card: 20 14% 6%;
+    --card-foreground: 60 9% 98%;
+ 
+    --popover: 20 14% 6%;
+    --popover-foreground: 60 9% 98%;
+ 
+    --primary: 94 21% 62%;
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 12 6.5% 15%;
+    --secondary-foreground: 60 9% 98%;
+ 
+    --muted: 12 6.5% 15%;
+    --muted-foreground: 24 5.4% 63.9%;
+ 
+    --accent: 12 6.5% 15%;
+    --accent-foreground: 60 9% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 60 9% 98%;
+ 
+    --border: 12 6.5% 15%;
+    --input: 12 6.5% 15%;
+    --ring: 94 21% 62%;
   }
 }
-
-.glass-panel {
-  background-color: hsla(var(--background), 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+ 
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Assistant', system-ui, sans-serif;
+  }
 }
