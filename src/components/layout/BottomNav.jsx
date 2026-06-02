@@ -34,7 +34,7 @@ export const BottomNav = () => {
             <button
               key="fab"
               onClick={() => handleNavClick('__fab__')}
-              className="relative -mt-5 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+              className="relative -mt-5 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
               aria-label={t('addNewItem')}
             >
               <Plus className="w-7 h-7" strokeWidth={2.5} />
@@ -56,8 +56,9 @@ export const BottomNav = () => {
           <button
             key={item.key}
             onClick={() => handleNavClick(item.key)}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center gap-0.5 py-2.5 px-3 transition-colors min-w-[52px]',
+              'flex flex-col items-center gap-0.5 py-2.5 px-3 transition-colors min-w-[52px] rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
               isActive ? 'text-primary' : 'text-muted-foreground',
             )}
           >

@@ -85,7 +85,7 @@ export const MoreHub = () => {
             <button
               key={item.key}
               onClick={() => handleClick(item.key)}
-              className="flex flex-col gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-md active:scale-[0.97] transition-all text-start"
+              className="flex flex-col gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-md active:scale-[0.97] transition-all text-start focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <div className="flex items-start justify-between w-full">
                 <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center', item.bg)}>
@@ -97,7 +97,7 @@ export const MoreHub = () => {
                       {badge > 99 ? '99+' : badge}
                     </span>
                   )}
-                  <Chevron className="w-4 h-4 text-muted-foreground/40" />
+                  <Chevron className="w-4 h-4 text-muted-foreground/40" aria-hidden="true" />
                 </div>
               </div>
               <div>

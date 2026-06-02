@@ -18,11 +18,11 @@ export const CaloriSummaryCard = () => {
   const hasMeals    = meals.length > 0;
   const hasWorkouts = workouts.length > 0;
 
-  const totalCalories = hasMeals ? meals.reduce((s, m) => s + m.calories, 0) : (dayHistory?.calories ?? 0);
-  const totalProtein  = hasMeals ? meals.reduce((s, m) => s + m.protein, 0)  : (dayHistory?.protein  ?? 0);
-  const totalCarbs    = hasMeals ? meals.reduce((s, m) => s + m.carbs, 0)    : (dayHistory?.carbs    ?? 0);
-  const totalFats     = hasMeals ? meals.reduce((s, m) => s + m.fats, 0)     : (dayHistory?.fats     ?? 0);
-  const burned        = hasWorkouts ? workouts.reduce((s, w) => s + w.caloriesBurned, 0) : (dayHistory?.workout_calories ?? 0);
+  const totalCalories = hasMeals ? meals.reduce((s, m) => s + (m.calories || 0), 0) : (dayHistory?.calories ?? 0);
+  const totalProtein  = hasMeals ? meals.reduce((s, m) => s + (m.protein  || 0), 0) : (dayHistory?.protein  ?? 0);
+  const totalCarbs    = hasMeals ? meals.reduce((s, m) => s + (m.carbs    || 0), 0) : (dayHistory?.carbs    ?? 0);
+  const totalFats     = hasMeals ? meals.reduce((s, m) => s + (m.fats     || 0), 0) : (dayHistory?.fats     ?? 0);
+  const burned        = hasWorkouts ? workouts.reduce((s, w) => s + (w.caloriesBurned || 0), 0) : (dayHistory?.workout_calories ?? 0);
   const mealCount     = hasMeals    ? meals.length    : (dayHistory?.meals_count   ?? 0);
   const workoutCount  = hasWorkouts ? workouts.length : (dayHistory?.workout_count ?? 0);
 
@@ -32,7 +32,8 @@ export const CaloriSummaryCard = () => {
   return (
     <button
       onClick={() => setActiveCategory('calori')}
-      className="w-full text-start rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-[#059669]/40 hover:shadow-md active:scale-[0.99] transition-all"
+      aria-label={t('caloriTitle')}
+      className="w-full text-start rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-[#059669]/40 hover:shadow-md active:scale-[0.99] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]/40"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Header */}

@@ -133,4 +133,21 @@ const localApiPlugin = () => ({
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), localApiPlugin()],
+  build: {
+    rollupOptions: {
+      output: {
+        // Vite 8 uses rolldown as its bundler. Use the native `codeSplitting.groups`
+        // API to peel heavy vendor libs into their own chunks. Higher priority groups
+        // are matched first; their modules are removed from lower-priority groups.
+        codeSplitting: {
+          groups: [
+            { name: 'recharts', test: /node_modules[\\/](recharts|d3-[^\\/]+|victory-vendor|internmap)[\\/]/, priority: 40 },
+            { name: 'firebase', test: /node_modules[\\/](@firebase|firebase)[\\/]/, priority: 30 },
+            { name: 'framer-motion', test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/, priority: 20 },
+            { name: 'vendor', test: /node_modules[\\/]/, priority: 1 },
+          ],
+        },
+      },
+    },
+  },
 })

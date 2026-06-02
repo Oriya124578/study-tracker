@@ -103,17 +103,17 @@ export const StudiesStats = () => {
           {upcomingExams.length > 0 ? (
             <div className="space-y-3">
               {upcomingExams.map((exam, i) => (
-                <div key={i} className={`p-4 rounded-xl border flex items-center justify-between ${
+                <div key={i} className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
                   exam.daysLeft <= 14 ? 'border-destructive/30 bg-destructive/5' :
-                  exam.daysLeft <= 30 ? 'border-primary/30 bg-primary/5' : 'border-border bg-background'
+                  exam.daysLeft <= 30 ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/40'
                 }`}>
-                  <div>
-                    <h4 className="font-bold text-foreground">{exam.course?.name || t('unknownCourse')}</h4>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-foreground truncate">{exam.course?.name || t('unknownCourse')}</h4>
                     <p className="text-sm text-muted-foreground">
                       {t('moed')} {exam.moed.replace('moed', '')} • {exam.date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}
                     </p>
                   </div>
-                  <div className={`text-center px-4 py-2 rounded-lg ${
+                  <div className={`text-center shrink-0 px-4 py-2 rounded-lg ${
                     exam.daysLeft <= 14 ? 'bg-destructive/10 text-destructive font-bold' :
                     exam.daysLeft <= 30 ? 'bg-primary/10 text-primary font-semibold' : 'bg-secondary text-secondary-foreground'
                   }`}>

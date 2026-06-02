@@ -7,7 +7,7 @@ import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
 import { dateKey } from '../../lib/caloriRepo';
-import { format, parseISO, isToday, isYesterday, addDays, subDays } from 'date-fns';
+import { format, parseISO, isToday, isYesterday, isValid, addDays, subDays } from 'date-fns';
 
 // Nutrition = green (#059669) · Fitness = purple (#7C3AED) — per DESIGN_SYSTEM.
 
@@ -27,7 +27,10 @@ const MacroPill = ({ icon: Icon, label, value, unit, color }) => (
 
 const MealRow = ({ meal, t }) => {
   let time = '';
-  try { time = meal.timestamp ? format(parseISO(meal.timestamp), 'HH:mm') : ''; } catch { /* ignore */ }
+  if (meal.timestamp) {
+    const dt = parseISO(meal.timestamp);
+    if (isValid(dt)) time = format(dt, 'HH:mm');
+  }
   const catLabel = t(`mealCat_${meal.category}`, meal.category);
 
   return (
@@ -58,7 +61,10 @@ const MealRow = ({ meal, t }) => {
 
 const WorkoutRow = ({ workout, t }) => {
   let time = '';
-  try { time = workout.timestamp ? format(parseISO(workout.timestamp), 'HH:mm') : ''; } catch { /* ignore */ }
+  if (workout.timestamp) {
+    const dt = parseISO(workout.timestamp);
+    if (isValid(dt)) time = format(dt, 'HH:mm');
+  }
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#7C3AED] text-white shadow-sm">
@@ -99,7 +105,8 @@ export const CaloriView = () => {
   // parseISO(undefined) would produce an Invalid Date.
   if (!caloriDate) return null;
 
-  const selected = parseISO(caloriDate);
+  const parsed = parseISO(caloriDate);
+  const selected = isValid(parsed) ? parsed : new Date();
   const dateLabel = isToday(selected)
     ? t('caloriToday')
     : isYesterday(selected)
@@ -120,12 +127,12 @@ export const CaloriView = () => {
   const hasMeals    = meals.length > 0;
   const hasWorkouts = workouts.length > 0;
 
-  const totalCalories = hasMeals ? meals.reduce((s, m) => s + m.calories, 0) : (dayHistory?.calories ?? 0);
-  const totalProtein  = hasMeals ? meals.reduce((s, m) => s + m.protein, 0)  : (dayHistory?.protein  ?? 0);
-  const totalCarbs    = hasMeals ? meals.reduce((s, m) => s + m.carbs, 0)    : (dayHistory?.carbs    ?? 0);
-  const totalFats     = hasMeals ? meals.reduce((s, m) => s + m.fats, 0)     : (dayHistory?.fats     ?? 0);
-  const burned        = hasWorkouts ? workouts.reduce((s, w) => s + w.caloriesBurned, 0)  : (dayHistory?.workout_calories ?? 0);
-  const workoutMin    = hasWorkouts ? workouts.reduce((s, w) => s + w.durationMinutes, 0) : (dayHistory?.workout_minutes  ?? 0);
+  const totalCalories = hasMeals ? meals.reduce((s, m) => s + (m.calories || 0), 0) : (dayHistory?.calories ?? 0);
+  const totalProtein  = hasMeals ? meals.reduce((s, m) => s + (m.protein  || 0), 0) : (dayHistory?.protein  ?? 0);
+  const totalCarbs    = hasMeals ? meals.reduce((s, m) => s + (m.carbs    || 0), 0) : (dayHistory?.carbs    ?? 0);
+  const totalFats     = hasMeals ? meals.reduce((s, m) => s + (m.fats     || 0), 0) : (dayHistory?.fats     ?? 0);
+  const burned        = hasWorkouts ? workouts.reduce((s, w) => s + (w.caloriesBurned  || 0), 0) : (dayHistory?.workout_calories ?? 0);
+  const workoutMin    = hasWorkouts ? workouts.reduce((s, w) => s + (w.durationMinutes || 0), 0) : (dayHistory?.workout_minutes  ?? 0);
   const nutritionScore = dayHistory?.nutrition_score;
 
   const PrevIcon = isRTL ? ChevronRight : ChevronLeft;
@@ -139,20 +146,22 @@ export const CaloriView = () => {
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Date navigator ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-2 py-1.5 shadow-sm">
         <button
           onClick={goPrev}
-          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+          aria-label={t('caloriPrevDay', isRTL ? 'יום קודם' : 'Previous day')}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <PrevIcon className="w-5 h-5 text-foreground" />
+          <PrevIcon className="w-5 h-5" />
         </button>
         <h2 className="text-base font-bold text-foreground">{dateLabel}</h2>
         <button
           onClick={goNext}
           disabled={atToday}
-          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30"
+          aria-label={t('caloriNextDay', isRTL ? 'יום הבא' : 'Next day')}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <NextIcon className="w-5 h-5 text-foreground" />
+          <NextIcon className="w-5 h-5" />
         </button>
       </div>
 

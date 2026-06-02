@@ -79,7 +79,9 @@ const NoteEditSheet = ({ note, onClose }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPinned((v) => !v)}
-                className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors"
+                className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                aria-pressed={pinned}
+                aria-label={pinned ? t('unpinNote') : t('pinNote')}
               >
                 {pinned
                   ? <PinOff className="w-4 h-4 text-primary" />
@@ -87,11 +89,16 @@ const NoteEditSheet = ({ note, onClose }) => {
               </button>
               <button
                 onClick={handleDelete}
-                className="p-1.5 rounded-full hover:bg-destructive/10 transition-colors"
+                className="p-1.5 rounded-full hover:bg-destructive/10 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                aria-label={t('deleteNote')}
               >
                 <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
               </button>
-              <button onClick={handleSave}>
+              <button
+                onClick={handleSave}
+                className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                aria-label={t('saveNote')}
+              >
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
@@ -119,13 +126,16 @@ const NoteEditSheet = ({ note, onClose }) => {
           <div className="pt-2 border-t border-foreground/10">
             <div className="flex items-center gap-3">
               <Palette className="w-4 h-4 text-muted-foreground shrink-0" />
-              <div className="flex gap-2">
+              <div className="flex gap-2" role="radiogroup" aria-label={t('noteColor')}>
                 {NOTE_COLORS.map((c) => (
                   <button
                     key={String(c.id)}
                     onClick={() => setColor(c.id)}
+                    role="radio"
+                    aria-checked={color === c.id}
+                    aria-label={c.id || t('none')}
                     className={cn(
-                      'w-7 h-7 rounded-full transition-all',
+                      'w-7 h-7 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
                       c.swatch,
                       color === c.id && 'ring-2 ring-offset-2 ring-primary scale-110',
                     )}

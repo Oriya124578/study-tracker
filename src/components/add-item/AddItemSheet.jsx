@@ -144,19 +144,22 @@ export const AddItemSheet = () => {
                 </h2>
                 <button
                   onClick={closeAddSheet}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                  className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                  aria-label={t('cancel')}
                 >
                   <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>
 
               {/* Segment Tabs */}
-              <div className="flex bg-muted rounded-xl p-1 gap-0.5 mb-5">
+              <div className="flex bg-muted rounded-xl p-1 gap-0.5 mb-5" role="tablist">
                 {TABS.map((tab) => (
                   <button
                     key={tab}
+                    role="tab"
+                    aria-selected={activeTab === tab}
                     className={cn(
-                      'flex-1 text-center text-sm font-semibold py-2.5 rounded-lg transition-all',
+                      'flex-1 text-center text-sm font-semibold py-2.5 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                       activeTab === tab
                         ? 'bg-primary text-primary-foreground shadow-md'
                         : 'text-muted-foreground hover:text-foreground',
@@ -253,8 +256,11 @@ export const AddItemSheet = () => {
                   >
                     <button
                       onClick={() => setAllDay(!allDay)}
+                      role="switch"
+                      aria-checked={allDay}
+                      aria-label={t('allDay')}
                       className={cn(
-                        'w-11 h-6 rounded-full transition-colors flex items-center px-0.5',
+                        'w-11 h-6 rounded-full transition-colors flex items-center px-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
                         allDay ? 'bg-primary' : 'bg-muted-foreground/30',
                       )}
                     >
@@ -315,13 +321,22 @@ export const AddItemSheet = () => {
                     iconBg="bg-red-100 dark:bg-red-900/30"
                     label={t('priority')}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" role="radiogroup" aria-label={t('priority')}>
                       {PRIORITY_OPTIONS.map((p) => (
                         <button
                           key={p.value}
                           onClick={() => setPriority(p.value)}
+                          role="radio"
+                          aria-checked={priority === p.value}
+                          aria-label={
+                            p.value === 'high'
+                              ? t('priorityHigh')
+                              : p.value === 'med'
+                              ? t('priorityMed')
+                              : t('priorityLow')
+                          }
                           className={cn(
-                            'w-7 h-7 rounded-full flex items-center justify-center transition-all border-2',
+                            'w-7 h-7 rounded-full flex items-center justify-center transition-all border-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
                             p.color,
                             priority === p.value
                               ? 'border-foreground scale-110 shadow-md'

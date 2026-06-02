@@ -120,6 +120,13 @@ Follow `c:\src\projects\calori_1300\DESIGN_SYSTEM.md` strictly:
 - `CaloriSummaryCard.jsx` now orphaned (timeline supersedes it); kept for reference
 - Review round (3 sub-agents) fixed: `limit()` on recent daily_history, error propagation in completeOnboarding, CaloriView Invalid-Date guard, duplicate `noUpcomingExams` i18n key
 
+### Phase 4 polish ✅ (2026-06-03) — 3 parallel specialist agents
+- **A11y pass**: aria-labels on all icon-only buttons; `role="checkbox"/"switch"/"radio"/"tablist"`, `aria-checked/expanded/pressed/selected/current`, `aria-controls`; focus-visible rings everywhere (TasksView, NotesView, AddItemSheet, BottomNav, MoreHub)
+- **Performance / code-splitting**: route views in `Layout.jsx` now `React.lazy` + `<Suspense>` (SmartDashboard stays eager); `vite.config.js` uses rolldown `build.rollupOptions.output.codeSplitting.groups` to split firebase/recharts/framer-motion/vendor. **Main entry chunk 1.37MB → 99KB** (gzip 416KB → 29KB), zero build warnings, each view its own 2-25KB lazy chunk
+- **Home/Phase-4 UX**: refined SmartDashboard hierarchy, contained colored icon chips in timeline, null-safe calori reducers, isValid date guards, RTL audit (all logical props), polished CaloriView date-nav card + StudiesStats consistency. CaloriSummaryCard kept (orphaned, reusable)
+- Integrator (me) added `caloriPrevDay`/`caloriNextDay` keys, removed duplicate `semester` i18n key
+- Work committed on branch `phase-2-4-upgrade`; i18n symmetric at 321 keys/lang, 0 dups
+
 ## Next: Phase 5
 - Phase 5: Notifications (FCM) — reminders for tasks/events/exams
 
