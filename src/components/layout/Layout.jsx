@@ -1,10 +1,8 @@
 import React from 'react';
-import { Sidebar } from './Sidebar';
-import { MobileNav } from './MobileNav';
+import { BottomNav } from './BottomNav';
 import { PomodoroTimer } from '../pomodoro/PomodoroTimer';
 import { MobileCourseMenu } from './MobileCourseMenu';
 import { useStore } from '../../store/useStore';
-import { cn } from '../../lib/utils';
 import { SmartDashboard } from '../dashboard/SmartDashboard';
 import { CourseView } from '../course/CourseView';
 import { CalendarView } from '../calendar/CalendarView';
@@ -12,10 +10,16 @@ import { SettingsView } from '../settings/SettingsView';
 import { GlobalLoadingOverlay } from './GlobalLoadingOverlay';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from '../ui/Toaster';
+import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
+import { StudiesHub } from '../studies/StudiesHub';
+import { TasksView } from '../tasks/TasksView';
+import { NotesView } from '../notes/NotesView';
+import { MoreHub } from './MoreHub';
+import { CaloriView } from '../calori/CaloriView';
 
 export const Layout = () => {
-  const { activeCategory, activeCourse, showPomoSettings } = useStore();
+  const { activeCategory, activeCourse } = useStore();
   const { t, language } = useTranslation();
 
   const renderContent = () => {
@@ -29,38 +33,70 @@ export const Layout = () => {
       case 'settings':
         return <SettingsView />;
       case 'courses':
-        // On mobile, 'courses' might open a modal or just a list of courses. 
-        // For simplicity, let's redirect to overview if accessed directly, as courses are in Sidebar.
-        // We will build a MobileCourseMenu later, or just show Dashboard for now.
-        return <SmartDashboard />;
+        return <StudiesHub />;
+      case 'tasks':
+        return <TasksView />;
+      case 'notes':
+        return <NotesView />;
+      case 'moreHub':
+        return <MoreHub />;
+      case 'calori':
+        return <CaloriView />;
       default:
         return <SmartDashboard />;
     }
   };
 
-  return (
-    <div className="flex min-h-[100dvh] w-full bg-background selection:bg-primary/20">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 relative">
-        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0" dir={language === 'he' ? 'rtl' : 'ltr'}>
-          <h1 className="font-bold text-lg text-foreground truncate flex-1 pe-4 text-start">
-            {activeCategory === 'course' && activeCourse ? activeCourse.name : 
-             activeCategory === 'calendar' ? t('navCalendar') :
-             activeCategory === 'settings' ? t('navSettings') : t('navOverview')}
-          </h1>
-          
-          <div className="flex items-center gap-1.5 shrink-0" dir="ltr">
-            <span className="text-xs font-bold text-primary opacity-80 uppercase tracking-wide hidden sm:inline-block">{t('appName')}</span>
-            <img src="/logo-192.png" alt="Study Tracker Logo" className="w-6 h-6 object-contain drop-shadow-sm" />
-          </div>
-        </header>
-        <main className="flex-1 relative scroll-smooth min-w-0 pb-28 md:pb-8 pt-4 md:pt-0">
-          <ErrorBoundary>{renderContent()}</ErrorBoundary>
-        </main>
-      </div>
-      <MobileNav />
-      <MobileCourseMenu />
+  const headerTitle =
+    activeCategory === 'course' && activeCourse
+      ? activeCourse.name
+      : activeCategory === 'calendar'
+      ? t('navCalendar')
+      : activeCategory === 'settings'
+      ? t('navMore')
+      : activeCategory === 'courses'
+      ? t('navStudies')
+      : activeCategory === 'tasks'
+      ? t('myTasks')
+      : activeCategory === 'notes'
+      ? t('myNotes')
+      : activeCategory === 'moreHub'
+      ? t('moreHubTitle')
+      : activeCategory === 'calori'
+      ? t('caloriTitle')
+      : t('navHome');
 
+  return (
+    <div className="flex flex-col min-h-[100dvh] w-full bg-background selection:bg-primary/20">
+      {/* Top header */}
+      <header
+        className="flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0"
+        dir={language === 'he' ? 'rtl' : 'ltr'}
+      >
+        <h1 className="font-bold text-lg text-foreground truncate flex-1 pe-4 text-start">
+          {headerTitle}
+        </h1>
+        <div className="flex items-center gap-1.5 shrink-0" dir="ltr">
+          <span className="text-xs font-bold text-primary opacity-80 uppercase tracking-wide hidden sm:inline-block">
+            {t('appName')}
+          </span>
+          <img
+            src="/logo-192.png"
+            alt="Calori Life Logo"
+            className="w-6 h-6 object-contain drop-shadow-sm"
+          />
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 relative scroll-smooth min-w-0 pb-24 pt-2">
+        <ErrorBoundary>{renderContent()}</ErrorBoundary>
+      </main>
+
+      {/* Navigation & overlays */}
+      <BottomNav />
+      <MobileCourseMenu />
+      <AddItemSheet />
       <PomodoroTimer />
       <GlobalLoadingOverlay />
       <Toaster />

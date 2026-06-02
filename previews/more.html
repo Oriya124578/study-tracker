@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calori Life — הגדרות</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --bg:#F5F5F7;--bg-deep:#ECECEF;--surface:#FFFFFF;--surface-2:#FAFAFB;
+    --hairline:#E5E5EA;--hairline-strong:#D2D2D7;
+    --ink:#1D1D1F;--ink-2:#4A4A4F;--ink-3:#8E8E93;--ink-4:#C7C7CC;
+    --primary:#059669;--primary-2:#10B981;--primary-soft:#D1FAE5;--primary-tint:rgba(5,150,105,0.06);--primary-fg:#FFFFFF;
+    --nutrition:#059669;--nutrition-2:#10B981;--nutrition-soft:#D1FAE5;--nutrition-tint:rgba(5,150,105,0.06);
+    --fitness:#7C3AED;--fitness-2:#8B5CF6;--fitness-soft:#EDE9FE;--fitness-tint:rgba(124,58,237,0.06);
+    --danger:#DC2626;--warn:#D97706;--info:#2563EB;--warn-soft:#FEF3C7;
+    --text:var(--ink);--text-muted:var(--ink-3);--border:var(--hairline);
+  }
+  body{font-family:'Heebo','Rubik',sans-serif;background:var(--bg-deep);color:var(--ink);}
+  .phone{max-width:430px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;padding-bottom:100px;}
+  @media(min-width:500px){.phone{margin:24px auto;border-radius:2.25rem;min-height:calc(100vh - 48px);box-shadow:0 25px 50px -12px rgba(0,0,0,.25);overflow:hidden;border:8px solid #111;}}
+  .preview-note{position:fixed;bottom:8px;left:8px;font-size:10px;color:#9ca3af;z-index:50;}
+  .nav-fab{box-shadow:0 8px 20px rgba(5,150,105,.45);}
+  .setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+  .setting-row:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Header -->
+  <header class="px-5 pt-12 pb-4 bg-white">
+    <a href="index.html" class="text-xs text-gray-400 hover:text-gray-700 block mb-2">← חזרה לתצוגה</a>
+    <h1 class="text-2xl font-extrabold tracking-tight">עוד</h1>
+  </header>
+
+  <!-- Profile Card -->
+  <section class="px-5 mt-4">
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-extrabold text-white flex-shrink-0" style="background:linear-gradient(135deg,#059669,#34d399);">א</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-extrabold text-lg">אוריה</div>
+          <div class="text-sm mt-0.5" style="color:var(--text-muted)">oriya@calori.app</div>
+        </div>
+        <button class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition">
+          <i data-lucide="pencil" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Stats -->
+  <section class="px-5 mt-4">
+    <div class="bg-white rounded-2xl p-4 shadow-sm grid grid-cols-3 gap-2 text-center">
+      <div>
+        <div class="text-xl font-extrabold" style="color:var(--primary)">5</div>
+        <div class="text-[11px] font-medium" style="color:var(--text-muted)">קורסים</div>
+      </div>
+      <div class="border-x" style="border-color:var(--border)">
+        <div class="text-xl font-extrabold" style="color:var(--primary)">127</div>
+        <div class="text-[11px] font-medium" style="color:var(--text-muted)">משימות</div>
+      </div>
+      <div>
+        <div class="text-xl font-extrabold" style="color:var(--primary)">45</div>
+        <div class="text-[11px] font-medium" style="color:var(--text-muted)">פומודורו</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings: Profile -->
+  <section class="px-5 mt-5">
+    <div class="text-xs font-bold mb-2 px-1" style="color:var(--text-muted)">פרופיל</div>
+    <div class="bg-white rounded-2xl px-5 shadow-sm">
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--primary-soft)">
+            <i data-lucide="user" class="w-4 h-4" style="color:var(--primary)"></i>
+          </div>
+          <span class="text-sm font-medium">שם תצוגה</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:var(--text-muted)">אוריה</span>
+          <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#ede9fe">
+            <i data-lucide="calendar-range" class="w-4 h-4 text-purple-600"></i>
+          </div>
+          <span class="text-sm font-medium">שנה אקדמית</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:var(--text-muted)">שנה א'</span>
+          <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#dbeafe">
+            <i data-lucide="book-open" class="w-4 h-4 text-blue-600"></i>
+          </div>
+          <span class="text-sm font-medium">סמסטר</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:var(--text-muted)">סמסטר ב'</span>
+          <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings: Preferences -->
+  <section class="px-5 mt-5">
+    <div class="text-xs font-bold mb-2 px-1" style="color:var(--text-muted)">העדפות</div>
+    <div class="bg-white rounded-2xl px-5 shadow-sm">
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#fef3c7">
+            <i data-lucide="sun-moon" class="w-4 h-4 text-amber-600"></i>
+          </div>
+          <span class="text-sm font-medium">ערכת נושא</span>
+        </div>
+        <!-- Toggle -->
+        <div class="flex items-center gap-2 bg-gray-100 rounded-full p-0.5">
+          <div class="px-3 py-1 rounded-full text-[11px] font-bold bg-white shadow-sm" style="color:var(--text)">בהיר</div>
+          <div class="px-3 py-1 rounded-full text-[11px] font-medium" style="color:var(--text-muted)">כהה</div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#f3e8ff">
+            <i data-lucide="languages" class="w-4 h-4 text-purple-600"></i>
+          </div>
+          <span class="text-sm font-medium">שפה</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:var(--text-muted)">עברית</span>
+          <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--fitness-soft)">
+            <i data-lucide="timer" class="w-4 h-4" style="color:var(--fitness)"></i>
+          </div>
+          <span class="text-sm font-medium">זמני פומודורו</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:var(--text-muted)">25/5/15</span>
+          <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings: Calori Integrations -->
+  <section class="px-5 mt-5">
+    <div class="text-xs font-bold mb-2 px-1" style="color:var(--text-muted)">Calori — חיבורים</div>
+    <div class="bg-white rounded-2xl px-5 shadow-sm">
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--nutrition-soft)">
+            <i data-lucide="leaf" class="w-4 h-4" style="color:var(--nutrition)"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">Calori תזונה</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">ארוחות וקלוריות</div>
+          </div>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--fitness-soft)">
+            <i data-lucide="dumbbell" class="w-4 h-4" style="color:var(--fitness)"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">Calori כושר</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">אימונים והתקדמות</div>
+          </div>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--fitness-soft)">
+            <i data-lucide="timer" class="w-4 h-4" style="color:var(--fitness)"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">פומודורו</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">מיקוד וזמני עבודה</div>
+          </div>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--primary-soft)">
+            <i data-lucide="graduation-cap" class="w-4 h-4" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">הלימודים שלי</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">קורסים ומשימות</div>
+          </div>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings: Data -->
+  <section class="px-5 mt-5">
+    <div class="text-xs font-bold mb-2 px-1" style="color:var(--text-muted)">נתונים</div>
+    <div class="bg-white rounded-2xl px-5 shadow-sm">
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--primary-soft)">
+            <i data-lucide="download" class="w-4 h-4" style="color:var(--primary)"></i>
+          </div>
+          <span class="text-sm font-medium">ייצוא JSON</span>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#fee2e2">
+            <i data-lucide="rotate-ccw" class="w-4 h-4 text-red-500"></i>
+          </div>
+          <span class="text-sm font-medium">איפוס סמסטר</span>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings: Account -->
+  <section class="px-5 mt-5">
+    <div class="text-xs font-bold mb-2 px-1" style="color:var(--text-muted)">חשבון</div>
+    <div class="bg-white rounded-2xl px-5 shadow-sm">
+      <div class="setting-row">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#fee2e2">
+            <i data-lucide="log-out" class="w-4 h-4 text-red-500"></i>
+          </div>
+          <span class="text-sm font-medium text-red-500">התנתק</span>
+        </div>
+        <i data-lucide="chevron-left" class="w-4 h-4" style="color:var(--text-muted)"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- Version Footer -->
+  <div class="text-center mt-8 mb-6">
+    <div class="text-[11px] font-medium" style="color:var(--text-muted)">Calori Life v1.0</div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-100 px-3 pt-2 pb-5 flex items-end justify-around z-40">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="home" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">בית</span>
+    </a>
+    <a href="calendar.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="calendar" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">יומן</span>
+    </a>
+    <a href="add-item.html" class="flex flex-col items-center -mt-7 flex-1">
+      <div class="w-14 h-14 rounded-full nav-fab flex items-center justify-center" style="background:var(--primary)">
+        <i data-lucide="plus" class="w-7 h-7 text-white"></i>
+      </div>
+    </a>
+    <a href="studies.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">לימודים</span>
+    </a>
+    <a href="more.html" class="flex flex-col items-center gap-0.5 flex-1" style="color:var(--primary)">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">עוד</span>
+    </a>
+  </nav>
+
+</div>
+<div class="preview-note">תצוגה מקדימה • לא פעיל</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

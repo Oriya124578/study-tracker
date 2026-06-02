@@ -2,318 +2,522 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Card, CardContent } from '../ui/card';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
 import { DEFAULT_COURSES } from '../../data';
 import confetti from 'canvas-confetti';
-import { BookOpen, User, Calendar, CheckCircle2, ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
+import {
+  BookOpen, User, Calendar, CheckCircle2, ChevronRight, ChevronLeft,
+  ArrowRight, Plus, X, Check,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from '../../store/useToast';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const makeCustomId = () =>
+  `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+const WEEK_OPTIONS = [8, 10, 12, 13, 14, 15, 16];
+
+const DEFAULT_TASK_KEYS = ['lecture', 'tutorial', 'homework'];
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export const OnboardingScreen = () => {
   const { t } = useTranslation();
   const { language, completeOnboarding } = useStore();
   const isRtl = language !== 'en';
-  
-  const [step, setStep] = useState(1);
-  const [direction, setDirection] = useState(1);
-  
-  // Form State
-  const [displayName, setDisplayName] = useState('');
-  const [academicYear, setAcademicYear] = useState(language === 'en' ? 'Year 1' : 'שנה א\'');
-  const [semester, setSemester] = useState(language === 'en' ? 'Semester A' : 'סמסטר א\'');
-  const [selectedCourseIds, setSelectedCourseIds] = useState(
-    DEFAULT_COURSES.slice(0, 3).map(c => c.id) // pre-select some
-  );
 
-  const toggleCourse = (id) => {
-    setSelectedCourseIds(prev => 
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+  // ── Navigation state ──────────────────────────────────────────────────────
+  const [step,      setStep]      = useState(1);
+  const [direction, setDirection] = useState(1);
+
+  // ── Step 1: profile ───────────────────────────────────────────────────────
+  const [displayName,   setDisplayName]   = useState('');
+  const [academicYear,  setAcademicYear]  = useState(language === 'en' ? 'Year 1'       : "שנה א'");
+  const [semester,      setSemester]      = useState(language === 'en' ? 'Semester A'   : "סמסטר א'");
+
+  // ── Step 3: course selection ──────────────────────────────────────────────
+  const [selectedCourseIds, setSelectedCourseIds] = useState(
+    DEFAULT_COURSES.slice(0, 3).map((c) => c.id),
+  );
+  const [customCourses,    setCustomCourses]    = useState([]);
+  const [showCustomForm,   setShowCustomForm]   = useState(false);
+  const [newCourseName,    setNewCourseName]    = useState('');
+  const [newCourseWeeks,   setNewCourseWeeks]   = useState(12);
+
+  // ── Step 4: task template ─────────────────────────────────────────────────
+  const [enabledTypes, setEnabledTypes] = useState({
+    lecture: true, tutorial: true, homework: true,
+  });
+  const [customTypes,        setCustomTypes]        = useState([]);
+  const [newTypeLabel,       setNewTypeLabel]       = useState('');
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const allCourses = [...DEFAULT_COURSES, ...customCourses];
+
+  const toggleCourse = (id) =>
+    setSelectedCourseIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
+
+  const addCustomCourse = () => {
+    const name = newCourseName.trim();
+    if (!name) return;
+    const id = makeCustomId();
+    setCustomCourses((prev) => [
+      ...prev,
+      {
+        id,
+        name,
+        weeksCount: newCourseWeeks,
+        defaultNotebookLmLink: '',
+        defaultGeminiLink: '',
+        defaultLocalFolder: name,
+        exams: { moedA: null, moedB: null, moedC: null },
+      },
+    ]);
+    setSelectedCourseIds((prev) => [...prev, id]);
+    setNewCourseName('');
+    setShowCustomForm(false);
   };
 
+  const removeCustomCourse = (id) => {
+    setCustomCourses((prev) => prev.filter((c) => c.id !== id));
+    setSelectedCourseIds((prev) => prev.filter((c) => c !== id));
+  };
+
+  const addCustomType = () => {
+    const label = newTypeLabel.trim();
+    if (!label) return;
+    const type = `custom_${Date.now()}`;
+    setCustomTypes((prev) => [...prev, { type, label }]);
+    setNewTypeLabel('');
+  };
+
+  const removeCustomType = (type) =>
+    setCustomTypes((prev) => prev.filter((t) => t.type !== type));
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  const TOTAL_STEPS = 5;
+
   const nextStep = () => {
-    if (step < 4) {
+    if (step < TOTAL_STEPS) {
       setDirection(1);
-      setStep(prev => prev + 1);
+      setStep((prev) => prev + 1);
     }
   };
 
   const prevStep = () => {
     if (step > 1) {
       setDirection(-1);
-      setStep(prev => prev - 1);
+      setStep((prev) => prev - 1);
     }
   };
 
+  // ── Finish ────────────────────────────────────────────────────────────────
   const handleFinish = () => {
-    if (selectedCourseIds.length === 0) return; // shouldn't happen (button disabled)
+    if (selectedCourseIds.length === 0) return;
 
     confetti({
-      particleCount: 150,
-      spread: 70,
+      particleCount: 150, spread: 70,
       origin: { y: 0.6 },
-      colors: ['#4ade80', '#3b82f6', '#f43f5e', '#fbbf24']
+      colors: ['#4ade80', '#3b82f6', '#f43f5e', '#fbbf24'],
     });
 
-    // Map IDs to actual course objects
-    const selectedCourses = DEFAULT_COURSES.filter(c => selectedCourseIds.includes(c.id));
+    const selectedCourses = allCourses.filter((c) => selectedCourseIds.includes(c.id));
+
+    // Build seeds from selected task types
+    const defaultLabels = {
+      he: { lecture: 'הרצאה', tutorial: 'תרגול', homework: 'שיעורי בית' },
+      en: { lecture: 'Lecture', tutorial: 'Tutorial', homework: 'Homework' },
+    };
+    const l = defaultLabels[language] || defaultLabels.he;
+    const seeds = [
+      ...(enabledTypes.lecture  ? [{ type: 'lecture',  label: l.lecture  }] : []),
+      ...(enabledTypes.tutorial ? [{ type: 'tutorial', label: l.tutorial }] : []),
+      ...(enabledTypes.homework ? [{ type: 'homework', label: l.homework }] : []),
+      ...customTypes,
+    ];
 
     setTimeout(() => {
-      try {
-        completeOnboarding({ displayName: (displayName || '').trim(), academicYear, semester }, selectedCourses);
-      } catch (err) {
+      // completeOnboarding is async — use .catch so a failed Firestore write
+      // surfaces a toast instead of silently stranding the user.
+      Promise.resolve(
+        completeOnboarding(
+          { displayName: (displayName || '').trim(), academicYear, semester },
+          selectedCourses,
+          seeds.length > 0 ? seeds : null,
+        ),
+      ).catch((err) => {
         console.error('Onboarding failed', err);
         toast.error(t('saveError'));
-      }
+      });
     }, 1000);
   };
 
+  // ── Slide variants ────────────────────────────────────────────────────────
   const slideVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? (isRtl ? -1000 : 1000) : (isRtl ? 1000 : -1000),
-      opacity: 0
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1
-    },
-    exit: (direction) => ({
-      zIndex: 0,
-      x: direction < 0 ? (isRtl ? -1000 : 1000) : (isRtl ? 1000 : -1000),
-      opacity: 0
-    })
+    enter:  (d) => ({ x: d > 0 ? (isRtl ? -1000 : 1000) : (isRtl ?  1000 : -1000), opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit:   (d) => ({ zIndex: 0, x: d < 0 ? (isRtl ? -1000 : 1000) : (isRtl ? 1000 : -1000), opacity: 0 }),
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex justify-center gap-2 mb-12">
-      {[1, 2, 3, 4].map(s => (
-        <div 
-          key={s} 
-          className={cn(
-            "h-2 rounded-full transition-all duration-300",
-            s === step ? "w-8 bg-primary" : (s < step ? "w-4 bg-primary/50" : "w-4 bg-primary/20")
-          )}
-        />
-      ))}
+  const stepMotion = {
+    custom: direction,
+    variants: slideVariants,
+    initial: 'enter',
+    animate: 'center',
+    exit:    'exit',
+    transition: { type: 'spring', stiffness: 300, damping: 30 },
+    className: 'w-full flex flex-col items-center text-center space-y-6',
+  };
+
+  // ── Shared nav buttons ────────────────────────────────────────────────────
+  const NavButtons = ({ nextDisabled, nextLabel, onNext }) => (
+    <div className="flex gap-4 w-full max-w-sm">
+      <Button variant="outline" size="lg" className="flex-1 h-12 rounded-full" onClick={prevStep}>
+        {isRtl ? <ChevronRight className="w-5 h-5 ml-2" /> : <ChevronLeft className="w-5 h-5 mr-2" />}
+        {t('cancel', 'חזור')}
+      </Button>
+      <Button
+        size="lg" className="flex-1 h-12 rounded-full"
+        disabled={nextDisabled}
+        onClick={onNext || nextStep}
+      >
+        {nextLabel || t('nextStep')}
+      </Button>
     </div>
   );
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden flex flex-col relative" dir={isRtl ? 'rtl' : 'ltr'}>
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+    <div
+      className="min-h-screen bg-background text-foreground overflow-hidden flex flex-col relative"
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
+      {/* Background decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[100px]" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[100px]" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 w-full max-w-2xl mx-auto">
-        {renderStepIndicator()}
-        
-        <div className="w-full relative h-[400px] flex items-center justify-center">
+        {/* Step indicator */}
+        <div className="flex justify-center gap-2 mb-10">
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
+            <div
+              key={s}
+              className={cn(
+                'h-2 rounded-full transition-all duration-300',
+                s === step ? 'w-8 bg-primary' : (s < step ? 'w-4 bg-primary/50' : 'w-4 bg-primary/20'),
+              )}
+            />
+          ))}
+        </div>
+
+        <div className="w-full relative min-h-[400px] flex items-center justify-center">
           <AnimatePresence initial={false} custom={direction} mode="wait">
-            
-            {/* STEP 1: NAME */}
+
+            {/* ── STEP 1: Name ── */}
             {step === 1 && (
-              <motion.div
-                key="step1"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full flex flex-col items-center text-center space-y-8"
-              >
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <motion.div key="s1" {...stepMotion}>
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
                   <User className="w-10 h-10 text-primary" />
                 </div>
                 <div>
                   <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-                    {t('welcomeTo')} <span className="text-primary">Study Tracker</span>
+                    {t('welcomeTo')} <span className="text-primary">Calori Life</span>
                   </h1>
-                  <p className="text-muted-foreground text-lg">
-                    {t('onboardingDesc')}
-                  </p>
+                  <p className="text-muted-foreground text-lg">{t('onboardingDesc')}</p>
                 </div>
-                
-                <div className="w-full max-w-sm space-y-4 text-start">
+                <div className="w-full max-w-sm space-y-3 text-start">
                   <label className="text-sm font-semibold">{t('whatsYourName')}</label>
-                  <Input 
-                    value={displayName} 
-                    onChange={e => setDisplayName(e.target.value)} 
+                  <Input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
                     placeholder={t('namePlaceholder')}
-                    className="h-14 text-lg px-4 bg-background/50 backdrop-blur-sm border-primary/20 focus-visible:ring-primary"
+                    className="h-14 text-lg px-4"
                     autoFocus
-                    onKeyDown={e => { if (e.key === 'Enter' && displayName.trim()) nextStep() }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && displayName.trim()) nextStep(); }}
                   />
                   <p className="text-xs text-muted-foreground">{t('whatsYourNameDesc')}</p>
                 </div>
-                
-                <Button 
-                  size="lg" 
-                  className="w-full max-w-sm h-12 text-lg rounded-full" 
-                  disabled={!displayName.trim()} 
-                  onClick={nextStep}
+                <Button
+                  size="lg" className="w-full max-w-sm h-12 text-lg rounded-full"
+                  disabled={!displayName.trim()} onClick={nextStep}
                 >
                   {t('nextStep')}
                 </Button>
               </motion.div>
             )}
 
-            {/* STEP 2: SEMESTER */}
+            {/* ── STEP 2: Semester ── */}
             {step === 2 && (
-              <motion.div
-                key="step2"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full flex flex-col items-center text-center space-y-8"
-              >
-                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
+              <motion.div key="s2" {...stepMotion}>
+                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center">
                   <Calendar className="w-10 h-10 text-blue-500" />
                 </div>
                 <div>
                   <h2 className="text-3xl font-bold mb-2">{t('academicPeriod')}</h2>
                   <p className="text-muted-foreground text-lg">{t('academicPeriodDesc')}</p>
                 </div>
-                
-                <div className="w-full max-w-sm space-y-6 text-start">
+                <div className="w-full max-w-sm space-y-5 text-start">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">{t('academicYear')}</label>
-                    <select 
+                    <select
                       value={academicYear}
-                      onChange={e => setAcademicYear(e.target.value)}
-                      className="flex h-14 w-full rounded-xl border border-input bg-background/50 backdrop-blur-sm px-4 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      onChange={(e) => setAcademicYear(e.target.value)}
+                      className="flex h-14 w-full rounded-xl border border-input bg-background/50 px-4 text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {['שנה א\'', 'שנה ב\'', 'שנה ג\'', 'שנה ד\''].map(y => <option key={y} value={y}>{y}</option>)}
+                      {(language === 'en'
+                        ? ['Year 1', 'Year 2', 'Year 3', 'Year 4']
+                        : ["שנה א'", "שנה ב'", "שנה ג'", "שנה ד'"]
+                      ).map((y) => <option key={y} value={y}>{y}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">{t('semester')}</label>
-                    <select 
+                    <select
                       value={semester}
-                      onChange={e => setSemester(e.target.value)}
-                      className="flex h-14 w-full rounded-xl border border-input bg-background/50 backdrop-blur-sm px-4 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      onChange={(e) => setSemester(e.target.value)}
+                      className="flex h-14 w-full rounded-xl border border-input bg-background/50 px-4 text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {['סמסטר א\'', 'סמסטר ב\'', 'סמסטר קיץ'].map(s => <option key={s} value={s}>{s}</option>)}
+                      {(language === 'en'
+                        ? ['Semester A', 'Semester B', 'Summer']
+                        : ["סמסטר א'", "סמסטר ב'", 'סמסטר קיץ']
+                      ).map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                 </div>
-                
-                <div className="flex gap-4 w-full max-w-sm">
-                  <Button variant="outline" size="lg" className="flex-1 h-12 rounded-full" onClick={prevStep}>
-                    {isRtl ? <ChevronRight className="w-5 h-5 ml-2" /> : <ChevronLeft className="w-5 h-5 mr-2" />}
-                    {t('cancel', 'חזור')}
-                  </Button>
-                  <Button size="lg" className="flex-1 h-12 rounded-full" onClick={nextStep}>
-                    {t('nextStep')}
-                  </Button>
-                </div>
+                <NavButtons />
               </motion.div>
             )}
 
-            {/* STEP 3: COURSES */}
+            {/* ── STEP 3: Course selection ── */}
             {step === 3 && (
               <motion.div
-                key="step3"
+                key="s3"
                 custom={direction}
                 variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full h-full flex flex-col space-y-6"
+                initial="enter" animate="center" exit="exit"
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="w-full h-full flex flex-col space-y-4"
               >
                 <div className="text-center">
-                  <h2 className="text-3xl font-bold mb-2">{t('courseSelection')}</h2>
-                  <p className="text-muted-foreground">{t('courseSelectionDesc')}</p>
+                  <h2 className="text-3xl font-bold mb-1">{t('courseSelection')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('courseSelectionDesc')}</p>
                 </div>
-                
-                <div className="flex-1 overflow-y-auto pr-2 pb-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {DEFAULT_COURSES.map(course => {
+
+                {/* Course grid */}
+                <div className="flex-1 overflow-y-auto pb-2" style={{ maxHeight: 280 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {allCourses.map((course) => {
                       const isSelected = selectedCourseIds.includes(course.id);
+                      const isCustom   = !!course.id.startsWith('custom_');
                       return (
-                        <div 
+                        <div
                           key={course.id}
                           onClick={() => toggleCourse(course.id)}
                           className={cn(
-                            "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between",
-                            isSelected 
-                              ? "border-primary bg-primary/5 shadow-sm shadow-primary/10 scale-[1.02]" 
-                              : "border-border bg-card hover:border-primary/50 hover:bg-primary/5"
+                            'p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-2',
+                            isSelected
+                              ? 'border-primary bg-primary/5 shadow-sm scale-[1.02]'
+                              : 'border-border bg-card hover:border-primary/50',
                           )}
                         >
-                          <div className="flex items-center gap-3">
-                            <BookOpen className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-medium text-lg">{course.name}</span>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <BookOpen className={cn('w-4 h-4 shrink-0', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                            <span className="font-medium truncate">{course.name}</span>
                           </div>
-                          <div className={cn(
-                            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                            isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                          )}>
-                            {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isCustom && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); removeCustomCourse(course.id); }}
+                                className="p-0.5 text-muted-foreground hover:text-destructive"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <div className={cn(
+                              'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                              isSelected ? 'border-primary bg-primary' : 'border-muted-foreground/30',
+                            )}>
+                              {isSelected && <Check className="w-3 h-3 text-white" />}
+                            </div>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 </div>
-                
-                <div className="flex gap-4 w-full">
-                  <Button variant="outline" size="lg" className="flex-1 h-12 rounded-full" onClick={prevStep}>
-                    {isRtl ? <ChevronRight className="w-5 h-5 ml-2" /> : <ChevronLeft className="w-5 h-5 mr-2" />}
-                    {t('cancel', 'חזור')}
-                  </Button>
-                  <Button size="lg" className="flex-1 h-12 rounded-full" disabled={selectedCourseIds.length === 0} onClick={nextStep}>
-                    {t('nextStep')}
-                  </Button>
+
+                {/* Add custom course */}
+                {!showCustomForm ? (
+                  <button
+                    onClick={() => setShowCustomForm(true)}
+                    className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start px-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('addCustomCourse')}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 rounded-xl border border-primary/30 bg-primary/5">
+                    <input
+                      autoFocus
+                      value={newCourseName}
+                      onChange={(e) => setNewCourseName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addCustomCourse(); if (e.key === 'Escape') setShowCustomForm(false); }}
+                      placeholder={t('customCourseName')}
+                      className="flex-1 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                    />
+                    <select
+                      value={newCourseWeeks}
+                      onChange={(e) => setNewCourseWeeks(Number(e.target.value))}
+                      className="text-sm bg-transparent outline-none text-foreground border border-border rounded-lg px-2 py-1"
+                    >
+                      {WEEK_OPTIONS.map((w) => (
+                        <option key={w} value={w}>{w} {t('customCourseWeeks')}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={addCustomCourse}
+                      disabled={!newCourseName.trim()}
+                      className="text-xs font-bold text-primary disabled:opacity-40"
+                    >
+                      {t('addCourseBtn')}
+                    </button>
+                    <button onClick={() => setShowCustomForm(false)}>
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
+
+                <NavButtons nextDisabled={selectedCourseIds.length === 0} />
+              </motion.div>
+            )}
+
+            {/* ── STEP 4: Task templates ── */}
+            {step === 4 && (
+              <motion.div
+                key="s4"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter" animate="center" exit="exit"
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="w-full flex flex-col space-y-5"
+              >
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold mb-1">{t('taskTemplatesStep')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('taskTemplatesDesc')}</p>
+                </div>
+
+                {/* Default task type toggles */}
+                <div className="w-full space-y-2.5 max-w-sm mx-auto">
+                  {DEFAULT_TASK_KEYS.map((key) => (
+                    <label
+                      key={key}
+                      className={cn(
+                        'flex items-center gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all',
+                        enabledTypes[key]
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border bg-card',
+                      )}
+                    >
+                      <div className={cn(
+                        'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0',
+                        enabledTypes[key] ? 'border-primary bg-primary' : 'border-muted-foreground/40',
+                      )}>
+                        {enabledTypes[key] && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <span className="font-medium text-sm">{t(`taskType_${key}`)}</span>
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={enabledTypes[key]}
+                        onChange={() =>
+                          setEnabledTypes((prev) => ({ ...prev, [key]: !prev[key] }))
+                        }
+                      />
+                    </label>
+                  ))}
+
+                  {/* Custom task types */}
+                  {customTypes.map((ct) => (
+                    <div
+                      key={ct.type}
+                      className="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-primary/40 bg-primary/5"
+                    >
+                      <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                      <span className="font-medium text-sm flex-1">{ct.label}</span>
+                      <button
+                        onClick={() => removeCustomType(ct.type)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add custom type input */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      value={newTypeLabel}
+                      onChange={(e) => setNewTypeLabel(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addCustomType(); }}
+                      placeholder={t('customTaskTypePlaceholder')}
+                      className="flex-1 text-sm h-10 px-3 rounded-xl border border-border bg-background/50 outline-none focus:border-primary placeholder:text-muted-foreground"
+                    />
+                    <Button
+                      size="sm" variant="outline"
+                      disabled={!newTypeLabel.trim()}
+                      onClick={addCustomType}
+                      className="h-10 shrink-0"
+                    >
+                      {t('addCustomTaskType')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-center w-full">
+                  <NavButtons
+                    nextDisabled={
+                      !Object.values(enabledTypes).some(Boolean) && customTypes.length === 0
+                    }
+                  />
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 4: FINISH */}
-            {step === 4 && (
-              <motion.div
-                key="step4"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full flex flex-col items-center text-center space-y-8"
-              >
-                <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-4">
+            {/* ── STEP 5: Finish ── */}
+            {step === 5 && (
+              <motion.div key="s5" {...stepMotion}>
+                <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center">
                   <CheckCircle2 className="w-12 h-12 text-green-500" />
                 </div>
                 <div>
-                  <h2 className="text-4xl font-bold mb-4">{t('allReady')}</h2>
+                  <h2 className="text-4xl font-bold mb-3">{t('allReady')}</h2>
                   <p className="text-muted-foreground text-lg max-w-md mx-auto">
                     {t('allReadyDesc')}
                   </p>
                 </div>
-                
-                <Button 
-                  size="lg" 
-                  className="w-full max-w-sm h-14 text-xl rounded-full mt-8 animate-bounce shadow-lg shadow-primary/25" 
+                <Button
+                  size="lg"
+                  className="w-full max-w-sm h-14 text-xl rounded-full mt-4 animate-bounce shadow-lg shadow-primary/25"
                   onClick={handleFinish}
                 >
                   {t('letsGo')}
-                  {isRtl ? <ArrowRight className="w-5 h-5 mr-2 rotate-180" /> : <ArrowRight className="w-5 h-5 ml-2" />}
+                  {isRtl
+                    ? <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
+                    : <ArrowRight className="w-5 h-5 ml-2" />}
                 </Button>
-                
-                <Button variant="ghost" className="mt-4 text-muted-foreground" onClick={prevStep}>
-                  {t('cancel', 'חזור לבחירת קורסים')}
+                <Button variant="ghost" className="mt-2 text-muted-foreground" onClick={prevStep}>
+                  {t('cancel', 'חזור לתבנית משימות')}
                 </Button>
               </motion.div>
             )}
+
           </AnimatePresence>
         </div>
       </div>

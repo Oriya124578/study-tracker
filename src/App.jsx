@@ -1,132 +1,46 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from './supabaseClient';
-import { debounce } from 'lodash';
+import React, { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './lib/firebase';
 import { useStore } from './store/useStore';
 import { useTranslation } from './hooks/useTranslation';
 import { Layout } from './components/layout/Layout';
 import { AuthView } from './components/auth/AuthView';
 import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
-import { generateInitialState } from './data';
-import { toast } from './store/useToast';
 import { BookOpen } from 'lucide-react';
 import './index.css';
 
 function App() {
-  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  
-  const { data, setData, theme, language, hasCompletedOnboarding, setHasCompletedOnboarding } = useStore();
+
+  const {
+    theme,
+    language,
+    hasCompletedOnboarding,
+    dataLoaded,
+    initFromAuth,
+    cleanup,
+  } = useStore();
   const { t } = useTranslation();
-  const initialLoadDone = useRef(false);
 
-  // Authentication Listener
+  // Firebase Auth listener. Drives subscribe/unsubscribe lifecycle on the store.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
       setLoadingAuth(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
-        setDataLoaded(false);
-        initialLoadDone.current = false;
+      if (u) {
+        initFromAuth(u.uid);
+      } else {
+        cleanup();
       }
     });
-
-    return () => subscription.unsubscribe();
+    return () => unsub();
+    // initFromAuth/cleanup are stable Zustand actions; intentionally omitted
+    // from deps so we don't accidentally re-subscribe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load Data on Login
-  useEffect(() => {
-    if (session && !initialLoadDone.current) {
-      const loadData = async () => {
-        try {
-          const { data: userData, error } = await supabase
-            .from('user_data')
-            .select('app_state')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (userData && userData.app_state && Object.keys(userData.app_state).length > 0) {
-            // Check if it's the old state format (no courses array in state)
-            // If so, we'll wipe it and start fresh as per migration plan.
-            if (!userData.app_state.courses) {
-              console.log("Old state detected. Wiping for migration...");
-              const freshState = generateInitialState();
-              await supabase.from('user_data').update({ app_state: freshState }).eq('id', session.user.id);
-              setData(freshState);
-            } else {
-              setData(userData.app_state);
-              // Migration check: If they already have courses, mark onboarding as complete
-              if (userData.app_state.courses.length > 0) {
-                setHasCompletedOnboarding(true);
-              }
-            }
-          } else {
-            // New user -> initialize state
-            const initialState = generateInitialState();
-            await supabase.from('user_data').insert([
-              { id: session.user.id, app_state: initialState }
-            ]);
-            setData(initialState);
-          }
-        } catch (err) {
-          console.error("Error loading data:", err);
-          // Fallback
-          setData(generateInitialState());
-        } finally {
-          setDataLoaded(true);
-          initialLoadDone.current = true;
-        }
-      };
-      loadData();
-    }
-  }, [session, setData, setHasCompletedOnboarding]);
-
-  // Debounced Save to Supabase, with retry + error toast.
-  // Created once via useRef so we can flush it on tab close (avoids losing the
-  // last edit when the user closes within the debounce window).
-  const saveToSupabase = useRef(
-    debounce((userId, appData) => {
-      const attempt = async (retriesLeft) => {
-        // Supabase resolves with { error } rather than throwing, so check it.
-        const { error } = await supabase
-          .from('user_data')
-          .update({ app_state: appData })
-          .eq('id', userId);
-        if (error) {
-          if (retriesLeft > 0) {
-            setTimeout(() => attempt(retriesLeft - 1), 1500);
-          } else {
-            console.error('Failed to save:', error);
-            toast.error(t('saveError'));
-          }
-        }
-      };
-      attempt(2);
-    }, 2000)
-  ).current;
-
-  // Trigger Save when data changes
-  useEffect(() => {
-    if (dataLoaded && session && initialLoadDone.current) {
-      saveToSupabase(session.user.id, data);
-    }
-  }, [data, session, dataLoaded, saveToSupabase]);
-
-  // Flush any pending save before the tab closes / reloads, so the last edit
-  // made within the 2s debounce window is not lost.
-  useEffect(() => {
-    const handler = () => saveToSupabase.flush();
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [saveToSupabase]);
-
-  // Apply Theme and Language
+  // Apply theme and language to <html>.
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
@@ -136,7 +50,8 @@ function App() {
     document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
   }, [language]);
 
-  // Render Logic
+  // --- Render ---------------------------------------------------------------
+
   if (loadingAuth) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -148,10 +63,11 @@ function App() {
     );
   }
 
-  if (!session) {
+  if (!user) {
     return <AuthView />;
   }
 
+  // Logged in but the first Firestore snapshot hasn't arrived yet.
   if (!dataLoaded) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -163,7 +79,6 @@ function App() {
     );
   }
 
-  // If data is loaded but onboarding not complete, show Onboarding
   if (!hasCompletedOnboarding) {
     return <OnboardingScreen />;
   }

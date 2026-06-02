@@ -1,3 +1,6 @@
+// Only this user gets default AI links pre-filled; all other users start empty.
+export const OWNER_UID = 'tdg5ks2RFfTpJeTSkdPyrBtGf8j2';
+
 export const DEFAULT_COURSES = [
   {
     id: 'infi2',
@@ -80,7 +83,18 @@ export const generateInitialState = () => {
     notes: {},
     globalTasks: {},
     pomodoroSessions: [], // Array of { id, courseId, date, minutes }
-    profile: { displayName: "", academicYear: "שנה א'", semester: "סמסטר א'" }
+    profile: { displayName: "", academicYear: "שנה א'", semester: "סמסטר א'" },
+    // Phase 2: unified life-manager item types
+    events: [],         // { id, title, start, end, allDay, location, notes, color, source }
+    personalTasks: [],  // { id, title, dueDate, dueTime, done, doneAt, priority, list, notes, courseId?, subtasks[] }
+    quickNotes: [],     // { id, title, content, createdAt, updatedAt, pinned, color }
+    // Phase 3: calori bridge (READ-ONLY mirror of calori_1300 data)
+    calori: {
+      meals: [],          // normalized meals for the selected day
+      workouts: [],       // normalized workouts for the selected day
+      dayHistory: null,   // daily_history aggregate doc for the selected day
+      recentHistory: [],  // last ~14 daily_history docs (desc by date)
+    },
   };
   
   return state;

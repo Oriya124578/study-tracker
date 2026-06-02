@@ -1,225 +1,323 @@
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import {
+  Clock, CheckCircle2, Calendar as CalendarIcon, GraduationCap,
+  UtensilsCrossed, Dumbbell, Sparkles, Play, ListTodo, Bot, ChevronLeft, ChevronRight,
+} from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, Calendar as CalendarIcon, CheckCircle, ExternalLink, Play } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
 import { useTranslation } from '../../hooks/useTranslation';
+import { cn } from '../../lib/utils';
+import { dateKey } from '../../lib/caloriRepo';
+import {
+  format, parseISO, isValid, isSameDay, isToday, differenceInDays,
+  startOfDay, addDays, isWithinInterval,
+} from 'date-fns';
+import { he } from 'date-fns/locale';
 
-export const SmartDashboard = () => {
-  const { data, activeCourse, setActiveCourse, setActiveCategory, setPomodoro } = useStore();
-  const { t, language } = useTranslation();
-  const displayName = data?.profile?.displayName || '';
+const safeParse = (d) => {
+  if (!d) return null;
+  const dt = typeof d === 'string' ? parseISO(d) : new Date(d);
+  return isValid(dt) ? dt : null;
+};
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return t('goodMorning', 'בוקר טוב');
-    if (hour >= 12 && hour < 17) return t('goodAfternoon', 'צהריים טובים');
-    if (hour >= 17 && hour < 21) return t('goodEvening', 'ערב טוב');
-    return t('goodNight', 'לילה טוב');
-  };
+// ── Build a unified, time-sorted item list for an arbitrary day ───────────────
 
-  // 1. Weekly Progress Calculation
-  const progressStats = useMemo(() => {
-    let totalTasks = 0;
-    let completedTasks = 0;
+const useTimelineItems = (data, caloriDate, t) =>
+  useMemo(() => {
+    const todayIsCaloriDate = caloriDate === dateKey();
 
-    data.courses.forEach(course => {
-      // Assuming current week is 1 for simulation. In reality, you'd calculate current week per course based on start date.
-      // We will calculate progress across all weeks for now, or just the first few weeks if it's early semester.
-      // Let's do a global progress of all tasks.
-      Object.values(data.tasks[course.id] || {}).forEach(weekTasks => {
-        weekTasks.forEach(task => {
-          totalTasks++;
-          if (task.checked) completedTasks++;
+    // Static items (events / exams / tasks) carry a real Date.
+    const build = (targetDay) => {
+      const items = [];
+
+      // Exams
+      (data?.courses || []).forEach((course) => {
+        ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+          const dt = safeParse(course[moed] || course.exams?.[moed]);
+          if (dt && isSameDay(dt, targetDay)) {
+            items.push({
+              id: `exam-${course.id}-${moed}`, kind: 'exam',
+              title: `${course.name} — ${t(moed)}`, date: dt, allDay: true,
+            });
+          }
         });
       });
-    });
 
-    const percentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-    return { totalTasks, completedTasks, percentage };
-  }, [data]);
-
-  // 2. Full Exam Board (Sorted)
-  const upcomingExams = useMemo(() => {
-    const exams = [];
-    data.courses.forEach(course => {
-      ['moedA', 'moedB', 'moedC'].forEach(moed => {
-        const examDate = course[moed] || course.exams?.[moed];
-        if (examDate) {
-          try {
-            const date = new Date(examDate);
-            if (Number.isNaN(date.getTime())) return; // invalid date string
-            const daysLeft = differenceInDays(date, new Date());
-            if (daysLeft >= 0) {
-              exams.push({ course, moed, date, daysLeft });
-            }
-          } catch { /* skip malformed dates */ }
+      // Events
+      (data?.events || []).forEach((ev) => {
+        const dt = safeParse(ev.start);
+        if (dt && isSameDay(dt, targetDay)) {
+          items.push({
+            id: ev.id, kind: 'event', title: ev.title, date: dt,
+            endDate: safeParse(ev.end), allDay: !!ev.allDay, location: ev.location,
+          });
         }
       });
-    });
-    return exams.sort((a, b) => a.daysLeft - b.daysLeft);
-  }, [data.courses]);
 
-  // 3. Pomodoro Chart Data
-  const chartData = useMemo(() => {
-    // Basic aggregation by course
-    const agg = {};
-    (data.pomodoroSessions || []).forEach(session => {
-      const c = data.courses.find(c => c.id === session.courseId);
-      if (c) {
-        agg[c.name] = (agg[c.name] || 0) + (session.duration / 60); // minutes
-      }
-    });
-    return Object.keys(agg).map(name => ({ name, minutes: Math.round(agg[name]) }));
-  }, [data]);
+      // Tasks due that day (not done)
+      (data?.personalTasks || []).forEach((task) => {
+        const dt = safeParse(task.dueDate);
+        if (dt && isSameDay(dt, targetDay) && !task.done) {
+          items.push({
+            id: task.id, kind: 'task', title: task.title, date: dt,
+            allDay: !task.dueTime, priority: task.priority,
+          });
+        }
+      });
 
-  // 4. Quick Links
-  const activeCourses = data.courses.slice(0, 4); // Quick access to top 4 courses
+      return items;
+    };
 
+    const today = new Date();
+    const todayItems = build(today);
+
+    // Calori meals + workouts — only when the calori listener is on today.
+    if (todayIsCaloriDate) {
+      (data?.calori?.meals || []).forEach((m) => {
+        const dt = safeParse(m.timestamp);
+        todayItems.push({
+          id: `meal-${m.id}`, kind: 'meal', title: m.name,
+          date: dt || today, allDay: !dt, calories: m.calories,
+        });
+      });
+      (data?.calori?.workouts || []).forEach((w) => {
+        const dt = safeParse(w.timestamp);
+        todayItems.push({
+          id: `workout-${w.id}`, kind: 'workout', title: w.name,
+          date: dt || today, allDay: !dt,
+          calories: w.caloriesBurned, minutes: w.durationMinutes,
+        });
+      });
+    }
+
+    // Sort: timed items by time, all-day items first.
+    const sortFn = (a, b) => {
+      if (a.allDay && !b.allDay) return -1;
+      if (!a.allDay && b.allDay) return 1;
+      return a.date - b.date;
+    };
+    todayItems.sort(sortFn);
+
+    // Upcoming (next 7 days, excluding today) for the empty-state fallback.
+    const upcoming = [];
+    for (let i = 1; i <= 7; i++) {
+      const day = addDays(today, i);
+      build(day).forEach((it) => upcoming.push(it));
+    }
+    upcoming.sort((a, b) => a.date - b.date);
+
+    return { todayItems, upcoming };
+  }, [data, caloriDate, t]);
+
+// ── Timeline row ─────────────────────────────────────────────────────────────
+
+const KIND_META = {
+  exam:     { icon: GraduationCap,  cls: 'border-s-destructive bg-destructive/5',           ic: 'text-destructive' },
+  event:    { icon: CalendarIcon,   cls: 'border-s-primary bg-primary/5',                    ic: 'text-primary' },
+  task:     { icon: CheckCircle2,   cls: 'border-s-amber-500 bg-amber-50 dark:bg-amber-900/10', ic: 'text-amber-500' },
+  meal:     { icon: UtensilsCrossed,cls: 'border-s-[#059669] bg-[#059669]/5',                ic: 'text-[#059669]' },
+  workout:  { icon: Dumbbell,       cls: 'border-s-[#7C3AED] bg-[#7C3AED]/5',                ic: 'text-[#7C3AED]' },
+};
+
+const TimelineRow = ({ item, t }) => {
+  const meta = KIND_META[item.kind] || KIND_META.event;
+  const Icon = meta.icon;
   return (
-    <div className="space-y-6 max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Greeting */}
-      {displayName && (
-        <div className="flex items-center gap-2 mb-2">
-          <h2 className="text-2xl font-bold text-foreground">
-            {getGreeting()} {displayName}!
-          </h2>
+    <div className={cn('rounded-xl border border-border border-s-[3px] p-3 flex items-start gap-3', meta.cls)}>
+      <Icon className={cn('w-4 h-4 mt-0.5 shrink-0', meta.ic)} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground truncate">{item.title}</p>
+        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
+          {!item.allDay && item.date && (
+            <span>{format(item.date, 'HH:mm')}{item.endDate ? ` — ${format(item.endDate, 'HH:mm')}` : ''}</span>
+          )}
+          {item.location && <span>· {item.location}</span>}
+          {item.kind === 'meal' && <span>· {item.calories} {t('caloriCalories')}</span>}
+          {item.kind === 'workout' && <span>· {item.minutes} {t('caloriMinutes')} · {item.calories} {t('caloriBurned')}</span>}
         </div>
-      )}
-
-      {/* Top Row: Progress */}
-      <div className="grid grid-cols-1 gap-6">
-        
-        {/* Progress Card */}
-        <Card className="shadow-sm border-primary/20 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-primary" />
-              {t('semesterProgress')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-4">
-              <div className="relative w-32 h-32 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-muted" />
-                  <circle 
-                    cx="50" cy="50" r="40" fill="transparent" 
-                    stroke="currentColor" strokeWidth="8" 
-                    strokeDasharray="251.2" 
-                    strokeDashoffset={251.2 - (251.2 * progressStats.percentage) / 100}
-                    className="text-primary transition-all duration-1000 ease-out" 
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl font-bold">{progressStats.percentage}%</span>
-                  <span className="text-xs text-muted-foreground">{progressStats.completedTasks}/{progressStats.totalTasks} {t('tasks')}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Links & Actions */}
-        {/* Removed Quick Links as requested */}
-      </div>
-
-      {/* Middle Row: Exam Board and Pomodoro Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Full Exam Board */}
-        <Card className="shadow-sm border-border bg-card flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-primary" />
-              {t('fullExamBoard')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto overscroll-contain max-h-[400px] pe-2 custom-scrollbar" dir={language === 'he' ? 'rtl' : 'ltr'}>
-            {upcomingExams.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingExams.map((exam, i) => (
-                  <div key={i} className={`p-4 rounded-xl border flex items-center justify-between ${
-                    exam.daysLeft <= 14 ? 'border-destructive/30 bg-destructive/5' : 
-                    exam.daysLeft <= 30 ? 'border-primary/30 bg-primary/5' : 'border-border bg-background'
-                  }`}>
-                    <div>
-                      <h4 className="font-bold text-foreground">{exam.course?.name || t('unknownCourse')}</h4>
-                      <p className="text-sm text-muted-foreground">{t('moed')} {exam.moed.replace('moed', '')} • {exam.date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}</p>
-                    </div>
-                    <div className={`text-center px-4 py-2 rounded-lg ${
-                      exam.daysLeft <= 14 ? 'bg-destructive/10 text-destructive font-bold' : 
-                      exam.daysLeft <= 30 ? 'bg-primary/10 text-primary font-semibold' : 'bg-secondary text-secondary-foreground'
-                    }`}>
-                      <div className="text-xl">{exam.daysLeft}</div>
-                      <div className="text-xs">{t('days')}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8">
-                <CalendarIcon className="w-12 h-12 mb-2 opacity-20" />
-                <p>{t('noUpcomingExams')}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Pomodoro Chart */}
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              {t('learningHoursPomodoro')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {chartData.length > 0 ? (
-              <div className="h-[300px] w-full mt-4" dir="ltr">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
-                    />
-                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                    <Tooltip 
-                      cursor={{ fill: 'hsl(var(--secondary))' }}
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                      itemStyle={{ color: 'hsl(var(--foreground))' }}
-                    />
-                    <Bar dataKey="minutes" name={t('learningMinutes')} radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(${94 + (index * 15)} 21% 62%)`} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground text-center">
-                <Clock className="w-12 h-12 mb-2 opacity-20" />
-                <p>{t('noPomodoroYet')}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
       </div>
     </div>
   );
 };
 
-function BookIcon() {
+// ── Quick action pill ────────────────────────────────────────────────────────
+
+const QuickAction = ({ icon: Icon, label, onClick, color, bg }) => (
+  <button
+    onClick={onClick}
+    className="flex flex-col items-center gap-1.5 flex-1 min-w-[72px] py-3 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-sm active:scale-95 transition-all"
+  >
+    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', bg)}>
+      <Icon className={cn('w-5 h-5', color)} />
+    </div>
+    <span className="text-[11px] font-semibold text-foreground">{label}</span>
+  </button>
+);
+
+// ── Main: Command Center home ────────────────────────────────────────────────
+
+export const SmartDashboard = () => {
+  const { data, setActiveCategory, setShowPomodoroModal } = useStore();
+  const { t, language } = useTranslation();
+  const isRTL = language === 'he';
+  const locale = isRTL ? he : undefined;
+  const displayName = data?.profile?.displayName || '';
+  const caloriDate = useStore((s) => s.caloriDate);
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) return t('goodMorning');
+    if (h >= 12 && h < 17) return t('goodAfternoon');
+    if (h >= 17 && h < 21) return t('goodEvening');
+    return t('goodNight');
+  };
+
+  const { todayItems, upcoming } = useTimelineItems(data, caloriDate, t);
+
+  // Smart summary sentence
+  const summary = useMemo(() => {
+    // Nearest upcoming exam (today or future)
+    let nearestExam = null;
+    (data?.courses || []).forEach((course) => {
+      ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+        const dt = safeParse(course[moed] || course.exams?.[moed]);
+        if (!dt) return;
+        const days = differenceInDays(startOfDay(dt), startOfDay(new Date()));
+        if (days >= 0 && (!nearestExam || days < nearestExam.days)) {
+          nearestExam = { name: course.name, days };
+        }
+      });
+    });
+
+    const tasksToday = todayItems.filter((i) => i.kind === 'task').length;
+
+    if (tasksToday > 0) return t('summaryTasksToday').replace('{n}', tasksToday);
+    if (nearestExam) {
+      if (nearestExam.days === 0) return t('summaryExamToday').replace('{course}', nearestExam.name);
+      return t('summaryNextExam')
+        .replace('{course}', nearestExam.name)
+        .replace('{n}', nearestExam.days);
+    }
+    return t('summaryAllClear');
+  }, [data, todayItems, t]);
+
+  const Chevron = isRTL ? ChevronLeft : ChevronRight;
+  const hasToday = todayItems.length > 0;
+
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-    </svg>
+    <div
+      className="max-w-2xl mx-auto w-full px-4 py-4 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {/* ── Smart header ── */}
+      <div>
+        <h2 className="text-2xl font-extrabold text-foreground">
+          {getGreeting()}{displayName ? ` ${displayName}` : ''}! 👋
+        </h2>
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+          <Sparkles className="w-4 h-4 text-primary shrink-0" />
+          {summary}
+        </p>
+      </div>
+
+      {/* ── Quick actions ── */}
+      <div className="flex gap-2">
+        <QuickAction
+          icon={Play} label={t('pomodoro')}
+          color="text-purple-600" bg="bg-purple-100 dark:bg-purple-900/30"
+          onClick={() => setShowPomodoroModal(true)}
+        />
+        <QuickAction
+          icon={UtensilsCrossed} label={t('caloriHubCard')}
+          color="text-[#059669]" bg="bg-[#D1FAE5] dark:bg-[#059669]/20"
+          onClick={() => setActiveCategory('calori')}
+        />
+        <QuickAction
+          icon={ListTodo} label={t('navTasks')}
+          color="text-blue-500" bg="bg-blue-100 dark:bg-blue-900/30"
+          onClick={() => setActiveCategory('tasks')}
+        />
+      </div>
+
+      {/* ── AI quick links (per course) ── */}
+      <AiQuickLinks data={data} t={t} />
+
+      {/* ── My day timeline ── */}
+      <section className="space-y-2">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 px-0.5">
+          <CalendarIcon className="w-4 h-4 text-primary" />
+          {t('myDayTitle')}
+        </h3>
+
+        {hasToday ? (
+          <div className="space-y-2">
+            {todayItems.map((item) => <TimelineRow key={item.id} item={item} t={t} />)}
+          </div>
+        ) : (
+          // Empty today → show what's coming up next.
+          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-5 text-center space-y-3">
+            <div className="text-3xl">🌤️</div>
+            <p className="text-sm text-muted-foreground">{t('myDayEmpty')}</p>
+            {upcoming.length > 0 && (
+              <div className="space-y-2 text-start pt-2">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
+                  {t('comingUp')}
+                </p>
+                {upcoming.slice(0, 4).map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveCategory('calendar')}
+                    className="w-full flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-2.5 hover:border-primary/40 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-foreground truncate">{item.title}</span>
+                    <span className="text-[11px] text-muted-foreground shrink-0 flex items-center gap-1">
+                      {format(item.date, 'EEE d/M', { locale })}
+                      <Chevron className="w-3.5 h-3.5" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
   );
-}
+};
+
+// ── AI quick-links strip ─────────────────────────────────────────────────────
+
+const AiQuickLinks = ({ data, t }) => {
+  const courses = (data?.courses || []).filter((c) => !c.isArchived);
+  const withLinks = courses
+    .map((c) => {
+      const links = data?.links?.[c.id] || {};
+      const url = links.notebookLm || links.gemini || '';
+      return url ? { id: c.id, name: c.name, url } : null;
+    })
+    .filter(Boolean);
+
+  if (withLinks.length === 0) return null;
+
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-bold text-foreground flex items-center gap-2 px-0.5">
+        <Bot className="w-4 h-4 text-primary" />
+        {t('aiQuickLinks')}
+      </h3>
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        {withLinks.map((c) => (
+          <a
+            key={c.id}
+            href={c.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all"
+          >
+            <Bot className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-xs font-semibold text-foreground whitespace-nowrap">{c.name}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+};

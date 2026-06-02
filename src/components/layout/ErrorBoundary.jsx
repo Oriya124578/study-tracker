@@ -6,7 +6,7 @@ import { translations } from '../../i18n/translations';
 // We can't use hooks in a class component so we read the store raw.
 const getLang = () => {
   try {
-    const raw = localStorage.getItem('study-tracker-store');
+    const raw = localStorage.getItem('calori-life-store');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed?.state?.language) return parsed.state.language;

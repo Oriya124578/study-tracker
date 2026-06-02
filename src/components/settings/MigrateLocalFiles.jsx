@@ -4,9 +4,11 @@ import { useStore } from '../../store/useStore';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
 import { CloudUpload, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const MigrateLocalFiles = () => {
   const { data, setData } = useStore();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, currentFile: '' });
   const [status, setStatus] = useState('idle'); // idle, running, complete, error
@@ -15,7 +17,7 @@ export const MigrateLocalFiles = () => {
   const migrateFiles = async () => {
     setLoading(true);
     setStatus('running');
-    setProgress({ current: 0, total: 0, currentFile: 'סורק תיקיות מקומיות...' });
+    setProgress({ current: 0, total: 0, currentFile: t('migrateScanning') });
 
     try {
       // 1. Scan all courses to find what to upload
@@ -88,7 +90,7 @@ export const MigrateLocalFiles = () => {
 
       if (uploadQueue.length === 0) {
         setStatus('complete');
-        setProgress(prev => ({ ...prev, currentFile: 'לא נמצאו קבצים מקומיים להעלאה.' }));
+        setProgress(prev => ({ ...prev, currentFile: t('migrateNoFiles') }));
         setLoading(false);
         return;
       }
@@ -157,10 +159,10 @@ export const MigrateLocalFiles = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2 text-primary">
           <CloudUpload className="w-5 h-5" />
-          העלאת קבצים מקומיים לענן
+          {t('migrateTitle')}
         </CardTitle>
         <CardDescription>
-          הכלי הזה נועד לסרוק את תיקיית <code>public/files</code> המקומית שלך (מהגרסה הישנה) ולהעלות את כל מאות קבצי ה-PDF שלך ישירות ל-Supabase.
+          {t('migrateDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -168,14 +170,14 @@ export const MigrateLocalFiles = () => {
         <div className="bg-background border rounded-lg p-3 text-sm flex gap-3 text-muted-foreground">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
           <div>
-            <strong>חובה לפני ההפעלה:</strong> ודא שהרצת את ה-migrations תחת <code>supabase/migrations</code> (הם יוצרים את ה-Bucket <code>course_files</code> כ-<strong>Private</strong> עם הרשאות RLS). הקבצים נשמרים מאובטחים ונפתחים דרך קישורים חתומים.
+            {t('migrateWarning')}
           </div>
         </div>
 
         {status === 'running' && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>מעלה קבצים...</span>
+              <span>{t('migrateUploading')}</span>
               <span>{progress.current} / {progress.total}</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2">
@@ -191,13 +193,13 @@ export const MigrateLocalFiles = () => {
         {status === 'complete' && (
           <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
             <CheckCircle className="w-5 h-5" />
-            ההעלאה הושלמה בהצלחה! הקבצים קושרו למשימות.
+            {t('migrateComplete')}
           </div>
         )}
 
         {status === 'error' && (
           <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
-            שגיאה במהלך ההעלאה: {errorMsg}
+            {t('migrateError')} {errorMsg}
           </div>
         )}
 
@@ -206,7 +208,7 @@ export const MigrateLocalFiles = () => {
           disabled={loading || status === 'complete'}
           className="w-full"
         >
-          {loading ? 'מעלה קבצים לענן...' : 'התחל העלאה ל-Supabase'}
+          {loading ? t('migrateUploadingToCloud') : t('migrateStartBtn')}
         </Button>
       </CardContent>
     </Card>

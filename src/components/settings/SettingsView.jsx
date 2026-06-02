@@ -3,7 +3,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
-import { supabase } from '../../supabaseClient';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe, Archive, ArchiveRestore, User, Clock, Palette } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -41,13 +42,13 @@ export const SettingsView = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `study-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `calori-life-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
   };
 
   const handleReset = () => {
@@ -180,7 +181,7 @@ export const SettingsView = () => {
                   value={academicYear} 
                   onChange={(e) => setAcademicYear(e.target.value)}
                 >
-                  {['שנה א\'', 'שנה ב\'', 'שנה ג\'', 'שנה ד\''].map(y => (
+                  {(language === 'en' ? ['Year 1','Year 2','Year 3','Year 4'] : ['שנה א\'', 'שנה ב\'', 'שנה ג\'', 'שנה ד\'']).map(y => (
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
@@ -192,7 +193,7 @@ export const SettingsView = () => {
                   value={semester} 
                   onChange={(e) => setSemester(e.target.value)}
                 >
-                  {['סמסטר א\'', 'סמסטר ב\'', 'סמסטר קיץ'].map(s => (
+                  {(language === 'en' ? ['Semester A','Semester B','Summer'] : ['סמסטר א\'', 'סמסטר ב\'', 'סמסטר קיץ']).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

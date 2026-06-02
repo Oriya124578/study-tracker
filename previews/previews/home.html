@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calori Life — מסך הבית</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --bg:#F5F5F7;--bg-deep:#ECECEF;--surface:#FFFFFF;--surface-2:#FAFAFB;
+    --hairline:#E5E5EA;--hairline-strong:#D2D2D7;
+    --ink:#1D1D1F;--ink-2:#4A4A4F;--ink-3:#8E8E93;--ink-4:#C7C7CC;
+    --primary:#059669;--primary-2:#10B981;--primary-soft:#D1FAE5;--primary-tint:rgba(5,150,105,0.06);--primary-fg:#FFFFFF;
+    --nutrition:#059669;--nutrition-2:#10B981;--nutrition-soft:#D1FAE5;--nutrition-tint:rgba(5,150,105,0.06);
+    --fitness:#7C3AED;--fitness-2:#8B5CF6;--fitness-soft:#EDE9FE;--fitness-tint:rgba(124,58,237,0.06);
+    --danger:#DC2626;--warn:#D97706;--info:#2563EB;--warn-soft:#FEF3C7;
+  }
+  body{font-family:'Heebo','Rubik',sans-serif;background:var(--bg-deep);color:var(--ink);}
+  .phone{max-width:430px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;padding-bottom:100px;}
+  @media(min-width:500px){.phone{margin:24px auto;border-radius:2.25rem;min-height:calc(100vh - 48px);box-shadow:0 25px 50px -12px rgba(0,0,0,.25);overflow:hidden;border:8px solid #111;}}
+  .preview-note{position:fixed;bottom:8px;left:8px;font-size:10px;color:#9ca3af;z-index:50;}
+  .nav-fab{box-shadow:0 8px 20px rgba(5,150,105,.4);}
+  .scroll-x{scrollbar-width:none;}.scroll-x::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Header -->
+  <header class="px-5 pt-12 pb-4 bg-white">
+    <a href="index.html" class="text-xs text-gray-400 hover:text-gray-700 block mb-2">← חזרה לתצוגה</a>
+    <div class="flex items-start justify-between">
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight">צהריים טובים, אוריה</h1>
+        <div class="text-sm text-gray-500 mt-1">יום שלישי, 2 ביוני</div>
+      </div>
+      <div class="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-soft)">
+        <i data-lucide="sun" class="w-4 h-4" style="color:var(--primary)"></i>
+        26° כפר הראה
+      </div>
+    </div>
+  </header>
+
+  <!-- Date strip -->
+  <div class="bg-white pb-4 px-3">
+    <div class="flex gap-2 overflow-x-auto scroll-x">
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">א'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">31</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">ב'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">1</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] font-bold mb-1" style="color:#059669">ג'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl text-sm font-extrabold shadow-sm" style="background:var(--primary);color:var(--primary-fg)">2</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">ד'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">3</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">ה'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">4</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">ו'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">5</div>
+      </div>
+      <div class="flex-shrink-0 w-12 text-center">
+        <div class="text-[10px] text-gray-400 mb-1">ש'</div>
+        <div class="h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-sm font-bold">6</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today -->
+  <section class="px-5 mt-5">
+    <h2 class="text-lg font-extrabold mb-3">היום שלי</h2>
+    <div class="space-y-3">
+
+      <!-- 1. Study event (white surface + info right-border) -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--surface);border-right:4px solid var(--info)">
+        <div class="flex items-start justify-between text-xs font-bold" style="color:var(--ink-3)">
+          <span>הרצאה</span><span>09:00–10:30</span>
+        </div>
+        <div class="font-extrabold mt-1 text-base" style="color:var(--ink)">אינפי 2 — נגזרות חלקיות</div>
+        <div class="flex items-center gap-2 mt-2 text-xs" style="color:var(--ink-3)">
+          <i data-lucide="map-pin" class="w-3 h-3"></i> בניין 8, אולם 201
+        </div>
+      </div>
+
+      <!-- 2. Calori workout — PURPLE flood signature card -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--fitness);color:#fff">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="dumbbell" class="w-5 h-5 text-white"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold opacity-90">אימון היום • Calori</div>
+            <div class="font-extrabold text-base leading-tight mt-0.5">דחיפה ב' • 45 דק'</div>
+          </div>
+          <button class="text-[11px] font-bold bg-white rounded-full px-3 py-1.5 flex-shrink-0" style="color:var(--fitness)">פתח ב-Calori</button>
+        </div>
+      </div>
+
+      <!-- 3. Task (white) -->
+      <div class="rounded-2xl p-4 shadow-sm flex items-center gap-3" style="background:var(--surface)">
+        <div class="w-6 h-6 rounded-md border-2 flex-shrink-0" style="border-color:var(--ink-4)"></div>
+        <div class="flex-1">
+          <div class="font-extrabold text-sm" style="color:var(--ink)">סיים תרגיל 3 — מבני נתונים</div>
+          <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--ink-3)">
+            <i data-lucide="bell" class="w-3 h-3"></i> עוד 2 ימים
+          </div>
+        </div>
+        <i data-lucide="paperclip" class="w-4 h-4" style="color:var(--ink-4)"></i>
+      </div>
+
+      <!-- 4. Calori meal — GREEN flood signature card -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--nutrition);color:#fff">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="utensils" class="w-5 h-5 text-white"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold opacity-90">ארוחת צהריים • Calori</div>
+            <div class="font-extrabold text-base leading-tight mt-0.5">720 קלוריות מתוכננות</div>
+          </div>
+          <button class="text-[11px] font-bold bg-white rounded-full px-3 py-1.5 flex-shrink-0" style="color:var(--nutrition)">פתח ב-Calori</button>
+        </div>
+      </div>
+
+      <!-- 5. Exam — DANGER flood -->
+      <div class="rounded-2xl p-4 shadow-sm text-white" style="background:var(--danger)">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs font-bold opacity-90">מבחן בעוד 7 ימים</div>
+            <div class="font-extrabold text-base">מועד א' — אינפי 2</div>
+          </div>
+          <i data-lucide="chevron-left" class="w-5 h-5 opacity-80"></i>
+        </div>
+      </div>
+
+      <!-- 6. Note (white + warn-soft accent ribbon) -->
+      <div class="rounded-2xl p-4 shadow-sm flex items-start gap-3" style="background:var(--surface);border-right:4px solid var(--warn)">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--warn-soft)">
+          <i data-lucide="sticky-note" class="w-5 h-5" style="color:var(--warn)"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-bold text-sm" style="color:var(--ink)">פתק</div>
+          <div class="text-xs mt-0.5" style="color:var(--ink-2)">לבדוק כותרות סיכום של פרק 4 לפני ההרצאה</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Calori today -->
+  <section class="px-5 mt-7">
+    <h2 class="text-lg font-extrabold mb-3">Calori היום</h2>
+    <div class="grid grid-cols-3 gap-2">
+      <div class="rounded-2xl p-3 shadow-sm text-center" style="background:var(--nutrition-tint);border:1px solid var(--nutrition-soft)">
+        <div class="text-2xl">🔥</div>
+        <div class="font-extrabold text-sm mt-1" style="color:var(--nutrition)">1340<span style="color:var(--ink-3)" class="font-normal">/1800</span></div>
+        <div class="text-[10px]" style="color:var(--ink-3)">קלוריות</div>
+      </div>
+      <div class="rounded-2xl p-3 shadow-sm text-center" style="background:var(--nutrition-tint);border:1px solid var(--nutrition-soft)">
+        <div class="text-2xl">🥩</div>
+        <div class="font-extrabold text-sm mt-1" style="color:var(--nutrition)">95g<span style="color:var(--ink-3)" class="font-normal">/130</span></div>
+        <div class="text-[10px]" style="color:var(--ink-3)">חלבון</div>
+      </div>
+      <div class="rounded-2xl p-3 shadow-sm text-center" style="background:var(--fitness-tint);border:1px solid var(--fitness-soft)">
+        <div class="text-2xl" style="color:var(--fitness)">💪</div>
+        <div class="font-extrabold text-sm mt-1" style="color:var(--fitness)">17:00</div>
+        <div class="text-[10px]" style="color:var(--ink-3)">אימון הבא</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick actions -->
+  <section class="px-5 mt-7">
+    <h2 class="text-lg font-extrabold mb-3">פעולות מהירות</h2>
+    <div class="grid grid-cols-4 gap-2">
+      <button class="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center gap-1.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--fitness-soft)">
+          <i data-lucide="timer" class="w-5 h-5" style="color:var(--fitness)"></i>
+        </div>
+        <div class="text-[10px] font-bold leading-tight text-center">פומודורו</div>
+      </button>
+      <button class="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center gap-1.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--primary-soft)">
+          <i data-lucide="check-square" class="w-5 h-5" style="color:var(--primary)"></i>
+        </div>
+        <div class="text-[10px] font-bold leading-tight text-center">משימה</div>
+      </button>
+      <button class="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center gap-1.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--nutrition-soft)">
+          <i data-lucide="utensils" class="w-5 h-5" style="color:var(--nutrition)"></i>
+        </div>
+        <div class="text-[10px] font-bold leading-tight text-center">ארוחה</div>
+      </button>
+      <button class="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center gap-1.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--fitness-soft)">
+          <i data-lucide="dumbbell" class="w-5 h-5" style="color:var(--fitness)"></i>
+        </div>
+        <div class="text-[10px] font-bold leading-tight text-center">אימון</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-100 px-3 pt-2 pb-5 flex items-end justify-around z-40">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 flex-1" style="color:#059669">
+      <i data-lucide="home" class="w-6 h-6" style="fill:var(--primary)"></i>
+      <span class="text-[10px] font-bold">בית</span>
+    </a>
+    <a href="calendar.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="calendar" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">יומן</span>
+    </a>
+    <a href="add-item.html" class="flex flex-col items-center -mt-7 flex-1">
+      <div class="w-14 h-14 rounded-full nav-fab flex items-center justify-center" style="background:var(--primary)">
+        <i data-lucide="plus" class="w-7 h-7" style="color:var(--primary-fg)"></i>
+      </div>
+    </a>
+    <a href="studies.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">לימודים</span>
+    </a>
+    <a href="more.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">עוד</span>
+    </a>
+  </nav>
+
+</div>
+<div class="preview-note">תצוגה מקדימה • לא פעיל</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

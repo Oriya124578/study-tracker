@@ -1,5 +1,5 @@
 {
-  "name": "study-tracker",
+  "name": "calori-life",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "migrate": "node scripts/migrate-supabase-to-firebase.js"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -18,6 +19,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "firebase": "^12.14.0",
     "framer-motion": "^12.40.0",
     "lodash": "^4.18.1",
     "lucide-react": "^1.17.0",
@@ -37,6 +39,7 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "firebase-admin": "^13.0.0",
     "globals": "^17.6.0",
     "sharp": "^0.34.5",
     "vite": "^8.0.12"

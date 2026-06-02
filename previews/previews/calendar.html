@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calori Life — יומן מאוחד</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --bg:#F5F5F7;--bg-deep:#ECECEF;--surface:#FFFFFF;--surface-2:#FAFAFB;
+    --hairline:#E5E5EA;--hairline-strong:#D2D2D7;
+    --ink:#1D1D1F;--ink-2:#4A4A4F;--ink-3:#8E8E93;--ink-4:#C7C7CC;
+    --primary:#059669;--primary-2:#10B981;--primary-soft:#D1FAE5;--primary-tint:rgba(5,150,105,0.06);--primary-fg:#FFFFFF;
+    --nutrition:#059669;--nutrition-2:#10B981;--nutrition-soft:#D1FAE5;--nutrition-tint:rgba(5,150,105,0.06);
+    --fitness:#7C3AED;--fitness-2:#8B5CF6;--fitness-soft:#EDE9FE;--fitness-tint:rgba(124,58,237,0.06);
+    --danger:#DC2626;--warn:#D97706;--info:#2563EB;--warn-soft:#FEF3C7;
+    /* legacy alias */
+    --text:var(--ink);--text-muted:var(--ink-3);--border:var(--hairline);
+  }
+  body{font-family:'Heebo','Rubik',sans-serif;background:var(--bg-deep);color:var(--ink);}
+  .phone{max-width:430px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;padding-bottom:100px;}
+  @media(min-width:500px){.phone{margin:24px auto;border-radius:2.25rem;min-height:calc(100vh - 48px);box-shadow:0 25px 50px -12px rgba(0,0,0,.25);overflow:hidden;border:8px solid #111;}}
+  .preview-note{position:fixed;bottom:8px;left:8px;font-size:10px;color:#9ca3af;z-index:50;}
+  .nav-fab{box-shadow:0 8px 20px rgba(5,150,105,.4);}
+  .cal-day{
+    width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    border-radius:9999px;font-weight:600;font-size:14px;color:var(--ink);
+    position:relative;cursor:pointer;transition:all .15s;
+  }
+  .cal-day:hover{background:var(--bg);}
+  .cal-day.today{background:var(--primary);color:#fff;font-weight:800;box-shadow:0 4px 12px rgba(5,150,105,.35);}
+  .cal-day.today:hover{background:#047857;}
+  .cal-day.empty{pointer-events:none;}
+  .cal-day.muted{color:#d1d5db;}
+  .cal-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:9999px;}
+  .tab-active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(5,150,105,.25);}
+  .tab-inactive{background:#fff;color:#6b7280;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Header -->
+  <header class="px-5 pt-12 pb-4 bg-white">
+    <a href="index.html" class="text-xs text-gray-400 hover:text-gray-700 block mb-3">← חזרה לתצוגה</a>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition">
+          <i data-lucide="chevron-right" class="w-5 h-5 text-gray-600"></i>
+        </button>
+        <h1 class="text-xl font-extrabold tracking-tight">יוני 2026</h1>
+        <button class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition">
+          <i data-lucide="chevron-left" class="w-5 h-5 text-gray-600"></i>
+        </button>
+      </div>
+      <button class="text-xs font-bold px-4 py-2 rounded-xl border-2 transition hover:bg-emerald-50" style="border-color:var(--primary);color:var(--primary);">היום</button>
+    </div>
+  </header>
+
+  <!-- View Toggle Tabs -->
+  <div class="px-5 pb-4 bg-white">
+    <div class="flex gap-1 p-1 bg-gray-100 rounded-2xl">
+      <button class="flex-1 text-sm font-bold py-2 rounded-xl tab-active transition">חודש</button>
+      <button class="flex-1 text-sm font-bold py-2 rounded-xl tab-inactive transition hover:bg-gray-50">שבוע</button>
+      <button class="flex-1 text-sm font-bold py-2 rounded-xl tab-inactive transition hover:bg-gray-50">רשימה</button>
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <section class="px-5 mt-2">
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+
+      <!-- Weekday Headers: ש ו ה ד ג ב א  =  Sat Fri Thu Wed Tue Mon Sun -->
+      <div class="grid grid-cols-7 gap-1 mb-1">
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ש</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ו</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ה</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ד</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ג</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">ב</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">א</div>
+      </div>
+
+      <!-- June 2026 Calendar Days -->
+      <!-- June 1 = Monday (ב). Grid columns L→R: ש(Sat) ו(Fri) ה(Thu) ד(Wed) ג(Tue) ב(Mon) א(Sun) -->
+      <!-- Week 1: 1(Mon/ב)→col6. Empty: cols 1-5 (Sat-Tue). Col 7 (Sun) also empty. -->
+      <div class="grid grid-cols-7 gap-1">
+        <!-- Row 1 -->
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day">1</div>
+        <div class="cal-day empty"></div>
+
+        <!-- Row 2: Jun 2(Tue)–7(Sun) + Sat 6 -->
+        <!-- Sat=6, Fri=5, Thu=4, Wed=3, Tue=2, Mon=—, Sun=7 -->
+        <div class="cal-day">6</div>
+        <div class="cal-day">5</div>
+        <div class="cal-day">4</div>
+        <div class="cal-day">3</div>
+        <div class="cal-day today">2</div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day">7</div>
+
+        <!-- Row 3: Jun 8(Mon)–14(Sun) -->
+        <!-- Sat=13, Fri=12, Thu=11, Wed=10, Tue=9, Mon=8, Sun=14 -->
+        <div class="cal-day">13</div>
+        <div class="cal-day">12</div>
+        <div class="cal-day">11</div>
+        <div class="cal-day">10</div>
+        <div class="cal-day">9<span class="cal-dot" style="background:var(--danger);"></span></div>
+        <div class="cal-day">8</div>
+        <div class="cal-day">14</div>
+
+        <!-- Row 4: Jun 15(Mon)–21(Sun) -->
+        <!-- Sat=20, Fri=19, Thu=18, Wed=17, Tue=16, Mon=15, Sun=21 -->
+        <div class="cal-day">20</div>
+        <div class="cal-day">19</div>
+        <div class="cal-day">18</div>
+        <div class="cal-day">17</div>
+        <div class="cal-day">16</div>
+        <div class="cal-day">15<span class="cal-dot" style="background:var(--fitness);"></span></div>
+        <div class="cal-day">21</div>
+
+        <!-- Row 5: Jun 22(Mon)–28(Sun) -->
+        <!-- Sat=27, Fri=26, Thu=25, Wed=24, Tue=23, Mon=22, Sun=28 -->
+        <div class="cal-day">27</div>
+        <div class="cal-day">26</div>
+        <div class="cal-day">25</div>
+        <div class="cal-day">24</div>
+        <div class="cal-day">23</div>
+        <div class="cal-day">22</div>
+        <div class="cal-day">28</div>
+
+        <!-- Row 6: Jun 29(Mon)–30(Tue) -->
+        <!-- Sat=—, Fri=—, Thu=—, Wed=—, Tue=30, Mon=29, Sun=— -->
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day empty"></div>
+        <div class="cal-day">30</div>
+        <div class="cal-day">29</div>
+        <div class="cal-day empty"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Filter pills -->
+  <section class="px-5 mt-5">
+    <div class="scroll-x flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
+      <button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:var(--ink);color:#fff">הכל</button>
+      <button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:rgba(37,99,235,0.1);color:var(--info)">לימודים</button>
+      <button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:var(--surface);color:var(--ink-2);border:1px solid var(--hairline)">אישי</button>
+      <button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:var(--nutrition-soft);color:var(--nutrition)">🍃 תזונה</button>
+      <button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:var(--fitness-soft);color:var(--fitness)">💪 כושר</button>
+    </div>
+  </section>
+
+  <!-- Upcoming Events -->
+  <section class="px-5 mt-4">
+    <h2 class="text-lg font-extrabold mb-3">היום • 2 ביוני</h2>
+    <div class="space-y-3">
+
+      <!-- Study lecture (white + info border) -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--surface);border-right:4px solid var(--info)">
+        <div class="flex items-start justify-between text-xs font-bold" style="color:var(--ink-3)">
+          <span>הרצאה</span><span>09:00–10:30</span>
+        </div>
+        <div class="font-extrabold text-base mt-1" style="color:var(--ink)">לוגיקה ותורת הקבוצות</div>
+      </div>
+
+      <!-- Calori workout — PURPLE flood -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--fitness);color:#fff">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="dumbbell" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold opacity-90">11:00–11:45 • Calori</div>
+            <div class="font-extrabold text-base leading-tight">אימון: רגליים</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Study tutorial (white + info border) -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--surface);border-right:4px solid var(--info)">
+        <div class="flex items-start justify-between text-xs font-bold" style="color:var(--ink-3)">
+          <span>תרגול</span><span>12:00–14:00</span>
+        </div>
+        <div class="font-extrabold text-base mt-1" style="color:var(--ink)">מבני נתונים</div>
+      </div>
+
+      <!-- Calori meal — GREEN flood -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--nutrition);color:#fff">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="utensils" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold opacity-90">13:30 • Calori</div>
+            <div class="font-extrabold text-base leading-tight">ארוחת צהריים • 720 קק"ל</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal event (white + neutral border) -->
+      <div class="rounded-2xl p-4 shadow-sm" style="background:var(--surface);border-right:4px solid var(--ink-2)">
+        <div class="flex items-start justify-between text-xs font-bold" style="color:var(--ink-3)">
+          <span>אישי</span><span>19:00–20:00</span>
+        </div>
+        <div class="font-extrabold text-base mt-1" style="color:var(--ink)">פגישה עם יואב</div>
+      </div>
+
+      <!-- Exam reminder — DANGER flood -->
+      <div class="rounded-2xl p-4 shadow-sm text-white" style="background:var(--danger)">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-extrabold text-base leading-tight">מועד א׳ — אינפי 2</div>
+            <div class="text-xs mt-1 opacity-90">9 ביוני • בעוד 7 ימים</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-100 px-3 pt-2 pb-5 flex items-end justify-around z-40">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="home" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">בית</span>
+    </a>
+    <a href="calendar.html" class="flex flex-col items-center gap-0.5 flex-1" style="color:var(--primary);">
+      <i data-lucide="calendar" class="w-6 h-6" style="fill:var(--primary-soft);"></i>
+      <span class="text-[10px] font-bold">יומן</span>
+    </a>
+    <a href="add-item.html" class="flex flex-col items-center -mt-7 flex-1">
+      <div class="w-14 h-14 rounded-full nav-fab flex items-center justify-center" style="background:var(--primary);">
+        <i data-lucide="plus" class="w-7 h-7 text-white"></i>
+      </div>
+    </a>
+    <a href="studies.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">לימודים</span>
+    </a>
+    <a href="more.html" class="flex flex-col items-center gap-0.5 flex-1 text-gray-400">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+      <span class="text-[10px] font-bold">עוד</span>
+    </a>
+  </nav>
+
+</div>
+<div class="preview-note">תצוגה מקדימה • לא פעיל</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>
