@@ -34,7 +34,7 @@ const MealRow = ({ meal, t }) => {
   const catLabel = t(`mealCat_${meal.category}`, meal.category);
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#059669] text-white shadow-sm">
+    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#059669] text-white">
       {meal.imageUrl ? (
         <img src={meal.imageUrl} alt="" className="w-11 h-11 rounded-xl object-cover shrink-0" />
       ) : (
@@ -67,16 +67,18 @@ const WorkoutRow = ({ workout, t }) => {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#7C3AED] text-white shadow-sm">
+    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#7C3AED] text-white">
       <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
         <Dumbbell className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-sm truncate">{workout.name}</p>
-        <p className="text-xs text-white/80">
-          {workout.durationMinutes} {t('caloriMinutes')}
-          {time && ` · ${time}`}
-          {workout.exercisesCount > 0 ? ` · ${workout.exercisesCount} 🏋️` : ''}
+        <p className="text-xs text-white/80 flex items-center gap-1 flex-wrap">
+          <span>{workout.durationMinutes} {t('caloriMinutes')}</span>
+          {time && <span>· {time}</span>}
+          {workout.exercisesCount > 0 && (
+            <span className="flex items-center gap-0.5">· {workout.exercisesCount} <Dumbbell className="w-3 h-3" /></span>
+          )}
         </p>
       </div>
       <div className="text-end shrink-0">
@@ -142,11 +144,11 @@ export const CaloriView = () => {
 
   return (
     <div
-      className="max-w-2xl mx-auto w-full px-4 py-4 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-400"
+      className="max-w-2xl mx-auto w-full px-4 py-5 sm:px-6 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-400"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Date navigator ── */}
-      <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-2 py-1.5 shadow-sm">
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-2 py-1.5">
         <button
           onClick={goPrev}
           aria-label={t('caloriPrevDay', isRTL ? 'יום קודם' : 'Previous day')}
@@ -166,7 +168,7 @@ export const CaloriView = () => {
       </div>
 
       {/* ── Daily summary card ── */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-bold text-foreground">{t('caloriDaySummary')}</span>
           {nutritionScore != null && (

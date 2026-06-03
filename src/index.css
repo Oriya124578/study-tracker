@@ -1,7 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Assistant', system-ui, sans-serif;
+  --font-sans: 'Heebo', 'Inter', system-ui, sans-serif;
+
+  /* Brand gradient — exact 4-stop palette from /logo.svg.
+     Single source of truth for headings, hero rings, brand chips. */
+  --gradient-brand: linear-gradient(135deg, #10B981 0%, #059669 35%, #2563EB 65%, #7C3AED 100%);
+  --gradient-brand-soft: linear-gradient(135deg, rgba(16,185,129,.10) 0%, rgba(5,150,105,.10) 35%, rgba(37,99,235,.10) 65%, rgba(124,58,237,.10) 100%);
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -99,6 +105,6 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Assistant', system-ui, sans-serif;
+    font-family: 'Heebo', 'Inter', system-ui, sans-serif;
   }
 }

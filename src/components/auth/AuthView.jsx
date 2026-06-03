@@ -119,8 +119,13 @@ export const AuthView = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-in fade-in duration-500">
       <Card className="w-full max-w-md shadow-xl border-primary/10">
         <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
-            <BookOpen className="w-8 h-8 text-primary" />
+          <div
+            className="w-24 h-24 mx-auto mb-2 rounded-3xl p-[2px] flex items-center justify-center"
+            style={{ background: 'var(--gradient-brand)' }}
+          >
+            <div className="w-full h-full rounded-[22px] bg-background flex items-center justify-center">
+              <img src="/logo.svg" alt="Calori Life" className="w-16 h-16 object-contain drop-shadow-sm" />
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold">{t('loginTitle')}</CardTitle>
           <CardDescription>

@@ -34,6 +34,12 @@ import {
   subscribeNotes,
   setNote as fsSetNote,
   deleteNote as fsDeleteNote,
+  subscribeTaskLists,
+  setTaskList as fsSetTaskList,
+  deleteTaskListAndMigrateTasks as fsDeleteTaskListAndMigrateTasks,
+  subscribeNoteCategories,
+  setNoteCategory as fsSetNoteCategory,
+  deleteNoteCategoryAndMigrateNotes as fsDeleteNoteCategoryAndMigrateNotes,
   newId,
 } from '../lib/firestoreRepo';
 import {
@@ -42,6 +48,8 @@ import {
   subscribeWorkoutsForDay,
   subscribeDailyHistory,
   subscribeRecentDailyHistory,
+  subscribeCaloriProfile,
+  subscribeCoachSessionsForDay,
 } from '../lib/caloriRepo';
 
 // ---------- Notification settings (Phase 5) --------------------------------
@@ -181,7 +189,7 @@ export const useStore = create((set, get) => ({
   // --- UI-only state ------------------------------------------------------
   activeCourse: null,
   activeCategory: 'overview',
-  theme: localStorage.getItem('theme') || 'dark',
+  theme: localStorage.getItem('theme') || 'light',
   language: localStorage.getItem('language') || 'he',
   pomodoro: { active: false, timeLeft: 25 * 60, mode: 'work', courseId: null },
   pomoSettings: { work: 25, break: 5 },
@@ -198,6 +206,8 @@ export const useStore = create((set, get) => ({
   _caloriDayUnsubs: [], // per-day calori listeners (re-subscribed on date change)
   // Phase 5: notification settings (persisted to localStorage; FCM-ready)
   notificationSettings: loadNotificationSettings(),
+  // AI Command Center draft state
+  draftSchedule: { blocks: [], coachNote: '' },
 
   // ---------- Subscriptions lifecycle -----------------------------------
 
@@ -267,12 +277,46 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, quickNotes } }));
     });
 
+    const unsubTaskLists = subscribeTaskLists(uid, (taskListsDocs) => {
+      if (taskListsDocs.length === 0) {
+        fsSetTaskList(uid, 'personal', { name: 'המשימות שלי', createdAt: new Date().toISOString() }).catch(console.error);
+      }
+      set((state) => ({ data: { ...state.data, taskLists: taskListsDocs } }));
+    });
+
+    const unsubNoteCategories = subscribeNoteCategories(uid, (noteCategoriesDocs) => {
+      if (noteCategoriesDocs.length === 0) {
+        fsSetNoteCategory(uid, 'general', { name: 'כללי', createdAt: new Date().toISOString() }).catch(console.error);
+      }
+      set((state) => ({ data: { ...state.data, noteCategories: noteCategoriesDocs } }));
+    });
+
     // ── Calori bridge (READ-ONLY) ──
     // Recent history is date-range independent; subscribe once here.
     const unsubRecentCalori = subscribeRecentDailyHistory(uid, (recentHistory) => {
       set((state) => ({
         data: { ...state.data, calori: { ...state.data.calori, recentHistory } },
       }));
+    });
+
+    const unsubCaloriProfile = subscribeCaloriProfile(uid, (caloriProfile) => {
+      if (caloriProfile) {
+        set((state) => ({
+          data: {
+            ...state.data,
+            calori: {
+              ...state.data.calori,
+              dailyGoal: Number(caloriProfile.daily_goal) || 1300,
+              proteinGoal: Number(caloriProfile.protein_goal) || 0,
+              carbsGoal: Number(caloriProfile.carbs_goal) || 0,
+              fatsGoal: Number(caloriProfile.fats_goal) || 0,
+              stepsGoal: Number(caloriProfile.steps_goal) || 10000,
+              weight: caloriProfile.weight != null ? Number(caloriProfile.weight) : null,
+              targetWeight: caloriProfile.target_weight != null ? Number(caloriProfile.target_weight) : null,
+            },
+          },
+        }));
+      }
     });
 
     set({
@@ -286,6 +330,9 @@ export const useStore = create((set, get) => ({
         unsubPersonalTasks,
         unsubNotes,
         unsubRecentCalori,
+        unsubCaloriProfile,
+        unsubTaskLists,
+        unsubNoteCategories,
       ],
     });
 
@@ -333,8 +380,13 @@ export const useStore = create((set, get) => ({
         data: { ...state.data, calori: { ...state.data.calori, dayHistory } },
       }));
     });
+    const unsubCoachSessions = subscribeCoachSessionsForDay(uid, date, (coachSessions) => {
+      set((state) => ({
+        data: { ...state.data, calori: { ...state.data.calori, coachSessions } },
+      }));
+    });
 
-    set({ _caloriDayUnsubs: [unsubMeals, unsubWorkouts, unsubDayHistory] });
+    set({ _caloriDayUnsubs: [unsubMeals, unsubWorkouts, unsubDayHistory, unsubCoachSessions] });
   },
 
   // Change the viewed calori day and re-subscribe.
@@ -355,6 +407,11 @@ export const useStore = create((set, get) => ({
   setTheme: (theme) => {
     localStorage.setItem('theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     set({ theme });
   },
   setLanguage: (language) => {
@@ -386,9 +443,20 @@ export const useStore = create((set, get) => ({
   // ---------- Profile -----------------------------------------------------
 
   setProfile: (profileData) => {
-    set((state) => ({
-      data: { ...state.data, profile: { ...state.data.profile, ...profileData } },
-    }));
+    set((state) => {
+      const currentProfile = state.data.profile || {};
+      // Deep merge coachNotes to prevent wiping other days when updating locally
+      const mergedCoachNotes = profileData.coachNotes
+        ? { ...(currentProfile.coachNotes || {}), ...profileData.coachNotes }
+        : currentProfile.coachNotes;
+
+      const mergedProfile = { ...currentProfile, ...profileData };
+      if (profileData.coachNotes) {
+        mergedProfile.coachNotes = mergedCoachNotes;
+      }
+
+      return { data: { ...state.data, profile: mergedProfile } };
+    });
     const { uid } = get();
     if (uid) fsSetProfile(uid, profileData).catch(console.error);
   },
@@ -415,7 +483,7 @@ export const useStore = create((set, get) => ({
     // Persist profile + all courses. Let failures propagate so we DON'T flip
     // hasCompletedOnboarding on a partial write (which would strand the user
     // with no courses). The caller (OnboardingScreen) shows a toast on throw.
-    await fsSetProfile(uid, profileData);
+    await fsSetProfile(uid, { ...profileData, hasCompletedOnboarding: true });
 
     for (const course of selectedCourses) {
       const notebookLmLink = isOwner ? (course.defaultNotebookLmLink || '') : '';
@@ -858,6 +926,7 @@ export const useStore = create((set, get) => ({
       doneAt: null,
       priority: input.priority || 'med',
       list: input.list || 'personal',
+      starred: !!input.starred,
       notes: input.notes || '',
       courseId: input.courseId || null,
       // Phase 5: per-item reminder override (minutes before due; null=default, -1=off).
@@ -936,6 +1005,7 @@ export const useStore = create((set, get) => ({
       type: 'note',
       pinned: !!input.pinned,
       color: input.color || null,
+      categoryId: input.categoryId || null,
       courseId: input.courseId || null,
       createdAt: now,
       updatedAt: now,
@@ -1031,5 +1101,240 @@ export const useStore = create((set, get) => ({
     }));
     if (uid && newSubtasks)
       fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
+  },
+
+  // ---------- Task lists & Note categories actions ----------------------
+
+  addTaskList: async (name) => {
+    const { uid } = get();
+    if (!uid) return null;
+    const id = newId(uid, 'taskList');
+    const now = new Date().toISOString();
+    const list = { name, createdAt: now };
+    set((state) => ({
+      data: {
+        ...state.data,
+        taskLists: [...state.data.taskLists, { id, ...list }],
+      },
+    }));
+    await fsSetTaskList(uid, id, list).catch(console.error);
+    return id;
+  },
+
+  updateTaskList: async (id, name) => {
+    const { uid } = get();
+    if (!uid) return;
+    set((state) => ({
+      data: {
+        ...state.data,
+        taskLists: state.data.taskLists.map((l) => (l.id === id ? { ...l, name } : l)),
+      },
+    }));
+    await fsSetTaskList(uid, id, { name }).catch(console.error);
+  },
+
+  deleteTaskList: async (id) => {
+    const { uid, data } = get();
+    if (!uid) return;
+    const taskIds = data.personalTasks
+      .filter((t) => t.list === id)
+      .map((t) => t.id);
+
+    set((state) => ({
+      data: {
+        ...state.data,
+        taskLists: state.data.taskLists.filter((l) => l.id !== id),
+        personalTasks: state.data.personalTasks.map((t) =>
+          t.list === id ? { ...t, list: 'personal' } : t
+        ),
+      },
+    }));
+    await fsDeleteTaskListAndMigrateTasks(uid, id, taskIds, 'personal').catch(console.error);
+  },
+
+  addNoteCategory: async (name) => {
+    const { uid } = get();
+    if (!uid) return null;
+    const id = newId(uid, 'noteCategory');
+    const now = new Date().toISOString();
+    const cat = { name, createdAt: now };
+    set((state) => ({
+      data: {
+        ...state.data,
+        noteCategories: [...state.data.noteCategories, { id, ...cat }],
+      },
+    }));
+    await fsSetNoteCategory(uid, id, cat).catch(console.error);
+    return id;
+  },
+
+  updateNoteCategory: async (id, name) => {
+    const { uid } = get();
+    if (!uid) return;
+    set((state) => ({
+      data: {
+        ...state.data,
+        noteCategories: state.data.noteCategories.map((c) => (c.id === id ? { ...c, name } : c)),
+      },
+    }));
+    await fsSetNoteCategory(uid, id, { name }).catch(console.error);
+  },
+
+  deleteNoteCategory: async (id) => {
+    const { uid, data } = get();
+    if (!uid) return;
+    const noteIds = data.quickNotes
+      .filter((n) => n.categoryId === id)
+      .map((n) => n.id);
+
+    set((state) => ({
+      data: {
+        ...state.data,
+        noteCategories: state.data.noteCategories.filter((c) => c.id !== id),
+        quickNotes: state.data.quickNotes.map((n) =>
+          n.categoryId === id ? { ...n, categoryId: null } : n
+        ),
+      },
+    }));
+    await fsDeleteNoteCategoryAndMigrateNotes(uid, id, noteIds).catch(console.error);
+  },
+
+  toggleStarPersonalTask: (id) => {
+    const { uid } = get();
+    let next = null;
+    set((state) => ({
+      data: {
+        ...state.data,
+        personalTasks: state.data.personalTasks.map((t) => {
+          if (t.id !== id) return t;
+          next = {
+            starred: !t.starred,
+          };
+          return { ...t, ...next };
+        }),
+      },
+    }));
+    if (uid && next) fsSetPersonalTask(uid, id, next).catch(console.error);
+  },
+
+  // --- AI Command Center schedule actions ---
+  setDraftSchedule: (draft) => set({ draftSchedule: draft }),
+
+  scheduleTask: (taskId, scheduledDate, scheduledTime, durationMinutes) => {
+    const { uid } = get();
+    set((state) => ({
+      data: {
+        ...state.data,
+        personalTasks: state.data.personalTasks.map((t) =>
+          t.id === taskId
+            ? { ...t, scheduledDate, scheduledTime, scheduledDuration: durationMinutes }
+            : t
+        ),
+      },
+    }));
+    if (uid) {
+      fsSetPersonalTask(uid, taskId, {
+        scheduledDate,
+        scheduledTime,
+        scheduledDuration: durationMinutes,
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+    }
+  },
+
+  unscheduleTask: (taskId) => {
+    const { uid } = get();
+    set((state) => ({
+      data: {
+        ...state.data,
+        personalTasks: state.data.personalTasks.map((t) =>
+          t.id === taskId
+            ? { ...t, scheduledDate: null, scheduledTime: null, scheduledDuration: null }
+            : t
+        ),
+      },
+    }));
+    if (uid) {
+      fsSetPersonalTask(uid, taskId, {
+        scheduledDate: null,
+        scheduledTime: null,
+        scheduledDuration: null,
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+    }
+  },
+
+  saveDraftSchedule: async (dateStr, draftBlocks, coachNote) => {
+    const { uid } = get();
+    if (!uid) return;
+
+    for (const block of draftBlocks) {
+      if (
+        block.type === 'study' ||
+        block.type === 'event' ||
+        block.type === 'meal' ||
+        block.type === 'travel' ||
+        block.type === 'leisure'
+      ) {
+        if (block.isProposed) {
+          const eventId = block.id.startsWith('draft-') ? newId(uid, 'event') : block.id;
+          const startIso = `${dateStr}T${block.startTime}:00`;
+          const endIso = `${dateStr}T${block.endTime}:00`;
+
+          await fsSetEvent(uid, eventId, {
+            title: block.title,
+            start: startIso,
+            end: endIso,
+            allDay: false,
+            type: block.type,
+            notes: block.notes || '',
+            isProposed: true,
+            refId: block.refId || null,
+          }).catch(console.error);
+        }
+      } else if (block.refId && block.id.startsWith('task-')) {
+        const taskId = block.refId;
+        await fsSetPersonalTask(uid, taskId, {
+          scheduledDate: dateStr,
+          scheduledTime: block.startTime,
+          scheduledDuration: block.duration || 60,
+          updatedAt: new Date().toISOString(),
+        }).catch(console.error);
+      }
+    }
+
+    if (coachNote) {
+      get().setProfile({
+        coachNotes: { [dateStr]: coachNote },
+      });
+    }
+
+    set({ draftSchedule: { blocks: [], coachNote: '' } });
+  },
+
+  clearDaySchedule: async (dateStr) => {
+    const { uid, data } = get();
+    if (!uid) return;
+
+    const tasksToUnschedule = data.personalTasks.filter((t) => t.scheduledDate === dateStr);
+    for (const t of tasksToUnschedule) {
+      await fsSetPersonalTask(uid, t.id, {
+        scheduledDate: null,
+        scheduledTime: null,
+        scheduledDuration: null,
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+    }
+
+    const eventsToDelete = data.events.filter(
+      (e) => e.start && e.start.startsWith(dateStr) && e.isProposed === true
+    );
+    for (const ev of eventsToDelete) {
+      await fsDeleteEvent(uid, ev.id).catch(console.error);
+    }
+
+    get().setProfile({
+      coachNotes: { [dateStr]: null },
+    });
   },
 }));

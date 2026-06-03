@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Bell, BookOpen, Flag, MapPin, Check, Clock } from 'lucide-react';
+import { X, Calendar, Bell, BookOpen, Flag, MapPin, Check, Clock, CheckSquare, FolderOpen } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { toast } from '../../store/useToast';
@@ -39,6 +39,8 @@ export const AddItemSheet = () => {
   const [courseId, setCourseId] = useState('');
   const [location, setLocation] = useState('');
   const [reminder, setReminder] = useState('default'); // 'default' | 'none' | minutes(string)
+  const [list, setList] = useState('personal');
+  const [categoryId, setCategoryId] = useState('general');
   const [submitting, setSubmitting] = useState(false);
   const titleRef = useRef(null);
 
@@ -55,6 +57,8 @@ export const AddItemSheet = () => {
       setCourseId(addSheetPrefill?.courseId || '');
       setLocation('');
       setReminder('default');
+      setList(addSheetPrefill?.list || 'personal');
+      setCategoryId(addSheetPrefill?.categoryId || 'general');
       setSubmitting(false);
       setTimeout(() => titleRef.current?.focus(), 350);
     }
@@ -90,6 +94,8 @@ export const AddItemSheet = () => {
           title: title.trim(),
           dueDate: dueDate || null,
           priority,
+          list,
+          starred: !!addSheetPrefill?.starred,
           courseId: courseId || null,
           reminderMinutes,
         });
@@ -97,6 +103,8 @@ export const AddItemSheet = () => {
         await addQuickNote({
           title: title.trim(),
           content: content.trim(),
+          categoryId,
+          pinned: !!addSheetPrefill?.pinned,
           courseId: courseId || null,
         });
       }
@@ -214,6 +222,48 @@ export const AddItemSheet = () => {
 
               {/* Form fields */}
               <div className="mb-5 divide-y divide-border">
+                {/* Note Category selector (note only) */}
+                {activeTab === 'note' && data?.noteCategories?.length > 0 && (
+                  <FormRow
+                    icon={<FolderOpen className="w-[18px] h-[18px] text-amber-600" />}
+                    iconBg="bg-amber-100 dark:bg-amber-900/30"
+                    label={t('categoryLabel')}
+                  >
+                    <select
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
+                    >
+                      {data.noteCategories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormRow>
+                )}
+
+                {/* Task List selector (task only) */}
+                {activeTab === 'task' && data?.taskLists?.length > 0 && (
+                  <FormRow
+                    icon={<CheckSquare className="w-[18px] h-[18px] text-emerald-600" />}
+                    iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+                    label={t('listLabel')}
+                  >
+                    <select
+                      value={list}
+                      onChange={(e) => setList(e.target.value)}
+                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
+                    >
+                      {data.taskLists.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormRow>
+                )}
+
                 {/* Date */}
                 {activeTab !== 'note' && (
                   <FormRow

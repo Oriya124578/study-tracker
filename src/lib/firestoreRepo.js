@@ -11,8 +11,20 @@ import {
   onSnapshot,
   setDoc,
   writeBatch,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+const commitInChunks = async (operations) => {
+  const CHUNK_SIZE = 450;
+  for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+    const chunk = operations.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    chunk.forEach((op) => op(batch));
+    await batch.commit();
+  }
+};
 
 // --- Path helpers ---------------------------------------------------------
 
@@ -32,6 +44,10 @@ const personalTaskDoc = (uid, id) =>
   doc(db, 'users', uid, 'cl_personalTasks', id);
 const notesCol = (uid) => collection(db, 'users', uid, 'cl_notes');
 const noteDoc = (uid, id) => doc(db, 'users', uid, 'cl_notes', id);
+const taskListsCol = (uid) => collection(db, 'users', uid, 'cl_taskLists');
+const taskListDoc = (uid, id) => doc(db, 'users', uid, 'cl_taskLists', id);
+const noteCategoriesCol = (uid) => collection(db, 'users', uid, 'cl_noteCategories');
+const noteCategoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_noteCategories', id);
 
 // New id helper for client-minted documents.
 export const newId = (uid, kind) => {
@@ -42,6 +58,10 @@ export const newId = (uid, kind) => {
       ? personalTasksCol(uid)
       : kind === 'note'
       ? notesCol(uid)
+      : kind === 'taskList'
+      ? taskListsCol(uid)
+      : kind === 'noteCategory'
+      ? noteCategoriesCol(uid)
       : null;
   if (!col) throw new Error(`newId: unknown kind ${kind}`);
   return doc(col).id;
@@ -87,15 +107,14 @@ export const setCourse = async (uid, courseId, data) => {
  * batch). Tasks are matched by `courseId` field rather than by ID prefix.
  */
 export const deleteCourse = async (uid, courseId) => {
-  const tasksSnap = await getDocs(courseTasksCol(uid));
-  const batch = writeBatch(db);
-  batch.delete(courseDoc(uid, courseId));
+  const q = query(courseTasksCol(uid), where('courseId', '==', courseId));
+  const tasksSnap = await getDocs(q);
+  const ops = [];
+  ops.push((batch) => batch.delete(courseDoc(uid, courseId)));
   tasksSnap.forEach((t) => {
-    if (t.data().courseId === courseId) {
-      batch.delete(t.ref);
-    }
+    ops.push((batch) => batch.delete(t.ref));
   });
-  await batch.commit();
+  await commitInChunks(ops);
 };
 
 // --- Course tasks ---------------------------------------------------------
@@ -120,11 +139,11 @@ export const deleteCourseTask = async (uid, taskId) => {
  * @param {Object<string, object>} tasksMap - { taskId: data }
  */
 export const batchSetCourseTasks = async (uid, tasksMap) => {
-  const batch = writeBatch(db);
+  const ops = [];
   for (const [taskId, data] of Object.entries(tasksMap)) {
-    batch.set(courseTaskDoc(uid, taskId), data, { merge: true });
+    ops.push((batch) => batch.set(courseTaskDoc(uid, taskId), data, { merge: true }));
   }
-  await batch.commit();
+  await commitInChunks(ops);
 };
 
 // --- Pomodoro sessions ----------------------------------------------------
@@ -185,4 +204,46 @@ export const setNote = async (uid, id, data) => {
 
 export const deleteNote = async (uid, id) => {
   await deleteDoc(noteDoc(uid, id));
+};
+
+// --- Task lists (cl_taskLists) -------------------------------------------
+
+export const subscribeTaskLists = (uid, cb) =>
+  onSnapshot(taskListsCol(uid), (snap) => cb(snapshotToArray(snap)));
+
+export const setTaskList = async (uid, id, data) => {
+  await setDoc(taskListDoc(uid, id), data, { merge: true });
+};
+
+export const deleteTaskListAndMigrateTasks = async (uid, listId, taskIdsToMigrate, targetListId = 'personal') => {
+  const ops = [];
+  ops.push((batch) => batch.delete(taskListDoc(uid, listId)));
+  taskIdsToMigrate.forEach((taskId) => {
+    ops.push((batch) => batch.set(personalTaskDoc(uid, taskId), {
+      list: targetListId,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true }));
+  });
+  await commitInChunks(ops);
+};
+
+// --- Note categories (cl_noteCategories) ---------------------------------
+
+export const subscribeNoteCategories = (uid, cb) =>
+  onSnapshot(noteCategoriesCol(uid), (snap) => cb(snapshotToArray(snap)));
+
+export const setNoteCategory = async (uid, id, data) => {
+  await setDoc(noteCategoryDoc(uid, id), data, { merge: true });
+};
+
+export const deleteNoteCategoryAndMigrateNotes = async (uid, categoryId, noteIdsToMigrate) => {
+  const ops = [];
+  ops.push((batch) => batch.delete(noteCategoryDoc(uid, categoryId)));
+  noteIdsToMigrate.forEach((noteId) => {
+    ops.push((batch) => batch.set(noteDoc(uid, noteId), {
+      categoryId: null,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true }));
+  });
+  await commitInChunks(ops);
 };

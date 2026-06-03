@@ -175,7 +175,7 @@ export const OnboardingScreen = () => {
   };
 
   // ── Shared nav buttons ────────────────────────────────────────────────────
-  const NavButtons = ({ nextDisabled, nextLabel, onNext }) => (
+  const renderNavButtons = ({ nextDisabled, nextLabel, onNext } = {}) => (
     <div className="flex gap-4 w-full max-w-sm">
       <Button variant="outline" size="lg" className="flex-1 h-12 rounded-full" onClick={prevStep}>
         {isRtl ? <ChevronRight className="w-5 h-5 ml-2" /> : <ChevronLeft className="w-5 h-5 mr-2" />}
@@ -291,7 +291,7 @@ export const OnboardingScreen = () => {
                     </select>
                   </div>
                 </div>
-                <NavButtons />
+                {renderNavButtons()}
               </motion.div>
             )}
 
@@ -394,7 +394,7 @@ export const OnboardingScreen = () => {
                   </div>
                 )}
 
-                <NavButtons nextDisabled={selectedCourseIds.length === 0} />
+                {renderNavButtons({ nextDisabled: selectedCourseIds.length === 0 })}
               </motion.div>
             )}
 
@@ -481,11 +481,9 @@ export const OnboardingScreen = () => {
                 </div>
 
                 <div className="flex justify-center w-full">
-                  <NavButtons
-                    nextDisabled={
-                      !Object.values(enabledTypes).some(Boolean) && customTypes.length === 0
-                    }
-                  />
+                  {renderNavButtons({
+                    nextDisabled: !Object.values(enabledTypes).some(Boolean) && customTypes.length === 0
+                  })}
                 </div>
               </motion.div>
             )}

@@ -198,9 +198,9 @@ export const CalendarView = () => {
                   setViewMode('day');
                 }}
                 className={cn(
-                  'min-h-[44px] md:min-h-[80px] p-0.5 sm:p-1 border rounded-lg transition-all relative flex flex-col items-center justify-start text-start',
+                  'min-h-[44px] md:min-h-[80px] p-0.5 sm:p-1 border rounded-xl transition-all relative flex flex-col items-center justify-start text-start',
                   isSel
-                    ? 'border-primary bg-primary/10 shadow-sm'
+                    ? 'border-primary bg-primary/10'
                     : isCurr
                     ? 'border-primary/50 bg-primary/5'
                     : 'border-border/50 hover:border-primary/30',
@@ -268,7 +268,7 @@ export const CalendarView = () => {
             onClick={() =>
               openAddSheet('event', { date: format(day, 'yyyy-MM-dd') })
             }
-            className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-primary transition-colors rounded-lg border border-dashed border-border hover:border-primary/40"
+            className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-primary transition-colors rounded-xl border border-dashed border-border hover:border-primary/40"
           >
             <Plus className="w-3.5 h-3.5" />
             {t('add')}
@@ -333,7 +333,7 @@ export const CalendarView = () => {
   // ─── Render ────────────────────────────────────────────────
 
   return (
-    <div className="p-3 sm:p-6 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4">
+    <div className="px-4 py-5 sm:px-6 max-w-3xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5">
       {/* View mode toggle */}
       <div className="flex bg-muted rounded-xl p-1 gap-0.5 overflow-x-auto">
         {VIEW_MODES.map((mode) => (
@@ -342,7 +342,7 @@ export const CalendarView = () => {
             className={cn(
               'flex-1 text-center text-xs font-semibold py-2 rounded-lg transition-all whitespace-nowrap px-2',
               viewMode === mode
-                ? 'bg-primary text-primary-foreground shadow-sm'
+                ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground',
             )}
             onClick={() => setViewMode(mode)}
@@ -400,7 +400,7 @@ export const CalendarView = () => {
       )}
 
       {/* Content */}
-      <Card>
+      <Card className="shadow-none rounded-2xl">
         <CardContent className="pt-4">
           {viewMode === 'month' && renderMonthGrid()}
           {viewMode === 'list' && renderList()}
@@ -429,10 +429,10 @@ const ITEM_ICONS = {
 };
 
 const ITEM_COLORS = {
-  exam: 'border-l-destructive bg-destructive/5',
-  event: 'border-l-primary bg-primary/5',
-  task: 'border-l-amber-500 bg-amber-50 dark:bg-amber-900/10',
-  pomodoro: 'border-l-purple-500 bg-purple-50 dark:bg-purple-900/10',
+  exam: 'border-s-destructive bg-destructive/5',
+  event: 'border-s-primary bg-primary/5',
+  task: 'border-s-amber-500 bg-amber-50 dark:bg-amber-900/10',
+  pomodoro: 'border-s-purple-500 bg-purple-50 dark:bg-purple-900/10',
 };
 
 const CalendarItem = ({ item, t }) => {
@@ -440,7 +440,7 @@ const CalendarItem = ({ item, t }) => {
   return (
     <div
       className={cn(
-        'rounded-xl border border-border p-3 transition-colors hover:shadow-sm',
+        'rounded-xl border border-border p-3 transition-colors',
         'border-s-[3px]',
         ITEM_COLORS[item.kind] || '',
         item.done && 'opacity-50',
@@ -496,7 +496,7 @@ const UpcomingExams = ({ allItems, t }) => {
   if (exams.length === 0) return null;
 
   return (
-    <Card className="border-destructive/20">
+    <Card className="border-destructive/20 shadow-none rounded-2xl">
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-sm flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-destructive" />

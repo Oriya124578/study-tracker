@@ -5,12 +5,13 @@ import { Input } from '../ui/input';
 import { useStore } from '../../store/useStore';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
-import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe, Archive, ArchiveRestore, User, Clock, Palette } from 'lucide-react';
+import { Settings, RefreshCcw, LogOut, BookOpen, Plus, Edit2, Trash2, Globe, Archive, ArchiveRestore, User, Clock, Palette, Bot } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
 import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
 import { NotificationSettings } from './NotificationSettings';
+import { CITIES_LIST } from '../../lib/shabbatService';
 
 export const SettingsView = () => {
   const { data, resetSemester, addCourse, updateCourse, archiveCourse, language, setLanguage, theme, setTheme, setProfile, pomoSettings, setPomoSettings } = useStore();
@@ -24,9 +25,42 @@ export const SettingsView = () => {
   const [academicYear, setAcademicYear] = useState(data?.profile?.academicYear || "שנה א'");
   const [semester, setSemester] = useState(data?.profile?.semester || "סמסטר א'");
 
+  // AI & CommandCenter settings state
+  const [wakeTime, setWakeTime] = useState(data?.profile?.wakeTime || "07:00");
+  const [sleepTime, setSleepTime] = useState(data?.profile?.sleepTime || "23:00");
+  const [studyBlockDuration, setStudyBlockDuration] = useState(data?.profile?.studyBlockDuration || 90);
+  const [shabbatMode, setShabbatMode] = useState(data?.profile?.shabbatMode ?? false);
+  const [useGPS, setUseGPS] = useState(data?.profile?.useGPS ?? true);
+  const [selectedCity, setSelectedCity] = useState(data?.profile?.selectedCity || "tel_aviv");
+  const [studyPreferences, setStudyPreferences] = useState(
+    data?.profile?.studyPreferences || { morning: true, afternoon: true, evening: false }
+  );
+
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState(() => localStorage.getItem('google_maps_api_key') || '');
+
   // Pomodoro local state
   const [pomoWork, setPomoWork] = useState(pomoSettings?.work || 25);
   const [pomoBreak, setPomoBreak] = useState(pomoSettings?.break || 5);
+
+  const handleSaveAISettings = () => {
+    // Preferences are saved in the user profile doc
+    setProfile({
+      wakeTime,
+      sleepTime,
+      studyBlockDuration,
+      shabbatMode,
+      useGPS,
+      selectedCity,
+      studyPreferences,
+    });
+
+    // Save keys to localStorage
+    localStorage.setItem('gemini_api_key', geminiApiKey.trim());
+    localStorage.setItem('google_maps_api_key', googleMapsApiKey.trim());
+
+    toast.success(t('aiSettingsSaved', 'הגדרות ה-Command Center נשמרו בהצלחה'));
+  };
 
   // Convert a possibly-ISO date string to YYYY-MM-DD for <input type="date">.
   const toDateInput = (val) => {
@@ -76,8 +110,8 @@ export const SettingsView = () => {
       moedA: toDateInput(course.moedA || course.exams?.moedA),
       moedB: toDateInput(course.moedB || course.exams?.moedB),
       moedC: toDateInput(course.moedC || course.exams?.moedC),
-      notebookLm: data.links?.[course.id]?.notebookLm || "",
-      gemini: data.links?.[course.id]?.gemini || ""
+      notebookLm: course.links?.notebookLm || course.defaultNotebookLmLink || "",
+      gemini: course.links?.gemini || course.defaultGeminiLink || ""
     });
   };
 
@@ -279,6 +313,184 @@ export const SettingsView = () => {
 
       {/* 3. Notifications Card (Phase 5) */}
       <NotificationSettings />
+
+      {/* AI & Command Center Settings Card */}
+      <Card className="shadow-sm border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            {t('aiSettingsTitle', 'הגדרות ה-Command Center ו-AI')}
+          </CardTitle>
+          <CardDescription>
+            {t('aiSettingsDesc', 'הגדר את שעות הפעילות והעדפות המיקום שלך לשילוב ה-AI')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Preferences */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-foreground border-b pb-1">אילוצי זמן ותכנון</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">שעת יקיצה</label>
+                <Input
+                  type="time"
+                  value={wakeTime}
+                  onChange={(e) => setWakeTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">שעת שינה</label>
+                <Input
+                  type="time"
+                  value={sleepTime}
+                  onChange={(e) => setSleepTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">בלוק למידה מועדף (דקות)</label>
+                <Input
+                  type="number"
+                  min="30"
+                  max="240"
+                  value={studyBlockDuration}
+                  onChange={(e) => setStudyBlockDuration(parseInt(e.target.value) || 90)}
+                />
+              </div>
+            </div>
+            
+            {/* Preferred study periods */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground block">שעות פרודוקטיביות מועדפות ללמידה</label>
+              <div className="flex gap-4">
+                {['morning', 'afternoon', 'evening'].map((period) => {
+                  const labels = { morning: 'בוקר', afternoon: 'צהריים', evening: 'ערב' };
+                  return (
+                    <label key={period} className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={studyPreferences[period]}
+                        onChange={(e) => setStudyPreferences({
+                          ...studyPreferences,
+                          [period]: e.target.checked
+                        })}
+                        className="rounded border-input text-primary focus:ring-primary w-4 h-4"
+                      />
+                      {labels[period]}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Location & Shabbat */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-foreground border-b pb-1">שבת ומיקום</h3>
+            
+            <div className="flex flex-col sm:flex-row gap-6">
+              {/* Shabbat Mode Toggle */}
+              <div className="flex items-center justify-between p-3 border rounded-xl bg-card flex-1">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">מצב שבת</h4>
+                  <p className="text-xs text-muted-foreground">הפסקת שיבוץ משימות שעה לפני כניסה ועד שעה אחרי יציאה</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShabbatMode(!shabbatMode)}
+                  className={cn(
+                    "w-9 h-5 rounded-full border border-border transition-colors cursor-pointer relative",
+                    shabbatMode ? "bg-primary" : "bg-secondary"
+                  )}
+                >
+                  <span className={cn(
+                    "absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white shadow transition-transform",
+                    shabbatMode ? "translate-x-4" : "translate-x-0"
+                  )} />
+                </button>
+              </div>
+
+              {/* Location configuration */}
+              <div className="flex flex-col gap-3 flex-1">
+                <div className="flex items-center justify-between p-3 border rounded-xl bg-card">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">שימוש ב-GPS</h4>
+                    <p className="text-xs text-muted-foreground">שליפת זמני שבת ונסיעות לפי מיקום המכשיר</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setUseGPS(!useGPS)}
+                    className={cn(
+                      "w-9 h-5 rounded-full border border-border transition-colors cursor-pointer relative",
+                      useGPS ? "bg-primary" : "bg-secondary"
+                    )}
+                  >
+                    <span className={cn(
+                      "absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white shadow transition-transform",
+                      useGPS ? "translate-x-4" : "translate-x-0"
+                    )} />
+                  </button>
+                </div>
+
+                {!useGPS && (
+                  <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                    <label className="text-sm font-medium text-foreground">בחר עיר מגורים (לזמני שבת)</label>
+                    <select
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {CITIES_LIST.map((city) => (
+                        <option key={city.value} value={city.value}>
+                          {city.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* API Keys Configuration */}
+          <div className="space-y-4 pt-4 border-t border-border">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+              <span>🔑</span>
+              {t('apiKeysSectionTitle')}
+            </h3>
+            <p className="text-xs text-muted-foreground">{t('apiKeysSectionDesc')}</p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-foreground block">{t('geminiApiKeyLabel')}</label>
+                <Input
+                  type="password"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  placeholder={t('apiKeysPlaceholder')}
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-foreground block">{t('mapsApiKeyLabel')}</label>
+                <Input
+                  type="password"
+                  value={googleMapsApiKey}
+                  onChange={(e) => setGoogleMapsApiKey(e.target.value)}
+                  placeholder={t('apiKeysPlaceholder')}
+                  className="font-mono text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleSaveAISettings} className="w-full sm:w-auto">
+              {t('saveCommandCenterSettings')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 4. Preferences Card */}
       <Card className="shadow-sm border-border">

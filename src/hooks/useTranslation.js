@@ -1,10 +1,11 @@
+import { useCallback } from 'react';
 import { useStore } from '../store/useStore';
 import { translations } from '../i18n/translations';
 
 export const useTranslation = () => {
-  const { language } = useStore();
+  const language = useStore((state) => state.language);
   
-  const t = (key, fallback) => {
+  const t = useCallback((key, fallback) => {
     // Default to Hebrew if language is missing
     const lang = language || 'he';
     const dict = translations[lang] || translations['he'];
@@ -13,7 +14,7 @@ export const useTranslation = () => {
     // the key itself (so a missing key is at least visible rather than blank).
     if (dict[key] !== undefined) return dict[key];
     return fallback !== undefined ? fallback : key;
-  };
+  }, [language]);
 
   return { t, language };
 };

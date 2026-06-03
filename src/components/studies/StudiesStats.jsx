@@ -16,9 +16,9 @@ export const StudiesStats = () => {
   const progressStats = useMemo(() => {
     let totalTasks = 0;
     let completedTasks = 0;
-    data.courses.forEach((course) => {
-      Object.values(data.tasks[course.id] || {}).forEach((weekTasks) => {
-        weekTasks.forEach((task) => {
+    (data?.courses || []).forEach((course) => {
+      Object.values(data?.tasks?.[course.id] || {}).forEach((weekTasks) => {
+        (weekTasks || []).forEach((task) => {
           totalTasks++;
           if (task.checked) completedTasks++;
         });
@@ -31,7 +31,7 @@ export const StudiesStats = () => {
   // Upcoming exams (sorted)
   const upcomingExams = useMemo(() => {
     const exams = [];
-    data.courses.forEach((course) => {
+    (data?.courses || []).forEach((course) => {
       ['moedA', 'moedB', 'moedC'].forEach((moed) => {
         const examDate = course[moed] || course.exams?.[moed];
         if (examDate) {
@@ -45,13 +45,13 @@ export const StudiesStats = () => {
       });
     });
     return exams.sort((a, b) => a.daysLeft - b.daysLeft);
-  }, [data.courses]);
+  }, [data?.courses]);
 
   // Pomodoro chart data
   const chartData = useMemo(() => {
     const agg = {};
-    (data.pomodoroSessions || []).forEach((session) => {
-      const c = data.courses.find((c) => c.id === session.courseId);
+    (data?.pomodoroSessions || []).forEach((session) => {
+      const c = (data?.courses || []).find((c) => c.id === session.courseId);
       if (c) agg[c.name] = (agg[c.name] || 0) + (session.duration / 60);
     });
     return Object.keys(agg).map((name) => ({ name, minutes: Math.round(agg[name]) }));

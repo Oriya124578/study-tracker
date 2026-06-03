@@ -30,6 +30,10 @@ const saveFired = (set) => {
 
 const parseDate = (v) => {
   if (!v) return null;
+  if (typeof v === 'string' && v.length === 10 && v.includes('-')) {
+    const parts = v.split('-');
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? null : d;
 };

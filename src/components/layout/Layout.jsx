@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BottomNav } from './BottomNav';
 import { PomodoroTimer } from '../pomodoro/PomodoroTimer';
 import { MobileCourseMenu } from './MobileCourseMenu';
@@ -12,6 +12,9 @@ import { Toaster } from '../ui/Toaster';
 import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useNotificationScheduler } from '../../hooks/useNotificationScheduler';
+import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 // Route-level views are lazy-loaded so heavy deps (recharts, etc.) only load when
 // the user navigates to a view that needs them. These are NAMED exports, so each
@@ -22,8 +25,9 @@ const SettingsView = lazy(() => import('../settings/SettingsView').then((m) => (
 const StudiesHub = lazy(() => import('../studies/StudiesHub').then((m) => ({ default: m.StudiesHub })));
 const TasksView = lazy(() => import('../tasks/TasksView').then((m) => ({ default: m.TasksView })));
 const NotesView = lazy(() => import('../notes/NotesView').then((m) => ({ default: m.NotesView })));
-const MoreHub = lazy(() => import('./MoreHub').then((m) => ({ default: m.MoreHub })));
+
 const CaloriView = lazy(() => import('../calori/CaloriView').then((m) => ({ default: m.CaloriView })));
+const CommandCenterView = lazy(() => import('../command-center/CommandCenterView').then((m) => ({ default: m.CommandCenterView })));
 
 // Lightweight, on-brand fallback shown while a lazy view chunk loads.
 const ViewFallback = () => (
@@ -33,8 +37,11 @@ const ViewFallback = () => (
 );
 
 export const Layout = () => {
-  const { activeCategory, activeCourse } = useStore();
+  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory, setShowPomodoroModal } = useStore();
+  const displayName = data?.profile?.displayName || '';
   const { t, language } = useTranslation();
+  const [isFanMenuOpen, setIsFanMenuOpen] = useState(false);
+
   // Phase 5: drive local reminders while the app is open.
   useNotificationScheduler();
 
@@ -54,10 +61,10 @@ export const Layout = () => {
         return <TasksView />;
       case 'notes':
         return <NotesView />;
-      case 'moreHub':
-        return <MoreHub />;
       case 'calori':
         return <CaloriView />;
+      case 'commandCenter':
+        return <CommandCenterView />;
       default:
         return <SmartDashboard />;
     }
@@ -69,38 +76,64 @@ export const Layout = () => {
       : activeCategory === 'calendar'
       ? t('navCalendar')
       : activeCategory === 'settings'
-      ? t('navMore')
+      ? t('navSettings')
       : activeCategory === 'courses'
       ? t('navStudies')
       : activeCategory === 'tasks'
       ? t('myTasks')
       : activeCategory === 'notes'
       ? t('myNotes')
-      : activeCategory === 'moreHub'
-      ? t('moreHubTitle')
       : activeCategory === 'calori'
       ? t('caloriTitle')
+      : activeCategory === 'commandCenter'
+      ? t('navCommandCenter')
       : t('navHome');
 
   return (
     <div className="flex flex-col min-h-[100dvh] w-full bg-background selection:bg-primary/20">
       {/* Top header */}
       <header
-        className="flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0"
+        className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-background/70 backdrop-blur-xl pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0 transition-all shadow-sm shadow-foreground/[0.01]"
         dir={language === 'he' ? 'rtl' : 'ltr'}
       >
-        <h1 className="font-bold text-lg text-foreground truncate flex-1 pe-4 text-start">
-          {headerTitle}
-        </h1>
-        <div className="flex items-center gap-1.5 shrink-0" dir="ltr">
-          <span className="text-xs font-bold text-primary opacity-80 uppercase tracking-wide hidden sm:inline-block">
-            {t('appName')}
-          </span>
-          <img
-            src="/logo-192.png"
-            alt="Calori Life Logo"
-            className="w-6 h-6 object-contain drop-shadow-sm"
-          />
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <button
+            onClick={() => setActiveCategory('settings')}
+            className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border shadow-sm transition-all hover:scale-105 active:scale-95 duration-200 select-none cursor-pointer shrink-0",
+              activeCategory === 'settings'
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
+            )}
+            title={t('navSettings', 'הגדרות')}
+          >
+            {displayName ? displayName.trim().charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
+          </button>
+          <h1
+            className="font-black text-xl tracking-tight bg-clip-text text-transparent truncate text-start select-none"
+            style={{ backgroundImage: 'var(--gradient-brand)' }}
+          >
+            {headerTitle}
+          </h1>
+        </div>
+        <div className="flex items-center gap-3 shrink-0" dir="ltr">
+          <div className="flex flex-col items-end select-none">
+            <span className="text-sm font-black tracking-tight text-foreground leading-none">
+              calori<span className="text-primary font-medium ms-0.5">life</span>
+            </span>
+          </div>
+          <div
+            className="w-9 h-9 rounded-xl p-[1.5px] flex items-center justify-center transition-all hover:scale-105 active:scale-95 duration-200"
+            style={{ background: 'var(--gradient-brand)' }}
+          >
+            <div className="w-full h-full rounded-[10px] bg-background flex items-center justify-center">
+              <img
+                src="/logo.svg"
+                alt="Calori Life Logo"
+                className="w-6 h-6 object-contain drop-shadow-sm select-none"
+              />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -110,6 +143,138 @@ export const Layout = () => {
           <Suspense fallback={<ViewFallback />}>{renderContent()}</Suspense>
         </ErrorBoundary>
       </main>
+
+      {/* Floating Action Button (FAB) on bottom right (3-dots toggle) */}
+      <button
+        onClick={() => setIsFanMenuOpen(!isFanMenuOpen)}
+        className="fixed right-6 bottom-24 sm:right-8 sm:bottom-28 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        aria-label={isFanMenuOpen ? t('close') : t('navMore')}
+      >
+        <motion.div
+          animate={{ rotate: isFanMenuOpen ? 90 : 0 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 18 }}
+          className="flex items-center justify-center"
+        >
+          {isFanMenuOpen ? <X className="w-6 h-6" /> : <MoreHorizontal className="w-6 h-6" />}
+        </motion.div>
+      </button>
+
+      {/* Animated Fan-out Menu */}
+      <AnimatePresence>
+        {isFanMenuOpen && (
+          <>
+            {/* Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              onClick={() => setIsFanMenuOpen(false)}
+              className="fixed inset-0 bg-background/30 backdrop-blur-md z-40"
+            />
+
+            {/* Fan Menu Buttons Container */}
+            <div className="fixed right-6 bottom-24 sm:right-8 sm:bottom-28 z-40 flex flex-col items-end pointer-events-none">
+              <div className="relative w-48 h-48 pointer-events-auto">
+                {/* 1. Add Button */}
+                <motion.button
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ scale: 1, x: -140, y: 0 }} // left
+                  exit={{ scale: 0, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 20 }}
+                  onClick={() => {
+                    setIsFanMenuOpen(false);
+                    openAddSheet('task');
+                  }}
+                  className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  title={t('addNewItem')}
+                >
+                  <Plus className="w-5 h-5" strokeWidth={2.5} />
+                  <span className="absolute -top-7 whitespace-nowrap bg-background border text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {t('addNewItem')}
+                  </span>
+                </motion.button>
+
+                {/* 2. Tasks Button */}
+                <motion.button
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ scale: 1, x: -120, y: -70 }} // angle
+                  exit={{ scale: 0, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 20, delay: 0.015 }}
+                  onClick={() => {
+                    setIsFanMenuOpen(false);
+                    setActiveCategory('tasks');
+                  }}
+                  className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-blue-500 text-white shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  title={t('tasksHubCard', 'משימות')}
+                >
+                  <CheckSquare className="w-5 h-5" />
+                  <span className="absolute -top-7 whitespace-nowrap bg-background border text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {t('tasksHubCard', 'משימות')}
+                  </span>
+                </motion.button>
+
+                {/* 3. Notes Button */}
+                <motion.button
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ scale: 1, x: -85, y: -110 }} // angle
+                  exit={{ scale: 0, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 20, delay: 0.03 }}
+                  onClick={() => {
+                    setIsFanMenuOpen(false);
+                    setActiveCategory('notes');
+                  }}
+                  className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  title={t('notesHubCard', 'פתקים')}
+                >
+                  <StickyNote className="w-5 h-5" />
+                  <span className="absolute -top-7 whitespace-nowrap bg-background border text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {t('notesHubCard', 'פתקים')}
+                  </span>
+                </motion.button>
+
+                {/* 4. Calori Button */}
+                <motion.button
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ scale: 1, x: -45, y: -135 }} // angle
+                  exit={{ scale: 0, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 20, delay: 0.045 }}
+                  onClick={() => {
+                    setIsFanMenuOpen(false);
+                    setActiveCategory('calori');
+                  }}
+                  className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer overflow-hidden border border-[#059669]/20"
+                  title={t('caloriHubCard', 'קלורי')}
+                >
+                  <img src="/logo-calori.jpg" alt="" className="w-9 h-9 object-contain" />
+                  <span className="absolute -top-7 whitespace-nowrap bg-background border text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {t('caloriHubCard', 'קלורי')}
+                  </span>
+                </motion.button>
+
+                {/* 5. Pomodoro Button */}
+                <motion.button
+                  initial={{ scale: 0, x: 0, y: 0 }}
+                  animate={{ scale: 1, x: 0, y: -145 }} // up
+                  exit={{ scale: 0, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 20, delay: 0.06 }}
+                  onClick={() => {
+                    setIsFanMenuOpen(false);
+                    setShowPomodoroModal(true);
+                  }}
+                  className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-purple-500 text-white shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  title={t('pomodoroHubCard', 'פומודורו')}
+                >
+                  <Timer className="w-5 h-5" />
+                  <span className="absolute -top-7 whitespace-nowrap bg-background border text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {t('pomodoroHubCard', 'פומודורו')}
+                  </span>
+                </motion.button>
+              </div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Navigation & overlays */}
       <BottomNav />

@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Calori Life — 4 Direction Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: 'Heebo', system-ui, sans-serif; background: #0f0f12; color: #fff; -webkit-font-smoothing: antialiased; }
+  .page { padding: 48px 32px 96px; }
+  .page-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .page-sub { color: #a3a3aa; font-size: 16px; margin-bottom: 48px; max-width: 720px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 40px; max-width: 1920px; margin: 0 auto; }
+  .card { background: #1a1a1f; border: 1px solid #2a2a31; border-radius: 24px; padding: 32px; }
+  .card h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .card .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #71717a; margin-bottom: 24px; }
+  .card .desc { color: #a3a3aa; font-size: 13px; line-height: 1.6; margin-bottom: 28px; }
+  .phone-wrap { display: flex; justify-content: center; }
+  .phone { width: 390px; height: 780px; border-radius: 48px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 8px #2a2a31, 0 0 0 10px #0f0f12; position: relative; }
+  .phone-inner { width: 100%; height: 100%; overflow: hidden; position: relative; }
+
+  /* shared time pill on top */
+  .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 14px; font-weight: 600; z-index: 10; }
+
+  /* ====================== DIRECTION 1 — BENTO ====================== */
+  .bento { background: #F5F5F7; color: #1D1D1F; height: 100%; padding: 64px 16px 88px; overflow-y: auto; }
+  .bento h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 4px; }
+  .bento h1 b { font-weight: 800; }
+  .bento .sub1 { font-size: 14px; color: #6B7280; margin-bottom: 20px; }
+  .bento-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 64px; gap: 12px; }
+  .b-tile { border-radius: 22px; padding: 16px; position: relative; overflow: hidden; }
+  .b-tile.green { background: #059669; color: #fff; grid-column: span 4; grid-row: span 2; }
+  .b-tile.green .big { font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; margin-top: 8px; }
+  .b-tile.green .lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.8; }
+  .b-tile.green .meta { position: absolute; bottom: 14px; right: 16px; font-size: 12px; opacity: 0.9; font-weight: 500; }
+  .b-tile.purple { background: #7C3AED; color: #fff; grid-column: span 2; grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; }
+  .b-tile.purple .num { font-size: 28px; font-weight: 800; line-height: 1; }
+  .b-tile.purple .lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; margin-top: 4px; }
+  .b-tile.purple .ring { width: 36px; height: 36px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; }
+  .b-tile.white { background: #fff; grid-column: span 3; grid-row: span 2; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 10px rgba(0,0,0,.04); }
+  .b-tile.white .h { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; }
+  .b-tile.white .t { font-size: 17px; font-weight: 700; margin-top: 4px; letter-spacing: -0.01em; }
+  .b-tile.white .s { font-size: 12px; color: #6B7280; margin-top: 2px; }
+  .b-tile.white .time { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-top: 14px; }
+  .b-tile.red { background: #EF4444; color: #fff; grid-column: span 3; grid-row: span 2; }
+  .b-tile.red .countdown { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .b-tile.red .countdown small { font-size: 13px; font-weight: 500; opacity: 0.9; }
+  .b-tile.red .t { font-size: 13px; font-weight: 600; opacity: 0.9; margin-top: 14px; }
+  .b-tile.task { background: #fff; grid-column: span 6; grid-row: span 1; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .b-tile.task .check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #E5E7EB; flex-shrink: 0; }
+  .b-tile.task .t { font-size: 15px; font-weight: 500; flex: 1; }
+  .b-tile.task .due { font-size: 12px; font-weight: 600; color: #F59E0B; }
+  .bento-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: #fff; border-top: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: space-around; padding: 0 20px 20px; }
+  .bento-nav .item { font-size: 11px; color: #9CA3AF; }
+  .bento-nav .item.active { color: #059669; font-weight: 600; }
+  .bento-nav .fab { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 56px; height: 56px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 8px 24px rgba(5,150,105,.4); }
+
+  /* ====================== DIRECTION 2 — GLASSMORPHISM ====================== */
+  .glass { height: 100%; padding: 64px 16px 88px; overflow-y: auto; position: relative;
+    background:
+      radial-gradient(circle at 20% 0%, #7C3AED 0%, transparent 40%),
+      radial-gradient(circle at 80% 30%, #059669 0%, transparent 35%),
+      radial-gradient(circle at 50% 100%, #EF4444 0%, transparent 35%),
+      #0a0a0f;
+    color: #fff;
+  }
+  .glass::before { content: ''; position: absolute; inset: 0; backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); background: rgba(10,10,15,0.3); }
+  .glass > * { position: relative; z-index: 1; }
+  .glass h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .glass .sub1 { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 24px; }
+  .glass-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 22px; padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+  .g-quick { display: flex; gap: 10px; margin-bottom: 18px; }
+  .g-pill { flex: 1; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(20px); text-align: center; font-size: 12px; font-weight: 500; }
+  .g-section { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,.5); margin: 16px 4px 8px; }
+  .g-row { display: flex; align-items: center; gap: 12px; }
+  .g-row .time { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.6); width: 36px; }
+  .g-row .body { flex: 1; }
+  .g-row .body .t { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .g-row .body .s { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 1px; }
+  .g-row .pill { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 10px; }
+  .glass-card.meal { background: linear-gradient(135deg, rgba(5,150,105,.4), rgba(5,150,105,.15)); border-color: rgba(16,185,129,.4); }
+  .glass-card.workout { background: linear-gradient(135deg, rgba(124,58,237,.4), rgba(124,58,237,.15)); border-color: rgba(139,92,246,.4); }
+  .glass-card.exam { background: linear-gradient(135deg, rgba(239,68,68,.45), rgba(239,68,68,.15)); border-color: rgba(239,68,68,.4); }
+  .glass-nav { position: absolute; bottom: 16px; left: 16px; right: 16px; height: 64px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border-radius: 32px; display: flex; align-items: center; justify-content: space-around; padding: 0 24px; z-index: 5; }
+  .glass-nav .item { font-size: 11px; color: rgba(255,255,255,.6); }
+  .glass-nav .item.active { color: #fff; font-weight: 700; }
+  .glass-nav .fab { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #10B981, #059669); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 24px rgba(16,185,129,.5); }
+
+  /* ====================== DIRECTION 3 — BRUTALIST EDITORIAL ====================== */
+  .brut { background: #fafaf7; color: #0a0a0a; height: 100%; padding: 64px 0 88px; overflow-y: auto; font-family: 'Heebo', sans-serif; }
+  .brut-head { padding: 0 20px 20px; border-bottom: 2px solid #0a0a0a; margin-bottom: 16px; }
+  .brut-head .kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
+  .brut-head h1 { font-size: 44px; font-weight: 900; line-height: 0.95; letter-spacing: -0.04em; margin-top: 8px; }
+  .brut-head h1 em { font-style: normal; color: #059669; }
+  .brut-head .lede { font-size: 14px; margin-top: 12px; color: #404040; line-height: 1.5; }
+  .brut-section { padding: 16px 20px 0; }
+  .brut-section .label { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #0a0a0a; padding-bottom: 6px; margin-bottom: 12px; }
+  .brut-section .label .l { font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
+  .brut-section .label .n { font-size: 11px; font-weight: 600; color: #737373; }
+  .brut-item { display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid #d4d4d4; }
+  .brut-item:last-child { border-bottom: none; }
+  .brut-item .time { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+  .brut-item .body .t { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+  .brut-item .body .s { font-size: 12px; color: #737373; margin-top: 2px; font-weight: 500; }
+  .brut-item .tag { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border: 1.5px solid #0a0a0a; border-radius: 0; align-self: start; }
+  .brut-item.meal .tag { background: #059669; color: #fff; border-color: #059669; }
+  .brut-item.workout .tag { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+  .brut-item.exam { background: #EF4444; color: #fff; margin: 0 -20px; padding: 14px 20px; border-bottom: 2px solid #0a0a0a; }
+  .brut-item.exam .body .s { color: rgba(255,255,255,.85); }
+  .brut-item.exam .tag { background: #fff; color: #EF4444; border-color: #fff; }
+  .brut-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background: #0a0a0a; color: #fafaf7; display: flex; align-items: center; justify-content: space-around; padding: 0 16px; }
+  .brut-nav .item { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #737373; }
+  .brut-nav .item.active { color: #fafaf7; border-bottom: 2px solid #fafaf7; padding-bottom: 4px; }
+  .brut-nav .fab { width: 48px; height: 48px; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; border-radius: 0; }
+
+  /* ====================== DIRECTION 4 — SOFT NEUMORPHIC LIVING ====================== */
+  .neu { background: #eef0f5; height: 100%; padding: 64px 20px 88px; overflow-y: auto; color: #2a2d3a; }
+  .neu h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+  .neu .sub1 { font-size: 13px; color: #7a7f8e; margin-bottom: 24px; }
+  .neu-hero { background: linear-gradient(145deg, #f4f6fb, #e3e6ec); border-radius: 28px; padding: 24px; box-shadow: 12px 12px 28px #c8cad0, -12px -12px 28px #ffffff; margin-bottom: 20px; }
+  .neu-hero .topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .neu-hero .topline .lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7a7f8e; }
+  .neu-hero .ring-wrap { display: flex; align-items: center; gap: 18px; }
+  .neu-hero svg { width: 88px; height: 88px; }
+  .neu-hero .ring-text { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+  .neu-hero .ring-sub { font-size: 12px; color: #7a7f8e; font-weight: 500; margin-top: 2px; }
+  .neu-hero .heart { color: #ef4444; font-size: 18px; animation: heartbeat 1.4s ease-in-out infinite; }
+  @keyframes heartbeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.15); } }
+  .neu-quick { display: flex; gap: 12px; margin-bottom: 22px; }
+  .neu-pill { flex: 1; padding: 14px 10px; border-radius: 20px; background: #eef0f5; box-shadow: 6px 6px 14px #c8cad0, -6px -6px 14px #ffffff; text-align: center; font-size: 12px; font-weight: 600; color: #2a2d3a; }
+  .neu-section { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #7a7f8e; margin: 18px 4px 12px; }
+  .neu-card { background: #eef0f5; border-radius: 22px; padding: 16px; margin-bottom: 12px; box-shadow: 8px 8px 20px #c8cad0, -8px -8px 20px #ffffff; display: flex; align-items: center; gap: 14px; }
+  .neu-card .icon-wrap { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .neu-card.meal .icon-wrap { background: linear-gradient(145deg, #10B981, #059669); color: #fff; box-shadow: 4px 4px 10px rgba(5,150,105,.35); }
+  .neu-card.workout .icon-wrap { background: linear-gradient(145deg, #8B5CF6, #7C3AED); color: #fff; box-shadow: 4px 4px 10px rgba(124,58,237,.35); }
+  .neu-card.study .icon-wrap { background: linear-gradient(145deg, #60A5FA, #3B82F6); color: #fff; box-shadow: 4px 4px 10px rgba(59,130,246,.35); }
+  .neu-card.task .icon-wrap { background: #eef0f5; box-shadow: inset 3px 3px 6px #c8cad0, inset -3px -3px 6px #ffffff; }
+  .neu-card.task .icon-wrap::after { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c8cad0; }
+  .neu-card.exam .icon-wrap { background: linear-gradient(145deg, #F87171, #EF4444); color: #fff; box-shadow: 4px 4px 10px rgba(239,68,68,.35); }
+  .neu-card .body { flex: 1; }
+  .neu-card .body .t { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .neu-card .body .s { font-size: 12px; color: #7a7f8e; margin-top: 2px; }
+  .neu-card .time { font-size: 12px; font-weight: 700; color: #7a7f8e; }
+  .neu-nav { position: absolute; bottom: 16px; left: 20px; right: 20px; height: 64px; background: #eef0f5; border-radius: 32px; box-shadow: 8px 8px 20px #c8cad0, -8px -8px 20px #ffffff; display: flex; align-items: center; justify-content: space-around; padding: 0 16px; }
+  .neu-nav .item { font-size: 11px; color: #7a7f8e; font-weight: 500; }
+  .neu-nav .item.active { color: #059669; font-weight: 700; }
+  .neu-nav .fab { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(145deg, #10B981, #059669); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 6px 6px 14px rgba(5,150,105,.4), -2px -2px 8px rgba(255,255,255,.6); }
+
+  /* footer choose */
+  .footer { max-width: 1920px; margin: 80px auto 0; padding: 40px; background: #1a1a1f; border-radius: 24px; text-align: center; }
+  .footer h3 { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+  .footer p { color: #a3a3aa; font-size: 15px; line-height: 1.6; max-width: 640px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="page-title">Calori Life — ארבעה כיוונים</h1>
+  <p class="page-sub">אותו מסך בית, אותו תוכן, ארבע אישיויות שונות לגמרי. תסתכל, תרגיש, ותבחר את זה שמדבר אליך — נמשיך איתו לכל 13 המסכים.</p>
+
+  <div class="grid">
+
+    <!-- ============ 1 BENTO ============ -->
+    <div class="card">
+      <span class="tag">Direction 01</span>
+      <h2>Bento Grid + צבע</h2>
+      <p class="desc">כרטיסיות גדולות מודולריות. פחות רשימה, יותר "דשבורד". הצבעים בולטים יותר אבל הם המוקד — לא קישוט. השראה: iOS 17 widgets, Apple Newsroom.</p>
+      <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+        <div class="status-bar" style="color:#1D1D1F;"><span>9:41</span><span>●●●●●</span></div>
+        <div class="bento">
+          <h1>בוקר טוב, <b>אוריה</b></h1>
+          <div class="sub1">יש לך 4 משימות להיום</div>
+          <div class="bento-grid">
+            <div class="b-tile green">
+              <div class="lbl">ארוחת בוקר</div>
+              <div class="big">480 קק"ל</div>
+              <div class="meta">חלבונים · 08:30</div>
+            </div>
+            <div class="b-tile purple">
+              <div>
+                <div class="num">32′</div>
+                <div class="lbl">ריצת ערב</div>
+              </div>
+              <div class="ring"></div>
+            </div>
+            <div class="b-tile white">
+              <div class="h">הרצאה הבאה</div>
+              <div class="t">אינפי 2 — תרגול</div>
+              <div class="s">בניין שרייבר · חדר 309</div>
+              <div class="time">10:00</div>
+            </div>
+            <div class="b-tile red">
+              <div class="countdown">8<small> ימים</small></div>
+              <div class="t">בחינה: מבני נתונים</div>
+            </div>
+            <div class="b-tile task">
+              <div class="check"></div>
+              <div class="t">להחזיר ספרים לספרייה</div>
+              <div class="due">היום</div>
+            </div>
+          </div>
+        </div>
+        <div class="bento-nav">
+          <div class="item active">בית</div>
+          <div class="item">יומן</div>
+          <div class="fab">+</div>
+          <div class="item">לימודים</div>
+          <div class="item">עוד</div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ============ 2 GLASS ============ -->
+    <div class="card">
+      <span class="tag">Direction 02</span>
+      <h2>Glassmorphism + Depth</h2>
+      <p class="desc">רקע צבעוני עם blur. שכבות שקופות. נראה פרימיום ועתידני. דומה ל-Vision Pro / macOS Sonoma / Apple Music.</p>
+      <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+        <div class="status-bar" style="color:#fff;"><span>9:41</span><span>●●●●●</span></div>
+        <div class="glass">
+          <h1>בוקר טוב, אוריה</h1>
+          <div class="sub1">יש לך 4 משימות להיום ☀</div>
+          <div class="g-quick">
+            <div class="g-pill">⏱ פומודורו</div>
+            <div class="g-pill">🥗 קלורי</div>
+            <div class="g-pill">✓ משימות</div>
+          </div>
+          <div class="g-section">היום שלי</div>
+          <div class="glass-card meal">
+            <div class="g-row">
+              <div class="time">08:30</div>
+              <div class="body">
+                <div class="t">ארוחת בוקר חלבונים</div>
+                <div class="s">מנה גבוהה בחלבון · 28 גרם</div>
+              </div>
+              <div class="pill" style="background:rgba(255,255,255,.2);">480 קק"ל</div>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div class="g-row">
+              <div class="time">10:00</div>
+              <div class="body">
+                <div class="t">אינפי 2 — תרגול</div>
+                <div class="s">בניין שרייבר · חדר 309</div>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card workout">
+            <div class="g-row">
+              <div class="time">15:00</div>
+              <div class="body">
+                <div class="t">ריצת ערב</div>
+                <div class="s">יעד: 5 ק"מ · קצב קל</div>
+              </div>
+              <div class="pill" style="background:rgba(255,255,255,.2);">32′</div>
+            </div>
+          </div>
+          <div class="glass-card exam">
+            <div class="g-row">
+              <div class="time">21:00</div>
+              <div class="body">
+                <div class="t">בחינה: מבני נתונים</div>
+                <div class="s">בעוד 8 ימים</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-nav">
+          <div class="item active">בית</div>
+          <div class="item">יומן</div>
+          <div class="fab">+</div>
+          <div class="item">לימודים</div>
+          <div class="item">עוד</div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ============ 3 BRUTALIST EDITORIAL ============ -->
+    <div class="card">
+      <span class="tag">Direction 03</span>
+      <h2>Brutalist Hebrew / Editorial</h2>
+      <p class="desc">טיפוגרפיה ענקית בעברית. שחור-לבן עם accent אחד. ניגודים חדים, קווים עבים. השראה: מגזין / Linear / Vercel. נראה רציני, מבוגר, שונה מכל אפליקציה אחרת.</p>
+      <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+        <div class="status-bar" style="color:#0a0a0a;"><span>9:41</span><span>●●●●●</span></div>
+        <div class="brut">
+          <div class="brut-head">
+            <div class="kicker">יום ד׳ · 3 ביוני 2026</div>
+            <h1>בוקר טוב,<br><em>אוריה</em>.</h1>
+            <div class="lede">4 משימות, 2 הרצאות, בחינה בעוד 8 ימים. בוא נתחיל.</div>
+          </div>
+          <div class="brut-section">
+            <div class="label"><div class="l">היום שלי</div><div class="n">06 פריטים</div></div>
+
+            <div class="brut-item meal">
+              <div class="time">08:30</div>
+              <div class="body"><div class="t">ארוחת בוקר חלבונים</div><div class="s">480 קק"ל · 28 גרם חלבון</div></div>
+              <div class="tag">ארוחה</div>
+            </div>
+            <div class="brut-item">
+              <div class="time">10:00</div>
+              <div class="body"><div class="t">אינפי 2 — תרגול</div><div class="s">בניין שרייבר · חדר 309</div></div>
+              <div class="tag">הרצאה</div>
+            </div>
+            <div class="brut-item">
+              <div class="time">13:00</div>
+              <div class="body"><div class="t">להחזיר ספרים</div><div class="s">ספריית סוראסקי · דדליין היום</div></div>
+              <div class="tag">משימה</div>
+            </div>
+            <div class="brut-item workout">
+              <div class="time">15:00</div>
+              <div class="body"><div class="t">ריצת ערב</div><div class="s">5 ק"מ · קצב קל · 32 דקות</div></div>
+              <div class="tag">אימון</div>
+            </div>
+            <div class="brut-item exam">
+              <div class="time">⚠</div>
+              <div class="body"><div class="t">בחינה: מבני נתונים</div><div class="s">בעוד 8 ימים · להתחיל לחזור</div></div>
+              <div class="tag">בחינה</div>
+            </div>
+          </div>
+        </div>
+        <div class="brut-nav">
+          <div class="item active">בית</div>
+          <div class="item">יומן</div>
+          <div class="fab">+</div>
+          <div class="item">לימודים</div>
+          <div class="item">עוד</div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ============ 4 NEUMORPHIC LIVING ============ -->
+    <div class="card">
+      <span class="tag">Direction 04</span>
+      <h2>Soft Neumorphism + Live</h2>
+      <p class="desc">כפתורים שנראים "נדחפים החוצה" מהרקע — soft shadows. עיגולים אורגניים, מד-זמן חי שמתעדכן. רך, חי, מודרני. השראה: אפליקציות wellness, Calm, Headspace.</p>
+      <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+        <div class="status-bar" style="color:#2a2d3a;"><span>9:41</span><span>●●●●●</span></div>
+        <div class="neu">
+          <h1>בוקר טוב, אוריה</h1>
+          <div class="sub1">היום שלך כבר התחיל — קדימה ☀</div>
+
+          <div class="neu-hero">
+            <div class="topline">
+              <div class="lbl">סיכום היום</div>
+              <div class="heart">♥</div>
+            </div>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#dde0e6" stroke-width="10"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#g)" stroke-width="10" stroke-dasharray="180 264" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#059669"/></linearGradient></defs>
+              </svg>
+              <div>
+                <div class="ring-text">68%</div>
+                <div class="ring-sub">3 מתוך 6 הושלמו</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="neu-quick">
+            <div class="neu-pill">⏱ פוקוס</div>
+            <div class="neu-pill">🥗 קלורי</div>
+            <div class="neu-pill">✓ משימות</div>
+          </div>
+
+          <div class="neu-section">הבא בתור</div>
+
+          <div class="neu-card meal">
+            <div class="icon-wrap">🍳</div>
+            <div class="body">
+              <div class="t">ארוחת בוקר חלבונים</div>
+              <div class="s">480 קק"ל · 28 גרם חלבון</div>
+            </div>
+            <div class="time">08:30</div>
+          </div>
+          <div class="neu-card study">
+            <div class="icon-wrap">📐</div>
+            <div class="body">
+              <div class="t">אינפי 2 — תרגול</div>
+              <div class="s">בניין שרייבר · חדר 309</div>
+            </div>
+            <div class="time">10:00</div>
+          </div>
+          <div class="neu-card workout">
+            <div class="icon-wrap">🏃</div>
+            <div class="body">
+              <div class="t">ריצת ערב</div>
+              <div class="s">יעד: 5 ק"מ · קצב קל</div>
+            </div>
+            <div class="time">15:00</div>
+          </div>
+          <div class="neu-card exam">
+            <div class="icon-wrap">⚠</div>
+            <div class="body">
+              <div class="t">בחינה: מבני נתונים</div>
+              <div class="s">בעוד 8 ימים</div>
+            </div>
+            <div class="time">21:00</div>
+          </div>
+        </div>
+        <div class="neu-nav">
+          <div class="item active">בית</div>
+          <div class="item">יומן</div>
+          <div class="fab">+</div>
+          <div class="item">לימודים</div>
+          <div class="item">עוד</div>
+        </div>
+      </div></div></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <h3>איזה דיבר אליך?</h3>
+    <p>תגיד לי את המספר (01–04) ואת מה אהבת/לא אהבת. אם אהבת חלקים מכמה — אפשר לעשות מיקס. נמשיך משם לבנות את ה-Design System ולהריץ את כל 13 המסכים על פי הכיוון שבחרת.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -104,8 +104,15 @@ export const useCourseFiles = (courseId, { browse = false } = {}) => {
     async (file) => {
       const path = typeof file === 'string' ? file : file?.path;
       if (path) {
+        // Open synchronously to bypass popup blocker
+        const newWindow = window.open('about:blank', '_blank', 'noopener');
         const url = await getSignedUrl(path);
-        if (url) window.open(url, '_blank', 'noopener');
+        if (url) {
+          if (newWindow) newWindow.location.href = url;
+          else window.location.href = url; // fallback if popup blocked entirely
+        } else {
+          if (newWindow) newWindow.close();
+        }
         return;
       }
       if (file?.url) window.open(file.url, '_blank', 'noopener');

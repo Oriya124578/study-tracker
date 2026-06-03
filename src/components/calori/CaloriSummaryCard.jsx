@@ -33,15 +33,13 @@ export const CaloriSummaryCard = () => {
     <button
       onClick={() => setActiveCategory('calori')}
       aria-label={t('caloriTitle')}
-      className="w-full text-start rounded-2xl border border-border bg-card p-4 shadow-sm hover:border-[#059669]/40 hover:shadow-md active:scale-[0.99] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]/40"
+      className="w-full text-start rounded-2xl border border-border bg-card p-4 hover:border-[#059669]/40 active:scale-[0.99] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]/40"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#D1FAE5] dark:bg-[#059669]/20 flex items-center justify-center">
-            <UtensilsCrossed className="w-4 h-4 text-[#059669]" />
-          </div>
+          <img src="/logo-calori.jpg" alt="" className="w-8 h-8 rounded-xl object-contain" />
           <span className="text-sm font-bold text-foreground">{t('caloriTitle')}</span>
         </div>
         <Chevron className="w-4 h-4 text-muted-foreground/50" />

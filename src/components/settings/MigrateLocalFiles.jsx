@@ -122,6 +122,8 @@ export const MigrateLocalFiles = () => {
 
         // Attach to store
         if (item.isGlobal) {
+          if (!newData.globalTasks) newData.globalTasks = {};
+          if (!newData.globalTasks[item.courseId]) newData.globalTasks[item.courseId] = {};
           if (!newData.globalTasks[item.courseId][item.category]) {
             newData.globalTasks[item.courseId][item.category] = [];
           }
@@ -133,6 +135,10 @@ export const MigrateLocalFiles = () => {
             files: [fileObj]
           });
         } else {
+          if (!newData.tasks) newData.tasks = {};
+          if (!newData.tasks[item.courseId]) newData.tasks[item.courseId] = {};
+          if (!newData.tasks[item.courseId][item.week]) newData.tasks[item.courseId][item.week] = [];
+          
           const weekTasks = newData.tasks[item.courseId][item.week];
           const tIndex = weekTasks.findIndex(t => t.id === item.taskId);
           if (tIndex !== -1) {

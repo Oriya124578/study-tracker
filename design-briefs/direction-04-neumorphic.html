@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calori Life — Direction 04: Neumorphism</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+  :root {
+    --neu-bg: #eef0f5;
+    --neu-light: #ffffff;
+    --neu-dark: #c8cad0;
+    --neu-shadow-out: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+    --neu-shadow-in:  inset 4px 4px 10px var(--neu-dark), inset -4px -4px 10px var(--neu-light);
+    --neu-shadow-out-sm: 3px 3px 8px var(--neu-dark), -3px -3px 8px var(--neu-light);
+    --neu-shadow-in-sm:  inset 3px 3px 8px var(--neu-dark), inset -3px -3px 8px var(--neu-light);
+    --green-1: #4ade80;
+    --green-2: #22c55e;
+    --green-3: #16a34a;
+    --blue-1: #60a5fa;
+    --blue-2: #3b82f6;
+    --purple-1: #c084fc;
+    --purple-2: #a855f7;
+    --red-1: #f87171;
+    --red-2: #ef4444;
+    --text-primary: #2d3142;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+  }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: #0f0f12;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-x: hidden;
+  }
+
+  /* ── Page wrapper ── */
+  .showcase-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  /* ── Phone frame ── */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    border-radius: 44px;
+    background: var(--neu-bg);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 3px #1a1a22,
+      0 0 0 6px #28282f,
+      0 30px 80px rgba(0,0,0,.55),
+      0 0 120px rgba(78,205,130,.06);
+  }
+
+  .phone-inner {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    scrollbar-width: none;
+  }
+  .phone-inner::-webkit-scrollbar { display: none; }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--neu-bg);
+  }
+  .status-bar .time { letter-spacing: .3px; }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .status-icons svg { width: 16px; height: 16px; fill: var(--text-primary); }
+
+  /* ── Notch ── */
+  .notch {
+    width: 126px;
+    height: 34px;
+    background: #1a1a22;
+    border-radius: 0 0 20px 20px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+  }
+  .notch::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #2a2a35;
+    border-radius: 50%;
+    position: absolute;
+    top: 8px;
+    right: 22px;
+  }
+
+  /* ── Content area ── */
+  .content { padding: 10px 22px 24px; }
+
+  /* ── Header ── */
+  .header { margin-bottom: 22px; }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-top: 4px;
+  }
+
+  /* ── Neumorphic base ── */
+  .neu-raised {
+    background: var(--neu-bg);
+    border-radius: 22px;
+    box-shadow: var(--neu-shadow-out);
+    transition: box-shadow .25s ease, transform .2s ease;
+  }
+  .neu-raised.pressed,
+  .neu-raised:active {
+    box-shadow: var(--neu-shadow-in);
+    transform: scale(.985);
+  }
+
+  .neu-raised-sm {
+    background: var(--neu-bg);
+    border-radius: 16px;
+    box-shadow: var(--neu-shadow-out-sm);
+    transition: box-shadow .25s ease, transform .2s ease;
+  }
+  .neu-raised-sm.pressed,
+  .neu-raised-sm:active {
+    box-shadow: var(--neu-shadow-in-sm);
+    transform: scale(.97);
+  }
+
+  /* ── Hero Card ── */
+  .hero-card {
+    padding: 24px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .hero-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .heart {
+    font-size: 20px;
+    display: inline-block;
+    animation: heartbeat 1.3s ease-in-out infinite;
+    color: #ef4444;
+  }
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14% { transform: scale(1.25); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.2); }
+    56% { transform: scale(1); }
+  }
+
+  .hero-body {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .ring-container {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .ring-container svg {
+    width: 110px;
+    height: 110px;
+    transform: rotate(-90deg);
+  }
+  .ring-bg {
+    fill: none;
+    stroke: #dde0e6;
+    stroke-width: 10;
+  }
+  .ring-progress {
+    fill: none;
+    stroke: url(#greenGrad);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
+  }
+  .ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+  }
+  .ring-percent {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+    transition: opacity .3s;
+  }
+  .ring-sub {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .hero-stats { flex: 1; }
+  .hero-big {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .hero-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  /* ── Quick Actions ── */
+  .quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .pill {
+    flex: 1;
+    padding: 14px 6px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+    border-radius: 16px;
+    background: var(--neu-bg);
+    box-shadow: var(--neu-shadow-out-sm);
+    transition: box-shadow .2s ease, transform .2s ease, color .2s;
+  }
+  .pill:hover {
+    box-shadow: var(--neu-shadow-in-sm);
+    transform: scale(.97);
+    color: var(--green-3);
+  }
+  .pill-icon {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    padding-right: 4px;
+  }
+
+  /* ── Cards list ── */
+  .cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ── Event Card ── */
+  .event-card {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .card-icon.green  { background: linear-gradient(135deg, var(--green-1), var(--green-3)); }
+  .card-icon.blue   { background: linear-gradient(135deg, var(--blue-1), var(--blue-2)); }
+  .card-icon.purple { background: linear-gradient(135deg, var(--purple-1), var(--purple-2)); }
+  .card-icon.red    { background: linear-gradient(135deg, var(--red-1), var(--red-2)); }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    min-width: 40px;
+    text-align: left;
+  }
+
+  /* ── Task card ── */
+  .task-card {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .task-checkbox {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: var(--neu-bg);
+    box-shadow: var(--neu-shadow-in-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .3s, box-shadow .3s;
+    cursor: pointer;
+  }
+  .task-checkbox.checked {
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    box-shadow: 2px 2px 6px var(--neu-dark), -2px -2px 6px var(--neu-light);
+  }
+  .task-checkbox svg {
+    width: 16px;
+    height: 16px;
+    stroke: #fff;
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transform: scale(.5);
+    transition: opacity .25s, transform .25s;
+  }
+  .task-checkbox.checked svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .task-card .card-body.completed .card-title {
+    text-decoration: line-through;
+    color: var(--text-tertiary);
+  }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    height: 64px;
+    border-radius: 32px;
+    background: var(--neu-bg);
+    box-shadow:
+      8px 8px 20px var(--neu-dark),
+      -8px -8px 20px var(--neu-light),
+      0 4px 20px rgba(0,0,0,.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 50;
+    padding: 0 8px;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    transition: color .2s;
+    padding: 6px 10px;
+    border-radius: 14px;
+  }
+  .nav-item.active {
+    color: var(--green-3);
+  }
+  .nav-item svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+    fill: none;
+    stroke: currentColor;
+  }
+
+  .fab {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 4px 16px rgba(34,197,94,.45),
+      4px 4px 12px var(--neu-dark),
+      -4px -4px 12px var(--neu-light);
+    cursor: pointer;
+    margin-top: -16px;
+    animation: fabBreath 3s ease-in-out infinite;
+    transition: transform .2s;
+  }
+  .fab:hover { transform: scale(1.08); }
+  .fab svg {
+    width: 28px;
+    height: 28px;
+    stroke: #fff;
+    stroke-width: 2.5;
+    fill: none;
+  }
+  @keyframes fabBreath {
+    0%,100% { box-shadow: 0 4px 16px rgba(34,197,94,.35), 4px 4px 12px var(--neu-dark), -4px -4px 12px var(--neu-light); }
+    50%     { box-shadow: 0 4px 28px rgba(34,197,94,.55), 4px 4px 12px var(--neu-dark), -4px -4px 12px var(--neu-light); }
+  }
+
+  /* ── Entrance Animations ── */
+  .anim-enter {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: slideUp .6s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Showcase footer ── */
+  .showcase-footer {
+    text-align: center;
+  }
+  .showcase-footer .label {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255,255,255,.7);
+    letter-spacing: .5px;
+  }
+  .showcase-footer .desc {
+    font-size: 13px;
+    color: rgba(255,255,255,.35);
+    margin-top: 6px;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+  .showcase-footer .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green-2);
+    margin-left: 8px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px rgba(34,197,94,.5);
+  }
+
+  /* ── Home indicator ── */
+  .home-indicator {
+    width: 134px;
+    height: 5px;
+    border-radius: 3px;
+    background: #c5c8ce;
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 440px) {
+    .phone-frame { width: 100vw; height: 100vh; border-radius: 0; }
+    body { padding: 0; }
+    .showcase-footer { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="showcase-wrapper">
+  <!-- Phone Frame -->
+  <div class="phone-frame">
+    <div class="notch"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="time" id="liveTime">09:45</span>
+      <div class="status-icons">
+        <!-- Wifi -->
+        <svg viewBox="0 0 24 24"><path d="M1.42 9.09C5.55 5 11.29 3 17.06 3.54c1.9.18 3.74.68 5.52 1.55M5 12.55C7.4 10.56 10.53 9.5 13.7 9.72c1.76.12 3.45.64 5 1.53M8.53 16.11c1.58-1.1 3.5-1.58 5.42-1.36 1.1.13 2.16.5 3.1 1.08M12 20h.01"/></svg>
+        <!-- Battery -->
+        <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" ry="2" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="3" y="8" width="12" height="8" rx="1" fill="currentColor" opacity=".7"/><line x1="23" y1="13" x2="23" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- Scrollable inner -->
+    <div class="phone-inner">
+      <div class="content">
+
+        <!-- Header -->
+        <div class="header anim-enter" style="animation-delay:.1s">
+          <h1>בוקר טוב, אוריה</h1>
+          <div class="subtitle">היום שלך כבר התחיל — קדימה ☀</div>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="hero-card neu-raised anim-enter" style="animation-delay:.2s" id="heroCard">
+          <div class="hero-top">
+            <span class="hero-label">סיכום היום</span>
+            <span class="heart">♥</span>
+          </div>
+          <div class="hero-body">
+            <div class="ring-container" id="ringContainer" title="לחצ/י לשינוי אחוזים">
+              <svg viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4ade80"/>
+                    <stop offset="100%" stop-color="#16a34a"/>
+                  </linearGradient>
+                </defs>
+                <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                <circle class="ring-progress" id="ringProgress" cx="50" cy="50" r="45"/>
+              </svg>
+              <div class="ring-text">
+                <div class="ring-percent" id="ringPercent">0%</div>
+                <div class="ring-sub">הושלם</div>
+              </div>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-big" id="heroFraction">3 <span style="font-size:18px;font-weight:500;color:var(--text-secondary)">מתוך</span> 6</div>
+              <div class="hero-desc" id="heroSubtitle">הושלמו</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Pills -->
+        <div class="quick-actions anim-enter" style="animation-delay:.35s">
+          <div class="pill" onclick="pressCard(this)">
+            <span class="pill-icon">⏱</span>
+            פוקוס
+          </div>
+          <div class="pill" onclick="pressCard(this)">
+            <span class="pill-icon">🥗</span>
+            קלורי
+          </div>
+          <div class="pill" onclick="pressCard(this)">
+            <span class="pill-icon">✓</span>
+            משימות
+          </div>
+        </div>
+
+        <!-- Section Label -->
+        <div class="section-label anim-enter" style="animation-delay:.45s">הבא בתור</div>
+
+        <!-- Cards -->
+        <div class="cards-list">
+
+          <!-- Meal Card -->
+          <div class="event-card neu-raised-sm anim-enter" style="animation-delay:.5s" onclick="pressCard(this)">
+            <div class="card-icon green">🍳</div>
+            <div class="card-body">
+              <div class="card-title">ארוחת בוקר חלבונים</div>
+              <div class="card-desc">480 קק"ל · 28 גרם חלבון</div>
+            </div>
+            <div class="card-time">08:30</div>
+          </div>
+
+          <!-- Study Card -->
+          <div class="event-card neu-raised-sm anim-enter" style="animation-delay:.6s" onclick="pressCard(this)">
+            <div class="card-icon blue">📐</div>
+            <div class="card-body">
+              <div class="card-title">אינפי 2 — תרגול</div>
+              <div class="card-desc">בניין שרייבר · חדר 309</div>
+            </div>
+            <div class="card-time">10:00</div>
+          </div>
+
+          <!-- Workout Card -->
+          <div class="event-card neu-raised-sm anim-enter" style="animation-delay:.7s" onclick="pressCard(this)">
+            <div class="card-icon purple">🏃</div>
+            <div class="card-body">
+              <div class="card-title">ריצת ערב</div>
+              <div class="card-desc">יעד: 5 ק"מ · קצב קל</div>
+            </div>
+            <div class="card-time">15:00</div>
+          </div>
+
+          <!-- Task Card -->
+          <div class="task-card neu-raised-sm anim-enter" style="animation-delay:.8s" id="taskCard">
+            <div class="task-checkbox" id="taskCheckbox" onclick="toggleTask(event)">
+              <svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+            </div>
+            <div class="card-body" id="taskBody">
+              <div class="card-title">לסיים תרגיל באלגברה</div>
+              <div class="card-desc">דדליין: מחר</div>
+            </div>
+            <div class="card-time">17:00</div>
+          </div>
+
+          <!-- Exam Card -->
+          <div class="event-card neu-raised-sm anim-enter" style="animation-delay:.9s" onclick="pressCard(this)">
+            <div class="card-icon red">⚠</div>
+            <div class="card-body">
+              <div class="card-title">בחינה: מבני נתונים</div>
+              <div class="card-desc">בעוד 8 ימים</div>
+            </div>
+            <div class="card-time">21:00</div>
+          </div>
+
+        </div><!-- /cards-list -->
+
+      </div><!-- /content -->
+    </div><!-- /phone-inner -->
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav anim-enter" style="animation-delay:1.1s">
+      <!-- בית -->
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+        בית
+      </div>
+      <!-- יומן -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        יומן
+      </div>
+      <!-- FAB -->
+      <div class="fab" onclick="pressCard(this)">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <!-- לימודים -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        לימודים
+      </div>
+      <!-- עוד -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        עוד
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div><!-- /phone-frame -->
+
+  <!-- Showcase Footer -->
+  <div class="showcase-footer">
+    <div class="label">Direction 04 — Soft Neumorphism + Live <span class="dot"></span></div>
+    <div class="desc">עיצוב רך בסגנון neumorphism — אלמנטים בולטים מהרקע עם צלליות כפולות, צורות אורגניות ותחושת שקט. השראה מאפליקציות wellness כמו Calm ו-Headspace.</div>
+  </div>
+</div>
+
+<script>
+// ── Live Clock ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('liveTime').textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Progress Ring ──
+const ringEl = document.getElementById('ringProgress');
+const ringPercentEl = document.getElementById('ringPercent');
+const heroFractionEl = document.getElementById('heroFraction');
+const circumference = 2 * Math.PI * 45; // ≈ 283
+
+const ringStates = [
+  { pct: 68, done: 3, total: 6 },
+  { pct: 83, done: 5, total: 6 },
+  { pct: 100, done: 6, total: 6 },
+  { pct: 33, done: 2, total: 6 },
+  { pct: 50, done: 3, total: 6 },
+];
+let currentRingState = 0;
+
+function setRing(pct, done, total, animate) {
+  const offset = circumference - (circumference * pct / 100);
+  ringEl.style.strokeDashoffset = offset;
+  // Animate counter
+  const startPct = parseInt(ringPercentEl.textContent) || 0;
+  if (animate) {
+    animateCounter(startPct, pct, 800, (v) => {
+      ringPercentEl.textContent = v + '%';
+    });
+  } else {
+    ringPercentEl.textContent = pct + '%';
+  }
+  heroFractionEl.innerHTML = done + ' <span style="font-size:18px;font-weight:500;color:var(--text-secondary)">מתוך</span> ' + total;
+}
+
+function animateCounter(from, to, duration, cb) {
+  const start = performance.now();
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(from + (to - from) * eased);
+    cb(current);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Initial animation
+setTimeout(() => {
+  setRing(68, 3, 6, true);
+}, 600);
+
+// Click ring to cycle
+document.getElementById('ringContainer').addEventListener('click', () => {
+  currentRingState = (currentRingState + 1) % ringStates.length;
+  const s = ringStates[currentRingState];
+  setRing(s.pct, s.done, s.total, true);
+});
+
+// ── Card Press Effect ──
+function pressCard(el) {
+  el.classList.add('pressed');
+  setTimeout(() => el.classList.remove('pressed'), 300);
+}
+
+// ── Task Checkbox ──
+let taskCompleted = false;
+function toggleTask(e) {
+  e.stopPropagation();
+  taskCompleted = !taskCompleted;
+  const cb = document.getElementById('taskCheckbox');
+  const body = document.getElementById('taskBody');
+  if (taskCompleted) {
+    cb.classList.add('checked');
+    body.classList.add('completed');
+  } else {
+    cb.classList.remove('checked');
+    body.classList.remove('completed');
+  }
+}
+
+// Also toggle when clicking anywhere on the task card
+document.getElementById('taskCard').addEventListener('click', function(e) {
+  if (e.target.closest('.task-checkbox')) return;
+  toggleTask(e);
+  pressCard(this);
+});
+</script>
+
+</body>
+</html>

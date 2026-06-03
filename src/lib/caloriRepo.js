@@ -34,6 +34,7 @@ const dailyHistoryDoc = (uid, date) =>
   doc(db, 'users', uid, 'daily_history', date);
 const mealsCol = (uid) => collection(db, 'users', uid, 'meals');
 const workoutsCol = (uid) => collection(db, 'users', uid, 'workouts');
+const coachSessionsCol = (uid) => collection(db, 'users', uid, 'coach_sessions');
 
 // --- Date helpers ----------------------------------------------------------
 
@@ -54,6 +55,17 @@ const endOfDay = (d) => {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
   return x;
+};
+
+// Parse a YYYY-MM-DD string as a local date (midnight), avoiding UTC timezone shifts.
+export const parseLocalDate = (dateStr) => {
+  if (dateStr instanceof Date) return dateStr;
+  if (!dateStr || typeof dateStr !== 'string') return new Date();
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+  return new Date(dateStr);
 };
 
 const snapshotToArray = (snap) =>
@@ -101,6 +113,17 @@ export const subscribeRecentDailyHistory = (uid, cb, days = 14) =>
     },
   );
 
+/** Subscribe to the user's main Calori profile doc (goals, weight, CP). */
+export const subscribeCaloriProfile = (uid, cb) =>
+  onSnapshot(
+    doc(db, 'users', uid),
+    (snap) => cb(snap.exists() ? snap.data() : null),
+    (err) => {
+      console.warn('[calori] profile subscribe failed:', err?.code);
+      cb(null);
+    },
+  );
+
 // --- Meals -----------------------------------------------------------------
 
 /**
@@ -110,7 +133,7 @@ export const subscribeRecentDailyHistory = (uid, cb, days = 14) =>
  * Deleted meals (is_deleted) are filtered out.
  */
 export const subscribeMealsForDay = (uid, date, cb) => {
-  const day = date instanceof Date ? date : new Date(date);
+  const day = parseLocalDate(date);
   const q = query(
     mealsCol(uid),
     where('timestamp', '>=', Timestamp.fromDate(startOfDay(day))),
@@ -155,7 +178,7 @@ export const subscribeMealsForDay = (uid, date, cb) => {
  *   { id, name, caloriesBurned, durationMinutes, exercisesCount, timestamp(ISO) }
  */
 export const subscribeWorkoutsForDay = (uid, date, cb) => {
-  const day = date instanceof Date ? date : new Date(date);
+  const day = parseLocalDate(date);
   const q = query(
     workoutsCol(uid),
     where('timestamp', '>=', Timestamp.fromDate(startOfDay(day))),
@@ -185,3 +208,38 @@ export const subscribeWorkoutsForDay = (uid, date, cb) => {
     },
   );
 };
+
+/**
+ * Subscribe to today's coach workout sessions (workout program forecast).
+ */
+export const subscribeCoachSessionsForDay = (uid, date, cb) => {
+  const day = parseLocalDate(date);
+  const q = query(
+    coachSessionsCol(uid),
+    where('scheduled_date', '>=', Timestamp.fromDate(startOfDay(day))),
+    where('scheduled_date', '<=', Timestamp.fromDate(endOfDay(day))),
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const sessions = snap.docs.map((d) => {
+        const x = d.data();
+        return {
+          id: d.id,
+          kind: 'coach_session',
+          type: x.type || 'rest',
+          title: x.title || 'אימון מתוכנן',
+          status: x.status || 'pending',
+          estimatedDurationMinutes: Number(x.estimated_duration_minutes) || 0,
+          scheduledDate: toIso(x.scheduled_date),
+        };
+      });
+      cb(sessions);
+    },
+    (err) => {
+      console.warn('[calori] coach_sessions subscribe failed:', err?.code);
+      cb([]);
+    },
+  );
+};
+
