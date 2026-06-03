@@ -1,5 +1,5 @@
 $sourcePath = "C:\Users\turhv\OneDrive\שולחן העבודה\Studies\year 1\semester 2\*"
-$destinationPath = "C:\Users\turhv\OneDrive\שולחן העבודה\Studies\year 1\study-tracker\public\files"
+$destinationPath = "C:\src\projects\Calorie Life\public\files"
 
 Write-Host "Syncing files from OneDrive to the website's public folder..." -ForegroundColor Cyan
 

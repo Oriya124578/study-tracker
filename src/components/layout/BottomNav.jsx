@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Calendar, BookOpen, Bot, Settings } from 'lucide-react';
+import { Home, Calendar, BookOpen, Bot, Settings, Target } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { key: 'commandCenter', icon: Bot, labelKey: 'navCommandCenter' },
   { key: 'overview', icon: Home, labelKey: 'navHome' },
   { key: 'courses', icon: BookOpen, labelKey: 'navStudies' },
+  { key: 'focus', icon: Target, labelKey: 'navFocus' },
 ];
 
 export const BottomNav = () => {
@@ -20,7 +21,7 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur-md border-t border-border z-50 px-2 sm:px-4 flex justify-around items-center h-16 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+    <nav className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur-md border-t border-border z-50 px-2 sm:px-4 flex justify-around items-center pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive =
@@ -45,8 +46,6 @@ export const BottomNav = () => {
           </button>
         );
       })}
-      {/* Safe-area spacer for iOS */}
-      <div className="absolute bottom-0 inset-x-0 h-[env(safe-area-inset-bottom)] bg-background/95" />
     </nav>
   );
 };

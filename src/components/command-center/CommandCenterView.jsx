@@ -571,17 +571,6 @@ export const CommandCenterView = () => {
         >
           {t('navCalendar', 'לוח שנה')}
         </button>
-        <button
-          onClick={() => setActiveSubTab('pomodoro')}
-          className={cn(
-            "flex-1 text-center py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer",
-            activeSubTab === 'pomodoro'
-              ? "bg-background text-foreground shadow"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {t('pomodoroTimerTitle', 'פומודורו')}
-        </button>
       </div>
 
       {/* Main Content: Conditional based on activeSubTab */}
@@ -904,13 +893,9 @@ export const CommandCenterView = () => {
           </div>
         </div>
       </div>
-      ) : activeSubTab === 'calendar' ? (
+      ) : activeSubTab === 'calendar' && (
         <div className="animate-in fade-in duration-200 bg-card border border-border p-4 rounded-3xl shadow-sm">
           <CalendarView />
-        </div>
-      ) : (
-        <div className="max-w-xl mx-auto py-4 animate-in fade-in duration-200">
-          <PomodoroTimer inline={true} />
         </div>
       )}
 

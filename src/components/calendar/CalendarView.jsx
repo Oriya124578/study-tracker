@@ -29,6 +29,14 @@ import {
   MapPin,
   GraduationCap,
   Plus,
+  Menu,
+  Bell,
+  LayoutList,
+  Moon,
+  List as ListIcon,
+  LayoutGrid,
+  CalendarDays,
+  Columns
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -54,6 +62,7 @@ export const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
 
   // ─── Aggregate all items into a flat calendar-item list ────────────
 
@@ -214,22 +223,29 @@ export const CalendarView = () => {
                 >
                   {format(day, 'd')}
                 </span>
-                <div className="flex flex-wrap gap-[2px] justify-center w-full">
+                <div className="flex flex-col gap-[2px] w-full px-0.5 overflow-hidden">
                   {dayItems.slice(0, 3).map((item) => (
                     <div
                       key={item.id}
                       className={cn(
-                        'w-1.5 h-1.5 rounded-full',
+                        'text-[9px] md:text-[11px] leading-tight px-1 py-0.5 rounded-[3px] truncate w-full text-right font-medium',
                         item.kind === 'exam'
-                          ? 'bg-destructive'
+                          ? 'bg-destructive text-destructive-foreground'
                           : item.kind === 'event'
-                          ? 'bg-primary'
+                          ? 'bg-primary text-primary-foreground'
                           : item.kind === 'task'
-                          ? 'bg-amber-500'
-                          : 'bg-purple-500',
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-purple-500 text-white',
                       )}
-                    />
+                    >
+                      {item.title}
+                    </div>
                   ))}
+                  {dayItems.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5 font-medium text-center">
+                      +{dayItems.length - 3}
+                    </div>
+                  )}
                 </div>
               </button>
             );
@@ -334,32 +350,79 @@ export const CalendarView = () => {
 
   return (
     <div className="px-4 py-5 sm:px-6 max-w-3xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5">
-      {/* View mode toggle */}
-      <div className="flex bg-muted rounded-xl p-1 gap-0.5 overflow-x-auto">
-        {VIEW_MODES.map((mode) => (
-          <button
-            key={mode}
-            className={cn(
-              'flex-1 text-center text-xs font-semibold py-2 rounded-lg transition-all whitespace-nowrap px-2',
-              viewMode === mode
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-            onClick={() => setViewMode(mode)}
-          >
-            {t(
-              mode === 'day'
-                ? 'viewDay'
-                : mode === '3days'
-                ? 'viewThreeDays'
-                : mode === 'week'
-                ? 'viewWeek'
-                : mode === 'month'
-                ? 'viewMonth'
-                : 'viewList',
-            )}
+      {/* Custom Top Header matching requested design */}
+      <div className="flex flex-col gap-4 mb-2">
+        <div className="flex items-center justify-between">
+          {/* Menu Button (Placeholder for Layout Menu) */}
+          <button className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors">
+            <Menu className="w-5 h-5" />
           </button>
-        ))}
+          
+          {/* Title and Weather/Location */}
+          <div className="text-center flex flex-col items-center">
+            <h1 className="text-xl font-bold tracking-tight">יומן</h1>
+            <div className="flex items-center justify-center gap-1.5 text-[13px] text-muted-foreground mt-0.5">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>כפר הרא"ה</span>
+              <span className="mx-0.5">19°C - 27°C</span>
+              <Moon className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          
+          {/* Actions: Bell and View Selector */}
+          <div className="flex items-center gap-2 relative">
+            <button className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors">
+              <Bell className="w-5 h-5" />
+            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
+                className={cn(
+                  "p-2.5 bg-background border shadow-sm rounded-full transition-colors",
+                  isViewMenuOpen ? "border-primary bg-primary/5" : "border-border/50 hover:bg-muted"
+                )}
+              >
+                <LayoutList className="w-5 h-5" />
+              </button>
+              
+              {/* View Mode Dropdown */}
+              {isViewMenuOpen && (
+                <div className="absolute top-full left-0 mt-2 w-40 bg-background border border-border shadow-xl rounded-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="text-[11px] font-semibold text-muted-foreground px-3 py-2 uppercase tracking-wider">מצב תצוגה:</div>
+                  <div className="flex flex-col gap-0.5">
+                    {[
+                      { id: 'list', label: 'רשימה', icon: ListIcon },
+                      { id: 'day', label: 'יום', icon: Columns },
+                      { id: 'month', label: 'חודש', icon: LayoutGrid },
+                      { id: 'week', label: 'שבוע', icon: CalendarDays },
+                      { id: '3days', label: '3 ימים', icon: Columns }
+                    ].map((mode) => {
+                      const Icon = mode.icon;
+                      return (
+                        <button
+                          key={mode.id}
+                          onClick={() => {
+                            setViewMode(mode.id);
+                            setIsViewMenuOpen(false);
+                          }}
+                          className={cn(
+                            "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-right",
+                            viewMode === mode.id 
+                              ? "bg-primary/10 text-primary" 
+                              : "hover:bg-muted text-foreground"
+                          )}
+                        >
+                          <span>{mode.label}</span>
+                          <Icon className="w-4 h-4 opacity-70" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation header */}

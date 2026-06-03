@@ -344,16 +344,6 @@ export const SmartDashboard = () => {
                 <img src="/logo-calori.jpg" alt="" className="w-8 h-8 rounded-xl object-contain" />
                 <span className="text-sm font-bold text-foreground">{t('nutritionAndFitnessToday')}</span>
               </div>
-              <a
-                href="https://calori1300.web.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-[11px] text-[#059669] hover:underline font-bold flex items-center gap-1.5 bg-[#D1FAE5]/65 dark:bg-[#059669]/15 px-2.5 py-1 rounded-full border border-[#059669]/15 transition-colors duration-200"
-              >
-                <span>{t('openCaloriView')}</span>
-                <ExternalLink className="w-3 h-3 shrink-0" />
-              </a>
             </div>
 
             {/* Calories and Weight details */}

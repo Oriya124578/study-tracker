@@ -6,7 +6,7 @@ import { useTranslation } from './hooks/useTranslation';
 import { Layout } from './components/layout/Layout';
 import { AuthView } from './components/auth/AuthView';
 import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
-import { BookOpen } from 'lucide-react';
+import { BrandedLoadingScreen } from './components/system/BrandedLoadingScreen';
 import './index.css';
 
 function App() {
@@ -58,14 +58,7 @@ function App() {
   // --- Render ---------------------------------------------------------------
 
   if (loadingAuth) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <BookOpen className="w-12 h-12 text-primary" />
-          <p className="text-muted-foreground font-medium">{t('loading')}</p>
-        </div>
-      </div>
-    );
+    return <BrandedLoadingScreen />;
   }
 
   if (!user) {
@@ -74,14 +67,7 @@ function App() {
 
   // Logged in but the first Firestore snapshot hasn't arrived yet.
   if (!dataLoaded) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <BookOpen className="w-12 h-12 text-primary animate-bounce" />
-          <p className="text-muted-foreground font-medium">{t('loadingEnv')}</p>
-        </div>
-      </div>
-    );
+    return <BrandedLoadingScreen />;
   }
 
   if (!hasCompletedOnboarding) {

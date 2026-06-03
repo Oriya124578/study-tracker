@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   ChevronLeft, ChevronRight, UtensilsCrossed, Dumbbell, Flame,
-  Clock, Award, Beef, Wheat, Droplet,
+  Clock, Award, Beef, Wheat, Droplet, ExternalLink
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -170,13 +170,24 @@ export const CaloriView = () => {
       {/* ── Daily summary card ── */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-bold text-foreground">{t('caloriDaySummary')}</span>
-          {nutritionScore != null && (
-            <span className="flex items-center gap-1 text-xs font-bold text-[#059669] bg-[#D1FAE5] dark:bg-[#059669]/20 px-2 py-1 rounded-full">
-              <Award className="w-3.5 h-3.5" />
-              {nutritionScore}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground">{t('caloriDaySummary')}</span>
+            {nutritionScore != null && (
+              <span className="flex items-center gap-1 text-xs font-bold text-[#059669] bg-[#D1FAE5] dark:bg-[#059669]/20 px-2 py-1 rounded-full">
+                <Award className="w-3.5 h-3.5" />
+                {nutritionScore}
+              </span>
+            )}
+          </div>
+          <a
+            href="https://calori1300.web.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-[#059669] hover:underline font-bold flex items-center gap-1.5 bg-[#D1FAE5]/65 dark:bg-[#059669]/15 px-2.5 py-1 rounded-full border border-[#059669]/15 transition-colors duration-200"
+          >
+            <span>{t('openCaloriView')}</span>
+            <ExternalLink className="w-3 h-3 shrink-0" />
+          </a>
         </div>
 
         {/* Big calories number */}

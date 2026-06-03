@@ -1,7 +1,7 @@
 {
-  "name": "calori-life",
+  "name": "calorie-life",
   "private": true,
-  "version": "0.0.0",
+  "version": "6.3.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
