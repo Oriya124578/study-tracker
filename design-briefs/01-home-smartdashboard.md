@@ -47,7 +47,7 @@ Hebrew-speaking BSc year-1 student, iPhone heavy, juggling 5 courses + personal 
 - **Type:** clickable button (opens Calori tab). White card, rounded-3xl.
 - **Layout:** flex row, content on the left, ring on the right.
 - **Left content:**
-  - **Header**: small Calori logo image (`<img src="/logo-calori.jpg" className="w-8 h-8 rounded-xl object-contain">`) + label `"תזונה וכושר היום"` (bold sm). Right side: `"פתח קלורי"` chip with external-link icon.
+  - **Header**: small Calori logo image (`<img src="/logo-calori.jpg" className="w-8 h-8 rounded-xl object-contain">`) + label `"תזונה וכושר היום"` (bold sm). **No external chip on the right** — the whole tile is a single button that opens the Calori tab.
   - **Stats row** (3 columns with thin dividers):
     - Calories eaten: `text-2xl font-black text-[#059669]` ("398") + `"קק"ל שנאכלו / 2000"` (10px muted).
     - Calories burned: `text-2xl font-black text-[#7C3AED]` ("+0") + `"קק"ל שנשרפו (0 דק)/300"`.
@@ -103,27 +103,27 @@ Hebrew-speaking BSc year-1 student, iPhone heavy, juggling 5 courses + personal 
 ### Top header (sticky)
 - Tiny rounded "settings avatar" button on the start side. If user has displayName → first-letter circle (primary background when settings tab active). Else `<User>` icon.
 - Page title in the middle, font-black xl, gradient text using `var(--gradient-brand)`.
-- On the end side: "calori" (ink) + " life " (green primary) wordmark + 9×9 gradient-bordered logo card (white inner, `/logo.svg`).
+- On the end side: **"calori life" wordmark only**, `text-2xl font-black tracking-tight`. "calori" = `text-foreground`, " life" = `text-primary font-medium` (lighter weight). **No logo card** — the gradient-bordered logo box was removed.
 
-### BottomNav (sticky, 3 items — see `06-more-hub.md`)
-The current BottomNav has **3 items only**, not 5:
+### BottomNav (sticky, 4 items — see `06-more-hub.md`)
+The current BottomNav has **4 items**:
 1. **המנהל האישי** (`<Bot>` icon) — opens Command Center / AI planner.
 2. **בית** (`<Home>` icon) — active by default.
 3. **לימודים** (`<BookOpen>` icon) — opens Studies hub.
+4. **פוקוס** (`<Target>` icon) — opens FocusHub (inline PomodoroTimer).
 
-Visual: fixed bottom, `bg-background/95 backdrop-blur-md border-t`, height 64px, items flex around. Active item = `text-primary`. Each: vertical stack of icon (20px) + 10px bold label.
+Visual: fixed bottom, `bg-background/95 backdrop-blur-md border-t`, items flex around with safe-area-inset-bottom padding. Active item = `text-primary`. Each: vertical stack of icon (20px) + 10px bold label.
 
-### Floating FAB (bottom-right, fan-out menu)
+### Floating FAB (bottom-right, vertical stack menu)
 - **Position:** `fixed right-6 bottom-24 sm:right-8 sm:bottom-28`. **NOT centered in BottomNav.**
-- **Resting state:** 56×56 circle, primary green background, white `<MoreHorizontal>` icon, `shadow-lg shadow-primary/30`.
-- **Open state:** icon rotates to `<X>`. A blurred backdrop appears. Five smaller (48×48) action buttons fan out in a quarter-circle to the upper-left:
-  1. Add item (green primary, `<Plus>`) → opens AddItemSheet.
-  2. Tasks (blue-500, `<CheckSquare>`).
-  3. Notes (amber-500, `<StickyNote>`).
-  4. Calori (`#059669`, calori logo image — NOT the lucide icon).
-  5. Pomodoro (purple-500, `<Timer>`).
-- Each button has a tiny floating tooltip above with its label.
-- Spring motion `stiffness: 550, damping: 20`, 15ms delay stagger between buttons.
+- **Resting state:** 56×56 circle, primary green background, white `<Plus>` icon (`strokeWidth=2.5`), `shadow-lg shadow-primary/30`.
+- **Open state:** Plus icon rotates 135° to form an X. A blurred backdrop appears (`backdrop-blur-md`). **Three smaller (48×48) action buttons stack vertically** above the FAB, each with a text label pill to the left:
+  1. Add item (`<Plus>` green primary) → opens AddItemSheet. Label: "הוסף פריט".
+  2. Tasks (`<CheckSquare>` blue-500) → opens TasksView. Label: "משימות".
+  3. Notes (`<StickyNote>` amber-500) → opens NotesView. Label: "פתקים".
+- Each label pill: `whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm`.
+- Motion: 150ms fade+slide-up per item, stagger 50ms.
+- **Pomodoro and Calori are NOT in this menu anymore.** Pomodoro moved to the Focus tab in BottomNav. Calori is accessed via the Nutrition tile on Home.
 
 ---
 
@@ -236,11 +236,13 @@ Layout, top → bottom:
 
 App chrome (already exists, do not redesign):
 - Top sticky header with avatar button (start), gradient page title (center),
-  "calori life" wordmark + gradient-bordered logo card (end).
-- Bottom sticky nav with EXACTLY 3 items: המנהל האישי (Bot) · בית (Home, active) ·
-  לימודים (BookOpen).
-- Floating FAB at fixed bottom-right (NOT centered in nav), opens a 5-button
-  fan-out menu: Add, Tasks, Notes, Calori (uses logo image), Pomodoro.
+  and a LARGE "calori life" wordmark on the end (text-2xl, no logo card).
+- Bottom sticky nav with EXACTLY 4 items: המנהל האישי (Bot) · בית (Home, active) ·
+  לימודים (BookOpen) · פוקוס (Target).
+- Floating FAB at fixed bottom-right (NOT centered in nav). Plus icon rotates 135°
+  on open. Reveals 3-button vertical menu stacked above with text labels on the
+  left: Add item, Tasks, Notes. (Pomodoro lives in the Focus tab now; Calori is
+  reached via the Nutrition tile on Home.)
 
 Mobile 390×844 primary. Quiet by default; color is information.
 Include states: default, loading skeleton, empty today, dark mode.

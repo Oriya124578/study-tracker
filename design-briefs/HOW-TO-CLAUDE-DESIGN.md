@@ -141,29 +141,49 @@ If you need to make a judgment call, choose the QUIETER option.
 | ארוחת קלורי כ-card לבן עם border ירוק | *"Calori meal items are GREEN FLOOD (#059669 background, white text). Not a bordered card."* |
 | משתמש ב-icon ספציפי (לוסייד) במקום הלוגו של calori | *"Use `<img src='/logo-calori.jpg' className='w-8 h-8 rounded-xl object-contain'>` instead of UtensilsCrossed."* |
 | מסך כהה בברירת מחדל | *"Default theme is light. Dark is an opt-in mode."* |
-| BottomNav עם 5 פריטים + FAB מרכזי | *"BottomNav has exactly 3 items: המנהל האישי (Bot), בית (Home), לימודים (BookOpen). The FAB is a separate floating button at fixed bottom-right, not centered in the nav."* |
+| BottomNav עם 5 פריטים + FAB מרכזי | *"BottomNav has exactly 4 items: המנהל האישי (Bot), בית (Home), לימודים (BookOpen), פוקוס (Target). The FAB is a separate floating button at fixed bottom-right, not centered in the nav."* |
 | Home כ-bento 6 עמודות | *"Home uses a 3-column responsive bento (lg). Tiles in order: greeting (span 3), nutrition+fitness (span 2), studies (span 1), schedule (span 2). See 01-home-smartdashboard.md."* |
-| FAB נפתח ישר ל-AddSheet | *"The FAB toggles a fan-out radial menu with 5 buttons (Add / Tasks / Notes / Calori / Pomodoro). Only the Add button opens AddItemSheet."* |
+| FAB נפתח ישר ל-AddSheet | *"The FAB icon is `<Plus>` that rotates 135° on open. It reveals a vertical stack of 3 buttons above (Add / Tasks / Notes), each with a text label pill on the left. Pomodoro and Calori are NOT in this menu."* |
+| FAB מציג Calori או Pomodoro כפתור | *"Removed. Pomodoro lives in the Focus tab (BottomNav, Target icon). Calori is reached only via the Nutrition tile on Home."* |
+| Header מציג ריבוע לוגו עם גרדיאנט | *"Header end shows ONLY the large 'calori life' wordmark (text-2xl font-black). No logo card. 'calori' is text-foreground, ' life' is text-primary with lighter font-medium weight."* |
 
 ---
 
 ## שלב 4 — סדר העבודה המומלץ
 
 ```
-01 — Home (SmartDashboard)      ← הכי חשוב, מסך הראייה
+01 — Home (SmartDashboard)      ← הכי חשוב, מסך הראייה (BottomNav: בית)
+14 — Focus Hub                   ← מסך ראשי חדש (BottomNav: פוקוס, עוטף Pomodoro)
+04 — Studies Hub                 ← מסך ראשי (BottomNav: לימודים)
+XX — Command Center              ← מסך ראשי (BottomNav: המנהל האישי, מתכנן AI)
 13 — Onboarding                  ← מה שמשתמש רואה ראשון
 12 — Auth (login/register)
-04 — Studies Hub                 ← נקודת התייחסות לכרטיסים
-07 — Tasks                       ← דפוס משימות
-08 — Notes                       ← דפוס פתקים צבעוניים
-03 — Add Item Sheet              ← bottom sheet עם 3 tabs
+07 — Tasks                       ← דפוס משימות (FAB → Tasks)
+08 — Notes                       ← דפוס פתקים צבעוניים (FAB → Notes)
+03 — Add Item Sheet              ← bottom sheet עם 3 tabs (FAB → Add)
 02 — Calendar (5 views)          ← הכי מורכב
 05 — Course Detail
-09 — Calori (read-only)
-10 — Pomodoro
-11 — Settings (incl. notifications)
-06 — More Hub
+09 — Calori (read-only)          ← נגיש דרך כרטיס בבית
+10 — Pomodoro Timer              ← רכיב פנימי של Focus Hub
+11 — Settings                    ← נגיש דרך avatar בheader
+06 — More Hub                    ← legacy (לא בשימוש בBottomNav יותר)
 ```
+
+**מיפוי ניווט אמיתי באפליקציה:**
+
+| איך הגעת? | פותח |
+|---|---|
+| BottomNav · בית | SmartDashboard (Home) |
+| BottomNav · המנהל האישי | CommandCenter (AI planner) |
+| BottomNav · לימודים | StudiesHub |
+| BottomNav · פוקוס | FocusHub (PomodoroTimer inline) |
+| Header avatar | Settings |
+| FAB → Add | AddItemSheet (3-tab bottom sheet) |
+| FAB → Tasks | TasksView |
+| FAB → Notes | NotesView |
+| Home: Nutrition tile | CaloriView |
+| Studies: course card | CourseView |
+| CommandCenter: calendar | CalendarView |
 
 הסדר הזה בנוי כך שהכרטיסים והכפתורים יציבים לפני שאתה ניגש למסכים שתלויים בהם.
 
@@ -178,11 +198,12 @@ If you need to make a judgment call, choose the QUIETER option.
 - [ ] טיפוגרפיה: Heebo? heading 28/22/18, body 16/14?
 - [ ] item-type colors נכונים לפי הטבלה ב-Master Brief?
 - [ ] FAB ירוק `#059669` במיקום **floating bottom-right** (לא במרכז ה-nav)?
-- [ ] FAB נפתח ל-**fan-menu של 5 כפתורים** (Add / Tasks / Notes / Calori / Pomodoro), לא ל-AddSheet ישירות?
-- [ ] BottomNav עם **3 פריטים בלבד** (המנהל האישי / בית / לימודים)?
+- [ ] FAB עם אייקון `<Plus>` שמסתובב 135° לפתיחה?
+- [ ] FAB נפתח ל-**vertical stack של 3 כפתורים** (Add / Tasks / Notes) עם תוויות טקסט בצד שמאל?
+- [ ] BottomNav עם **4 פריטים** (המנהל האישי / בית / לימודים / **פוקוס**)?
 - [ ] דף בית כ-bento **3 עמודות ב-lg** עם 4 tiles (greeting full-width, calori 2-col, studies 1-col, schedule 2-col), לא 6-עמודות כמו ב-mockup הישן?
-- [ ] לוגו calori life (4-ריבועים עם ספר) ב-header, לא book-icon מ-lucide?
-- [ ] טקסט "calori" ב-ink + "life" בירוק primary?
+- [ ] Header end side: **wordmark גדול בלבד** "calori life" (text-2xl), בלי ריבוע לוגו?
+- [ ] טקסט "calori" ב-ink + "life" בירוק primary עם font-medium (משקל קל יותר)?
 
 אם משהו לא תואם — תקן בפרומפט revision, אל תקבל "אופי שונה".
 

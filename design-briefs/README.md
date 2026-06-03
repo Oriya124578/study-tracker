@@ -21,6 +21,9 @@
 | `11-settings.md` | brief הגדרות | Prototype |
 | `12-auth.md` | brief התחברות | Prototype |
 | `13-onboarding.md` | brief אונבורדינג 4 שלבים | Prototype |
+| `14-focus.md` | brief מסך פוקוס (Pomodoro inline) — Tab רביעי ב-BottomNav | Prototype |
+| `HOW-TO-CLAUDE-DESIGN.md` | מדריך מקיף לעבודה עם Claude Design | reference |
+| `bento-design-system.html` | mockup ויזואלי של ה-design system + מסך הבית | reference |
 | `20-slide-deck.md` | brief מצגת 12 שקפים | Slide deck |
 | `21-templates-assets.md` | brief לאייקון, OG, צילומי מסך, באנרים | Template (one each) |
 

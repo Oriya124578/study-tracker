@@ -1088,43 +1088,61 @@
     <!-- Navigation -->
     <section id="navigation">
       <h2 class="section-title"><span class="section-number">06</span> ניווט ובקרים (Navigation)</h2>
-      <p class="section-desc">ניווט תחתון עם 3 פריטים בלבד + כפתור FAB צף בפינה הימנית-תחתונה (לא במרכז הnav). זהו המבנה הקיים באפליקציה.</p>
+      <p class="section-desc">ניווט תחתון עם <strong>4 פריטים</strong> + כפתור FAB צף בפינה הימנית-תחתונה (לא במרכז ה-nav). הFAB פותח תפריט אנכי של 3 כפתורים. זהו המבנה הקיים באפליקציה.</p>
 
-      <div class="ds-card" style="background: #F5F5F7; padding: 48px 32px; border-radius: 24px; position: relative; min-height: 220px;">
+      <div class="ds-card" style="background: #F5F5F7; padding: 48px 32px; border-radius: 24px; position: relative; min-height: 280px;">
 
-        <!-- Actual BottomNav: 3 items, no center FAB -->
+        <!-- Actual BottomNav: 4 items, no center FAB -->
         <div class="phone-nav" style="position: relative; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 64px; padding: 0 16px;">
           <div class="item">המנהל האישי</div>
           <div class="item active">בית</div>
           <div class="item">לימודים</div>
+          <div class="item">פוקוס</div>
         </div>
 
-        <!-- Floating FAB (separate, NOT in the nav) -->
-        <div style="position: absolute; right: 56px; bottom: 96px; width: 56px; height: 56px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; box-shadow: 0 8px 20px rgba(5,150,105,0.35); cursor: pointer;">⋯</div>
-        <div style="position: absolute; right: 32px; bottom: 60px; font-size: 11px; color: #6B7280; font-weight: 600;">FAB צף · פותח fan-menu של 5 כפתורים</div>
+        <!-- Floating FAB (separate, NOT in the nav) — closed state -->
+        <div style="position: absolute; right: 56px; bottom: 96px; width: 56px; height: 56px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 300; box-shadow: 0 8px 20px rgba(5,150,105,0.35); cursor: pointer;">+</div>
+        <div style="position: absolute; right: 30px; bottom: 60px; font-size: 11px; color: #6B7280; font-weight: 600;">FAB צף · פותח תפריט אנכי של 3 כפתורים</div>
+
+        <!-- FAB open state preview (mock) -->
+        <div style="position: absolute; right: 132px; bottom: 96px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">פתקים</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #F59E0B; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 4px 10px rgba(245,158,11,0.3);">📝</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">משימות</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #3B82F6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 4px 10px rgba(59,130,246,0.3);">✓</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">הוסף פריט</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(5,150,105,0.3);">+</div>
+          </div>
+        </div>
 
       </div>
 
       <div style="margin-top: 16px; padding: 16px 20px; border-radius: 16px; background: #fff; border: 1px solid #E5E7EB; font-size: 13px; color: #1D1D1F; line-height: 1.6;">
-        <strong style="color: #059669;">3 פריטים ב-BottomNav:</strong>
+        <strong style="color: #059669;">4 פריטים ב-BottomNav:</strong>
         <ol style="margin: 8px 24px 0; padding: 0;">
           <li><strong>המנהל האישי</strong> (אייקון Bot) — פותח Command Center / מתכנן AI</li>
           <li><strong>בית</strong> (אייקון Home) — פעיל כברירת מחדל</li>
           <li><strong>לימודים</strong> (אייקון BookOpen) — פותח Studies hub</li>
+          <li><strong>פוקוס</strong> (אייקון Target) — פותח FocusHub (PomodoroTimer inline)</li>
         </ol>
         <strong style="color: #7C3AED; margin-top: 12px; display: inline-block;">FAB צף (לא חלק מה-nav):</strong>
         <ul style="margin: 8px 24px 0; padding: 0;">
-          <li>מיקום: <code>fixed right-6 bottom-24</code> · עיגול 56×56 · רקע #059669 · אייקון MoreHorizontal לבן · shadow primary/30</li>
-          <li>במצב פתוח: האייקון מסתובב ל-X, רקע מטושטש מופיע, ו-5 כפתורים קטנים (48×48) נפרסים בקשת רבע לכיוון שמאל-מעלה:
+          <li>מיקום: <code>fixed right-6 bottom-24</code> · עיגול 56×56 · רקע #059669 · אייקון <code>&lt;Plus&gt;</code> לבן · shadow primary/30</li>
+          <li>במצב פתוח: האייקון <strong>מסתובב 135°</strong> ויוצר X, רקע מטושטש מופיע, ו-<strong>3 כפתורים קטנים (48×48) נערמים בעמודה אנכית מעל</strong> ה-FAB, כל אחד עם תווית טקסט בצד שמאל:
             <ol style="margin: 4px 0;">
-              <li>Add (ירוק primary, אייקון +) → פותח AddItemSheet</li>
-              <li>Tasks (כחול-500, CheckSquare)</li>
-              <li>Notes (אמבר-500, StickyNote)</li>
-              <li>Calori (#059669, תמונת logo-calori.jpg)</li>
-              <li>Pomodoro (סגול-500, Timer)</li>
+              <li><strong>Add</strong> (ירוק primary #059669, אייקון Plus) → פותח AddItemSheet</li>
+              <li><strong>Tasks</strong> (כחול blue-500, אייקון CheckSquare) → פותח TasksView</li>
+              <li><strong>Notes</strong> (אמבר amber-500, אייקון StickyNote) → פותח NotesView</li>
             </ol>
           </li>
-          <li>Motion: spring stiffness 550 damping 20, stagger 15ms בין כפתורים</li>
+          <li>תוויות: <code>whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm</code></li>
+          <li>Motion: fade+slide-up 150ms לכל כפתור, stagger 50ms</li>
+          <li><strong>שינויים מהמסמך הישן:</strong> Pomodoro עבר ל-Focus tab ב-BottomNav. Calori נגיש דרך כרטיס "תזונה וכושר היום" בבית.</li>
         </ul>
       </div>
     </section>
@@ -1144,18 +1162,13 @@
 
           <div class="phone-inner">
 
-            <!-- Top App Header -->
+            <!-- Top App Header (no logo card — only large wordmark) -->
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0 12px; flex-shrink: 0;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 28px; height: 28px; border-radius: 999px; background: #ECECEF; color: #4A4A4F; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">א</div>
                 <div style="font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #10B981 0%, #059669 35%, #2563EB 65%, #7C3AED 100%); -webkit-background-clip: text; background-clip: text; color: transparent;">בית</div>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="font-size: 13px; font-weight: 900; color: #1D1D1F;">calori<span style="color: #059669; font-weight: 500; margin-inline-start: 2px;">life</span></div>
-                <div style="width: 32px; height: 32px; border-radius: 10px; padding: 1.5px; background: linear-gradient(135deg, #10B981 0%, #059669 35%, #2563EB 65%, #7C3AED 100%); display: flex; align-items: center; justify-content: center;">
-                  <div style="width: 100%; height: 100%; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;">🟩</div>
-                </div>
-              </div>
+              <div style="font-size: 22px; font-weight: 900; color: #1D1D1F; letter-spacing: -0.02em; line-height: 1;">calori<span style="color: #059669; font-weight: 500; margin-inline-start: 3px;">life</span></div>
             </div>
 
             <div class="phone-content" style="display: flex; flex-direction: column; gap: 16px;">
@@ -1186,13 +1199,10 @@
               <div style="border-radius: 22px; border: 1px solid #E5E7EB; background: #fff; padding: 16px; min-height: 200px; display: flex; flex-direction: row; gap: 12px;">
                 <!-- Left content -->
                 <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <!-- Header -->
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                      <div style="width: 28px; height: 28px; border-radius: 10px; background: #D1FAE5; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥗</div>
-                      <span style="font-size: 12px; font-weight: 700; color: #1D1D1F;">תזונה וכושר היום</span>
-                    </div>
-                    <div style="font-size: 10px; font-weight: 700; color: #059669; background: rgba(209,250,229,0.65); border: 1px solid rgba(5,150,105,0.15); padding: 3px 8px; border-radius: 999px;">פתח קלורי ↗</div>
+                  <!-- Header (no external chip — tile itself is the button to Calori) -->
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <div style="width: 28px; height: 28px; border-radius: 10px; background: #D1FAE5; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥗</div>
+                    <span style="font-size: 12px; font-weight: 700; color: #1D1D1F;">תזונה וכושר היום</span>
                   </div>
                   <!-- Stats -->
                   <div style="display: flex; flex-direction: column; gap: 4px; margin: 10px 0;">
@@ -1272,15 +1282,16 @@
 
             </div>
 
-            <!-- Bottom Nav: 3 items only -->
-            <div class="phone-nav" style="padding: 0 32px 20px;">
+            <!-- Bottom Nav: 4 items -->
+            <div class="phone-nav" style="padding: 0 16px 20px;">
               <div class="item">המנהל האישי</div>
               <div class="item active">בית</div>
               <div class="item">לימודים</div>
+              <div class="item">פוקוס</div>
             </div>
 
-            <!-- Floating FAB (NOT in nav) -->
-            <div style="position: absolute; right: 18px; bottom: 96px; width: 48px; height: 48px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; box-shadow: 0 8px 20px rgba(5,150,105,0.4); cursor: pointer; z-index: 5;">⋯</div>
+            <!-- Floating FAB (NOT in nav) — Plus icon -->
+            <div style="position: absolute; right: 18px; bottom: 96px; width: 48px; height: 48px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 300; box-shadow: 0 8px 20px rgba(5,150,105,0.4); cursor: pointer; z-index: 5; line-height: 1;">+</div>
 
           </div>
         </div>
@@ -1289,15 +1300,20 @@
       <div style="max-width: 600px; margin: 20px auto 0; padding: 16px 20px; border-radius: 16px; background: #fff; border: 1px solid #E5E7EB; font-size: 13px; color: #1D1D1F; line-height: 1.7;">
         <strong style="color: #059669;">סדר המסך (מלמעלה למטה):</strong>
         <ol style="margin: 8px 24px 0; padding: 0;">
-          <li><strong>Header עליון</strong> — כפתור avatar (פותח הגדרות) + כותרת עמוד עם גרדיאנט brand + wordmark "calori life" + ריבוע לוגו עם גרדיאנט סביב</li>
+          <li><strong>Header עליון</strong> — כפתור avatar (פותח הגדרות) + כותרת עמוד עם גרדיאנט brand + <strong>wordmark "calori life" גדול בלבד</strong> (text-2xl, ללא ריבוע לוגו)</li>
           <li><strong>Greeting banner</strong> (רוחב מלא) — תאריך + ברכה לפי שעה + chip סטטוס (ספירת משימות / מבחן הקרוב / "הכל סגור"). שורת "next up" עם נקודה פועמת או "הלוז הושלם"</li>
-          <li><strong>תזונה וכושר היום</strong> (col-span 2 ב-md+) — לוגו calori, סטטיסטיקות (קלוריות, משקל), macros, וטבעת כפולה Apple-Watch (חוץ ירוק = שנאכל, פנים סגול = שנשרף)</li>
+          <li><strong>תזונה וכושר היום</strong> (col-span 2 ב-md+) — לוגו calori, סטטיסטיקות (קלוריות, משקל), macros, וטבעת כפולה Apple-Watch (חוץ ירוק = שנאכל, פנים סגול = שנשרף). <strong>כל הכרטיס לחיץ → CaloriView</strong> (אין יותר chip "פתח קלורי" נפרד)</li>
           <li><strong>לימודים</strong> (col-span 1) — אייקון GraduationCap כחול, מבחן הקרוב עם countdown</li>
           <li><strong>לוז היום שלי</strong> (col-span 2 ב-md+) — אייקון Bot, פריטים מתוזמנים בצבעים לפי סוג (meal=ירוק tint, workout=סגול tint, study=כחול, event=ניטרלי)</li>
           <li><strong>פעולות מהירות</strong> — 4 כפתורי pill (AI / Pomodoro / Add / Calori)</li>
           <li><strong>קישורי AI מהירים</strong> (אופציונלי, owner בלבד) — chips אופקיים</li>
           <li><strong>בקרוב</strong> — fallback רק כשהיום ריק</li>
         </ol>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #E5E7EB;">
+          <strong style="color: #2563EB;">BottomNav (4 פריטים):</strong> המנהל האישי · בית · לימודים · <strong>פוקוס</strong>
+          <br>
+          <strong style="color: #7C3AED;">FAB (פינה ימנית-תחתונה, אייקון +):</strong> פותח 3 כפתורים בעמודה עם תוויות — Add (ירוק), Tasks (כחול), Notes (אמבר). הPlus מסתובב 135° ליצירת X.
+        </div>
       </div>
     </section>
 
