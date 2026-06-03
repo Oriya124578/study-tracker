@@ -65,9 +65,18 @@ export const showLocalNotification = async (title, options = {}) => {
     ...options,
   };
   try {
-    const reg = (await registerNotificationSW()) ||
-      (await navigator.serviceWorker.getRegistration());
-    if (reg) {
+    await registerNotificationSW();
+    // The first registration may still be installing — wait for an ACTIVE
+    // worker before calling showNotification (otherwise it silently no-ops).
+    // Race against a timeout so we never hang if activation stalls.
+    let reg = null;
+    if ('serviceWorker' in navigator) {
+      reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]);
+    }
+    if (reg && reg.showNotification) {
       await reg.showNotification(title, opts);
       return true;
     }
@@ -77,6 +86,8 @@ export const showLocalNotification = async (title, options = {}) => {
     return true;
   } catch (err) {
     console.warn('[notifications] show failed:', err);
-    return false;
+    // Last-ditch fallback to a page-level notification.
+    try { const n = new Notification(title, opts); void n; return true; }
+    catch { return false; }
   }
 };

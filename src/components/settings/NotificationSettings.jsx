@@ -69,8 +69,12 @@ export const NotificationSettings = () => {
     const perm = await requestNotificationPermission();
     setPermission(perm);
     if (perm !== 'granted') { toast.error(t('notifPermissionDenied')); return; }
-    const ok = await showLocalNotification(t('notifTestTitle'), { body: t('notifTestBody') });
-    if (!ok) toast.error(t('notifPermissionDenied'));
+    const ok = await showLocalNotification(t('notifTestTitle'), {
+      body: t('notifTestBody'),
+      requireInteraction: true, // keep it on screen until dismissed (diagnostic)
+    });
+    if (ok) toast.success(t('notifTestSent'));
+    else toast.error(t('notifPermissionDenied'));
   };
 
   const active = s.enabled && permission === 'granted';
