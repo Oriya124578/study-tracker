@@ -47,8 +47,8 @@
 --color-ink-soft:  #6B7280;
 --color-hairline:  #E5E7EB;
 
-/* Semantic */
---color-info:    #3B82F6;
+/* Semantic — info-blue must exactly match the logo gradient blue stop */
+--color-info:    #2563EB;
 --color-warning: #F59E0B;
 --color-danger:  #EF4444;
 --color-success: #10B981;
