@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useTranslation } from '../../hooks/useTranslation';
 import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
+import { NotificationSettings } from './NotificationSettings';
 
 export const SettingsView = () => {
   const { data, resetSemester, addCourse, updateCourse, archiveCourse, language, setLanguage, theme, setTheme, setProfile, pomoSettings, setPomoSettings } = useStore();
@@ -276,7 +277,10 @@ export const SettingsView = () => {
         </CardContent>
       </Card>
 
-      {/* 3. Preferences Card */}
+      {/* 3. Notifications Card (Phase 5) */}
+      <NotificationSettings />
+
+      {/* 4. Preferences Card */}
       <Card className="shadow-sm border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

@@ -38,6 +38,7 @@ export const AddItemSheet = () => {
   const [priority, setPriority] = useState('low');
   const [courseId, setCourseId] = useState('');
   const [location, setLocation] = useState('');
+  const [reminder, setReminder] = useState('default'); // 'default' | 'none' | minutes(string)
   const [submitting, setSubmitting] = useState(false);
   const titleRef = useRef(null);
 
@@ -53,6 +54,7 @@ export const AddItemSheet = () => {
       setPriority('low');
       setCourseId(addSheetPrefill?.courseId || '');
       setLocation('');
+      setReminder('default');
       setSubmitting(false);
       setTimeout(() => titleRef.current?.focus(), 350);
     }
@@ -67,6 +69,10 @@ export const AddItemSheet = () => {
       toast.error(t('titleRequired'));
       return;
     }
+    // Convert reminder choice → reminderMinutes (null=default, -1=off, >=0 minutes).
+    const reminderMinutes =
+      reminder === 'default' ? null : reminder === 'none' ? -1 : Number(reminder);
+
     setSubmitting(true);
     try {
       if (activeTab === 'event') {
@@ -77,6 +83,7 @@ export const AddItemSheet = () => {
           allDay,
           location: location.trim(),
           courseId: courseId || null,
+          reminderMinutes,
         });
       } else if (activeTab === 'task') {
         await addPersonalTask({
@@ -84,6 +91,7 @@ export const AddItemSheet = () => {
           dueDate: dueDate || null,
           priority,
           courseId: courseId || null,
+          reminderMinutes,
         });
       } else {
         await addQuickNote({
@@ -356,6 +364,29 @@ export const AddItemSheet = () => {
                           : t('priorityLow')}
                       </span>
                     </div>
+                  </FormRow>
+                )}
+
+                {/* Reminder (event + task) */}
+                {activeTab !== 'note' && (
+                  <FormRow
+                    icon={<Bell className="w-[18px] h-[18px] text-primary" />}
+                    iconBg="bg-primary/10"
+                    label={t('reminderLabel')}
+                  >
+                    <select
+                      value={reminder}
+                      onChange={(e) => setReminder(e.target.value)}
+                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
+                    >
+                      <option value="default">{t('reminderDefault')}</option>
+                      <option value="none">{t('reminderNone')}</option>
+                      <option value="0">{t('reminderAtTime')}</option>
+                      <option value="10">{`10 ${t('caloriMinutes')}`}</option>
+                      <option value="30">{`30 ${t('caloriMinutes')}`}</option>
+                      <option value="60">{`60 ${t('caloriMinutes')}`}</option>
+                      <option value="1440">{t('reminderDayBefore')}</option>
+                    </select>
                   </FormRow>
                 )}
               </div>

@@ -44,6 +44,32 @@ import {
   subscribeRecentDailyHistory,
 } from '../lib/caloriRepo';
 
+// ---------- Notification settings (Phase 5) --------------------------------
+
+// Default notification preferences. `enabled` stays false until the user opts
+// in (which also triggers the browser permission prompt).
+export const DEFAULT_NOTIFICATION_SETTINGS = {
+  enabled: false,
+  dailyDigest: true,
+  dailyDigestTime: '08:00', // HH:mm — morning summary of today's schedule
+  exams: true,
+  examLeadDays: [7, 1], // remind N days before each exam (+ morning of)
+  tasks: true, // personal task due reminders
+  events: true, // event start reminders
+  eventLeadMinutes: 30, // default minutes-before for events without an override
+  weeklyTasks: false, // include weekly course tasks in the daily digest
+};
+
+const loadNotificationSettings = () => {
+  try {
+    const raw = localStorage.getItem('notificationSettings');
+    if (!raw) return { ...DEFAULT_NOTIFICATION_SETTINGS };
+    return { ...DEFAULT_NOTIFICATION_SETTINGS, ...JSON.parse(raw) };
+  } catch {
+    return { ...DEFAULT_NOTIFICATION_SETTINGS };
+  }
+};
+
 // ---------- Helpers --------------------------------------------------------
 
 // Build a stable id for a weekly seeded task (lecture/tutorial/homework).
@@ -170,6 +196,8 @@ export const useStore = create((set, get) => ({
   // Phase 3: calori bridge UI state
   caloriDate: dateKey(), // currently-viewed day for calori data ('yyyy-MM-dd')
   _caloriDayUnsubs: [], // per-day calori listeners (re-subscribed on date change)
+  // Phase 5: notification settings (persisted to localStorage; FCM-ready)
+  notificationSettings: loadNotificationSettings(),
 
   // ---------- Subscriptions lifecycle -----------------------------------
 
@@ -340,6 +368,14 @@ export const useStore = create((set, get) => ({
     })),
   setPomoSettings: (settings) => set({ pomoSettings: settings }),
   setShowPomoSettings: (show) => set({ showPomoSettings: show }),
+
+  // Phase 5: merge-update notification settings + persist to localStorage.
+  setNotificationSettings: (partial) =>
+    set((state) => {
+      const next = { ...state.notificationSettings, ...partial };
+      try { localStorage.setItem('notificationSettings', JSON.stringify(next)); } catch { /* ignore */ }
+      return { notificationSettings: next };
+    }),
 
   // Open/close the unified Add-Item bottom sheet.
   openAddSheet: (tab = 'task', prefill = null) =>
@@ -770,6 +806,9 @@ export const useStore = create((set, get) => ({
       color: input.color || null,
       source: input.source || 'manual',
       courseId: input.courseId || null,
+      // Phase 5: per-item reminder override. null = use smart default,
+      // -1 = no reminder, >=0 = minutes-before-start.
+      reminderMinutes: input.reminderMinutes ?? null,
       createdAt: now,
       updatedAt: now,
     };
@@ -821,7 +860,8 @@ export const useStore = create((set, get) => ({
       list: input.list || 'personal',
       notes: input.notes || '',
       courseId: input.courseId || null,
-      reminder: input.reminder || null,
+      // Phase 5: per-item reminder override (minutes before due; null=default, -1=off).
+      reminderMinutes: input.reminderMinutes ?? null,
       subtasks: [],
       createdAt: now,
       updatedAt: now,

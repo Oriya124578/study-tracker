@@ -11,6 +11,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from '../ui/Toaster';
 import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useNotificationScheduler } from '../../hooks/useNotificationScheduler';
 
 // Route-level views are lazy-loaded so heavy deps (recharts, etc.) only load when
 // the user navigates to a view that needs them. These are NAMED exports, so each
@@ -34,6 +35,8 @@ const ViewFallback = () => (
 export const Layout = () => {
   const { activeCategory, activeCourse } = useStore();
   const { t, language } = useTranslation();
+  // Phase 5: drive local reminders while the app is open.
+  useNotificationScheduler();
 
   const renderContent = () => {
     switch (activeCategory) {

@@ -127,8 +127,18 @@ Follow `c:\src\projects\calori_1300\DESIGN_SYSTEM.md` strictly:
 - Integrator (me) added `caloriPrevDay`/`caloriNextDay` keys, removed duplicate `semester` i18n key
 - Work committed on branch `phase-2-4-upgrade`; i18n symmetric at 321 keys/lang, 0 dups
 
-## Next: Phase 5
-- Phase 5: Notifications (FCM) — reminders for tasks/events/exams
+### Phase 5a ✅ (2026-06-03) — Local notifications
+- **Architecture (FCM-ready)**: local reminders via Web Notifications API + a minimal service worker. Phase 5b will add FCM push (getToken/onMessage + Cloud Function) on the same SW + permission surface.
+- `public/notification-sw.js` — SW handling `notificationclick` (focus/open app); install/activate skipWaiting+claim. FCM `push` handler goes here later.
+- `src/lib/notifications.js` — `isNotificationSupported`, `getNotificationPermission`, `registerNotificationSW` (memoized), `requestNotificationPermission`, `showLocalNotification` (SW registration → page-Notification fallback)
+- `src/hooks/useNotificationScheduler.js` — mounted in `Layout`. Runs every 60s while app open; fires reminders within a 5-min window; dedupes via `localStorage.notifFiredKeys`. Covers: exams (N days before per `examLeadDays` + morning-of), personal tasks (dueTime − lead, or 08:00 morning-of), events (start − lead, allDay→08:00), daily digest (configurable time, counts today's events/tasks/exams + optional weekly tasks)
+- `useStore`: `notificationSettings` (persisted to localStorage via `loadNotificationSettings`/`setNotificationSettings`); `DEFAULT_NOTIFICATION_SETTINGS` exported. Default `enabled:false` until opt-in.
+- Per-item override: `reminderMinutes` field on events + personalTasks (null=smart default, -1=off, ≥0=minutes-before). Selector added to `AddItemSheet` (event+task tabs).
+- `NotificationSettings.jsx` — card in SettingsView (3rd): permission flow + master toggle + per-category toggles (digest/exams/tasks/events/weekly) + lead-time selects + "send test" button + denied/unsupported banners
+- i18n symmetric at 358 keys/lang, 0 dups. Build clean (entry 108KB). New files lint-clean.
+
+## Next: Phase 5b (optional)
+- FCM push for true closed-app delivery: VAPID key, `getToken` → store in `cl_profile`/`cl_fcmTokens`, Cloud Function (scheduled) to send pushes. Blaze plan already enables Functions.
 
 ## Important Rules
 - NEVER touch calori's Firestore collections (meals, workouts, groups, recipes, etc.)
