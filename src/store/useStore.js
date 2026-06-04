@@ -416,7 +416,11 @@ export const useStore = create((set, get) => ({
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   setIsUploading: (status) => set({ isUploading: status }),
   setTheme: (theme) => {
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      console.warn('localStorage theme failed');
+    }
     document.documentElement.setAttribute('data-theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -426,7 +430,11 @@ export const useStore = create((set, get) => ({
     set({ theme });
   },
   setLanguage: (language) => {
-    localStorage.setItem('language', language);
+    try {
+      localStorage.setItem('language', language);
+    } catch (e) {
+      console.warn('localStorage language failed');
+    }
     set({ language });
   },
   setPomodoro: (pomoUpdater) =>
@@ -491,11 +499,6 @@ export const useStore = create((set, get) => ({
     const lang = language || 'he';
     const isOwner = uid === OWNER_UID;
 
-    // Persist profile + all courses. Let failures propagate so we DON'T flip
-    // hasCompletedOnboarding on a partial write (which would strand the user
-    // with no courses). The caller (OnboardingScreen) shows a toast on throw.
-    await fsSetProfile(uid, { ...profileData, hasCompletedOnboarding: true });
-
     for (const course of selectedCourses) {
       const notebookLmLink = isOwner ? (course.defaultNotebookLmLink || '') : '';
       const geminiLink = isOwner ? (course.defaultGeminiLink || '') : '';
@@ -519,6 +522,7 @@ export const useStore = create((set, get) => ({
       await batchSetCourseTasks(uid, tasksMap);
     }
 
+    await fsSetProfile(uid, { ...profileData, hasCompletedOnboarding: true });
     set({ hasCompletedOnboarding: true });
   },
 
@@ -830,15 +834,6 @@ export const useStore = create((set, get) => ({
     if (!uid) return;
     const lang = language || 'he';
 
-    // Reseed: keep courses, wipe their notes, wipe all course tasks, recreate
-    // the weekly seeds.
-    for (const course of data.courses) {
-      await fsSetCourse(uid, course.id, { notes: {} }).catch(console.error);
-    }
-
-    // Delete all existing tasks + create new ones in one batch each course.
-    // (We can't easily delete-then-create atomically across courses; do it
-    // sequentially. Listener will reconcile mid-flight, that's fine.)
     const currentTasks = [];
     Object.entries(data.tasks).forEach(([cid, weeks]) => {
       Object.values(weeks).forEach((weekTasks) => {
@@ -850,12 +845,21 @@ export const useStore = create((set, get) => ({
         catTasks.forEach((t) => currentTasks.push(t.id));
       });
     });
-    for (const tid of currentTasks) {
-      await fsDeleteCourseTask(uid, tid).catch(console.error);
-    }
-    for (const course of data.courses) {
-      const tasksMap = buildInitialWeeklyTasksMap(course, lang);
-      await batchSetCourseTasks(uid, tasksMap).catch(console.error);
+
+    try {
+      for (const course of data.courses) {
+        await fsSetCourse(uid, course.id, { notes: {} });
+      }
+      for (const tid of currentTasks) {
+        await fsDeleteCourseTask(uid, tid);
+      }
+      for (const course of data.courses) {
+        const tasksMap = buildInitialWeeklyTasksMap(course, lang);
+        await batchSetCourseTasks(uid, tasksMap);
+      }
+    } catch (err) {
+      console.error('Failed to reset semester', err);
+      throw err;
     }
   },
 
@@ -891,22 +895,12 @@ export const useStore = create((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    // Optimistic insert.
-    set((state) => ({
-      data: { ...state.data, events: [...state.data.events, { id, ...event }] },
-    }));
     await fsSetEvent(uid, id, event).catch(console.error);
     return id;
   },
 
   updateEvent: (id, updates) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        events: state.data.events.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-      },
-    }));
     if (uid)
       fsSetEvent(uid, id, { ...updates, updatedAt: new Date().toISOString() }).catch(
         console.error,
@@ -915,9 +909,6 @@ export const useStore = create((set, get) => ({
 
   deleteEvent: (id) => {
     const { uid } = get();
-    set((state) => ({
-      data: { ...state.data, events: state.data.events.filter((e) => e.id !== id) },
-    }));
     if (uid) fsDeleteEvent(uid, id).catch(console.error);
   },
 
@@ -946,26 +937,12 @@ export const useStore = create((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: [...state.data.personalTasks, { id, ...task }],
-      },
-    }));
     await fsSetPersonalTask(uid, id, task).catch(console.error);
     return id;
   },
 
   updatePersonalTask: (id, updates) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) =>
-          t.id === id ? { ...t, ...updates } : t,
-        ),
-      },
-    }));
     if (uid)
       fsSetPersonalTask(uid, id, {
         ...updates,
@@ -974,32 +951,19 @@ export const useStore = create((set, get) => ({
   },
 
   togglePersonalTask: (id) => {
-    const { uid } = get();
-    let next = null;
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) => {
-          if (t.id !== id) return t;
-          next = {
-            done: !t.done,
-            doneAt: !t.done ? new Date().toISOString() : null,
-          };
-          return { ...t, ...next };
-        }),
-      },
-    }));
-    if (uid && next) fsSetPersonalTask(uid, id, next).catch(console.error);
+    const { uid, data } = get();
+    if (!uid) return;
+    const t = data.personalTasks.find((t) => t.id === id);
+    if (!t) return;
+    const next = {
+      done: !t.done,
+      doneAt: !t.done ? new Date().toISOString() : null,
+    };
+    fsSetPersonalTask(uid, id, next).catch(console.error);
   },
 
   deletePersonalTask: (id) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.filter((t) => t.id !== id),
-      },
-    }));
     if (uid) fsDeletePersonalTask(uid, id).catch(console.error);
   },
 
@@ -1021,26 +985,12 @@ export const useStore = create((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    set((state) => ({
-      data: {
-        ...state.data,
-        quickNotes: [...state.data.quickNotes, { id, ...note }],
-      },
-    }));
     await fsSetNote(uid, id, note).catch(console.error);
     return id;
   },
 
   updateQuickNote: (id, updates) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        quickNotes: state.data.quickNotes.map((n) =>
-          n.id === id ? { ...n, ...updates } : n,
-        ),
-      },
-    }));
     if (uid)
       fsSetNote(uid, id, { ...updates, updatedAt: new Date().toISOString() }).catch(
         console.error,
@@ -1049,69 +999,39 @@ export const useStore = create((set, get) => ({
 
   deleteQuickNote: (id) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        quickNotes: state.data.quickNotes.filter((n) => n.id !== id),
-      },
-    }));
     if (uid) fsDeleteNote(uid, id).catch(console.error);
   },
 
   // ---------- Subtasks (inline array on personalTask doc) ---------------
 
   addSubtask: (taskId, title) => {
-    const { uid } = get();
+    const { uid, data } = get();
+    if (!uid) return;
+    const t = data.personalTasks.find((t) => t.id === taskId);
+    if (!t) return;
     const subtaskId = `sub-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
-    let newSubtasks = null;
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) => {
-          if (t.id !== taskId) return t;
-          newSubtasks = [...(t.subtasks || []), { id: subtaskId, title, done: false }];
-          return { ...t, subtasks: newSubtasks };
-        }),
-      },
-    }));
-    if (uid && newSubtasks)
-      fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
+    const newSubtasks = [...(t.subtasks || []), { id: subtaskId, title, done: false }];
+    fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
   },
 
   toggleSubtask: (taskId, subtaskId) => {
-    const { uid } = get();
-    let newSubtasks = null;
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) => {
-          if (t.id !== taskId) return t;
-          newSubtasks = (t.subtasks || []).map((s) =>
-            s.id === subtaskId ? { ...s, done: !s.done } : s,
-          );
-          return { ...t, subtasks: newSubtasks };
-        }),
-      },
-    }));
-    if (uid && newSubtasks)
-      fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
+    const { uid, data } = get();
+    if (!uid) return;
+    const t = data.personalTasks.find((t) => t.id === taskId);
+    if (!t) return;
+    const newSubtasks = (t.subtasks || []).map((s) =>
+      s.id === subtaskId ? { ...s, done: !s.done } : s,
+    );
+    fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
   },
 
   deleteSubtask: (taskId, subtaskId) => {
-    const { uid } = get();
-    let newSubtasks = null;
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) => {
-          if (t.id !== taskId) return t;
-          newSubtasks = (t.subtasks || []).filter((s) => s.id !== subtaskId);
-          return { ...t, subtasks: newSubtasks };
-        }),
-      },
-    }));
-    if (uid && newSubtasks)
-      fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
+    const { uid, data } = get();
+    if (!uid) return;
+    const t = data.personalTasks.find((t) => t.id === taskId);
+    if (!t) return;
+    const newSubtasks = (t.subtasks || []).filter((s) => s.id !== subtaskId);
+    fsSetPersonalTask(uid, taskId, { subtasks: newSubtasks }).catch(console.error);
   },
 
   // ---------- Task lists & Note categories actions ----------------------
@@ -1122,12 +1042,6 @@ export const useStore = create((set, get) => ({
     const id = newId(uid, 'taskList');
     const now = new Date().toISOString();
     const list = { name, createdAt: now };
-    set((state) => ({
-      data: {
-        ...state.data,
-        taskLists: [...state.data.taskLists, { id, ...list }],
-      },
-    }));
     await fsSetTaskList(uid, id, list).catch(console.error);
     return id;
   },
@@ -1135,12 +1049,6 @@ export const useStore = create((set, get) => ({
   updateTaskList: async (id, name) => {
     const { uid } = get();
     if (!uid) return;
-    set((state) => ({
-      data: {
-        ...state.data,
-        taskLists: state.data.taskLists.map((l) => (l.id === id ? { ...l, name } : l)),
-      },
-    }));
     await fsSetTaskList(uid, id, { name }).catch(console.error);
   },
 
@@ -1151,16 +1059,7 @@ export const useStore = create((set, get) => ({
       .filter((t) => t.list === id)
       .map((t) => t.id);
 
-    set((state) => ({
-      data: {
-        ...state.data,
-        taskLists: state.data.taskLists.filter((l) => l.id !== id),
-        personalTasks: state.data.personalTasks.map((t) =>
-          t.list === id ? { ...t, list: 'personal' } : t
-        ),
-      },
-    }));
-    await fsDeleteTaskListAndMigrateTasks(uid, id, taskIds, 'personal').catch(console.error);
+    await fsDeleteTaskListAndMigrateTasks(uid, id, taskIds, 'personal');
   },
 
   addNoteCategory: async (name) => {
@@ -1169,12 +1068,6 @@ export const useStore = create((set, get) => ({
     const id = newId(uid, 'noteCategory');
     const now = new Date().toISOString();
     const cat = { name, createdAt: now };
-    set((state) => ({
-      data: {
-        ...state.data,
-        noteCategories: [...state.data.noteCategories, { id, ...cat }],
-      },
-    }));
     await fsSetNoteCategory(uid, id, cat).catch(console.error);
     return id;
   },
@@ -1182,12 +1075,6 @@ export const useStore = create((set, get) => ({
   updateNoteCategory: async (id, name) => {
     const { uid } = get();
     if (!uid) return;
-    set((state) => ({
-      data: {
-        ...state.data,
-        noteCategories: state.data.noteCategories.map((c) => (c.id === id ? { ...c, name } : c)),
-      },
-    }));
     await fsSetNoteCategory(uid, id, { name }).catch(console.error);
   },
 
@@ -1198,34 +1085,16 @@ export const useStore = create((set, get) => ({
       .filter((n) => n.categoryId === id)
       .map((n) => n.id);
 
-    set((state) => ({
-      data: {
-        ...state.data,
-        noteCategories: state.data.noteCategories.filter((c) => c.id !== id),
-        quickNotes: state.data.quickNotes.map((n) =>
-          n.categoryId === id ? { ...n, categoryId: null } : n
-        ),
-      },
-    }));
-    await fsDeleteNoteCategoryAndMigrateNotes(uid, id, noteIds).catch(console.error);
+    await fsDeleteNoteCategoryAndMigrateNotes(uid, id, noteIds);
   },
 
   toggleStarPersonalTask: (id) => {
-    const { uid } = get();
-    let next = null;
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) => {
-          if (t.id !== id) return t;
-          next = {
-            starred: !t.starred,
-          };
-          return { ...t, ...next };
-        }),
-      },
-    }));
-    if (uid && next) fsSetPersonalTask(uid, id, next).catch(console.error);
+    const { uid, data } = get();
+    if (!uid) return;
+    const t = data.personalTasks.find((t) => t.id === id);
+    if (!t) return;
+    const next = { starred: !t.starred };
+    fsSetPersonalTask(uid, id, next).catch(console.error);
   },
 
   // --- AI Command Center schedule actions ---
@@ -1233,16 +1102,6 @@ export const useStore = create((set, get) => ({
 
   scheduleTask: (taskId, scheduledDate, scheduledTime, durationMinutes) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) =>
-          t.id === taskId
-            ? { ...t, scheduledDate, scheduledTime, scheduledDuration: durationMinutes }
-            : t
-        ),
-      },
-    }));
     if (uid) {
       fsSetPersonalTask(uid, taskId, {
         scheduledDate,
@@ -1255,16 +1114,6 @@ export const useStore = create((set, get) => ({
 
   unscheduleTask: (taskId) => {
     const { uid } = get();
-    set((state) => ({
-      data: {
-        ...state.data,
-        personalTasks: state.data.personalTasks.map((t) =>
-          t.id === taskId
-            ? { ...t, scheduledDate: null, scheduledTime: null, scheduledDuration: null }
-            : t
-        ),
-      },
-    }));
     if (uid) {
       fsSetPersonalTask(uid, taskId, {
         scheduledDate: null,
@@ -1327,26 +1176,31 @@ export const useStore = create((set, get) => ({
     const { uid, data } = get();
     if (!uid) return;
 
-    const tasksToUnschedule = data.personalTasks.filter((t) => t.scheduledDate === dateStr);
-    for (const t of tasksToUnschedule) {
-      await fsSetPersonalTask(uid, t.id, {
-        scheduledDate: null,
-        scheduledTime: null,
-        scheduledDuration: null,
-        updatedAt: new Date().toISOString(),
-      }).catch(console.error);
-    }
+    try {
+      const tasksToUnschedule = data.personalTasks.filter((t) => t.scheduledDate === dateStr);
+      for (const t of tasksToUnschedule) {
+        await fsSetPersonalTask(uid, t.id, {
+          scheduledDate: null,
+          scheduledTime: null,
+          scheduledDuration: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
 
-    const eventsToDelete = data.events.filter(
-      (e) => e.start && e.start.startsWith(dateStr) && e.isProposed === true
-    );
-    for (const ev of eventsToDelete) {
-      await fsDeleteEvent(uid, ev.id).catch(console.error);
-    }
+      const eventsToDelete = data.events.filter(
+        (e) => e.start && e.start.startsWith(dateStr) && e.isProposed === true
+      );
+      for (const ev of eventsToDelete) {
+        await fsDeleteEvent(uid, ev.id);
+      }
 
-    get().setProfile({
-      coachNotes: { [dateStr]: null },
-    });
+      get().setProfile({
+        coachNotes: { [dateStr]: null },
+      });
+    } catch (err) {
+      console.error('Failed to clear day schedule', err);
+      throw err;
+    }
   },
 
   // ---------- Focus Tracking Actions --------------------------------------
@@ -1397,22 +1251,6 @@ export const useStore = create((set, get) => ({
       const task = data.personalTasks.find((t) => t.id === taskId);
       const nextDuration = (task?.actualDuration || 0) + elapsedMinutes;
 
-      set((state) => ({
-        data: {
-          ...state.data,
-          personalTasks: state.data.personalTasks.map((t) => {
-            if (t.id !== taskId) return t;
-            return {
-              ...t,
-              done: isCompleted,
-              doneAt: isCompleted ? new Date().toISOString() : null,
-              status: status,
-              actualDuration: nextDuration,
-            };
-          }),
-        },
-      }));
-
       await fsSetPersonalTask(uid, taskId, {
         done: isCompleted,
         doneAt: isCompleted ? new Date().toISOString() : null,
@@ -1441,22 +1279,6 @@ export const useStore = create((set, get) => ({
 
     if (blockId.startsWith('task-')) {
       const taskId = blockId.replace('task-', '');
-
-      set((state) => ({
-        data: {
-          ...state.data,
-          personalTasks: state.data.personalTasks.map((t) => {
-            if (t.id !== taskId) return t;
-            return {
-              ...t,
-              scheduledDate: null,
-              scheduledTime: null,
-              scheduledDuration: null,
-              status: 'didnt_start',
-            };
-          }),
-        },
-      }));
 
       await fsSetPersonalTask(uid, taskId, {
         scheduledDate: null,

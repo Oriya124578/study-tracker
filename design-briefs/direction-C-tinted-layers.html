@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction C — Tinted Layers</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #DCDCDC;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    min-height: 100vh; font-family: 'Heebo', sans-serif;
+    padding: 40px 20px; gap: 24px;
+  }
+
+  .direction-label { color: #333; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; text-align: center; }
+  .direction-title { color: #111; font-size: 22px; font-weight: 800; text-align: center; margin-top: 4px; }
+  .direction-mood { color: rgba(0,0,0,0.4); font-size: 13px; text-align: center; margin-top: 4px; }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 48px;
+    overflow: hidden; position: relative;
+    background: #F0F0F5;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+
+  .notch {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 34px; background: #000; border-radius: 20px; z-index: 100;
+  }
+
+  .screen {
+    position: absolute; inset: 0;
+    overflow-y: auto; scrollbar-width: none; padding-bottom: 80px;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    padding: 54px 22px 14px;
+    background: rgba(240,240,245,0.92); backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+  }
+  .header-title { font-size: 18px; font-weight: 900; color: #1D1D1F; }
+  .wordmark { font-size: 17px; font-weight: 900; color: #1D1D1F; letter-spacing: -0.02em; }
+  .wordmark span { color: #059669; font-weight: 500; }
+
+  .content { padding: 14px 14px 0; display: flex; flex-direction: column; gap: 10px; }
+
+  /* === GREETING === */
+  .greeting-card {
+    border-radius: 26px; padding: 22px 20px;
+    background: linear-gradient(145deg, #fff 60%, #ECFDF5 100%);
+    border: 1px solid rgba(5,150,105,0.10);
+    box-shadow: 0 2px 16px rgba(5,150,105,0.07), 0 1px 3px rgba(0,0,0,0.05);
+    position: relative; overflow: hidden;
+  }
+  /* Decorative corner accent */
+  .greeting-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #10B981, #059669);
+    border-radius: 0 4px 4px 0;
+  }
+  .g-top { display: flex; justify-content: space-between; align-items: flex-start; padding-right: 10px; }
+  .g-date { font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.35); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+  .g-title { font-size: 28px; font-weight: 900; color: #1D1D1F; line-height: 1.1; letter-spacing: -0.03em; }
+  .g-sub { font-weight: 600; color: #059669; }
+  .status-pill {
+    background: #D1FAE5; border: 1px solid rgba(5,150,105,0.2);
+    border-radius: 999px; padding: 5px 11px;
+    font-size: 11px; font-weight: 700; color: #065F46;
+    white-space: nowrap; flex-shrink: 0; margin-top: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .g-divider { margin: 14px 0 12px; border: none; border-top: 1px solid rgba(5,150,105,0.10); }
+  .g-empty { font-size: 13px; color: rgba(0,0,0,0.4); display: flex; align-items: center; gap: 6px; padding-right: 10px; }
+
+  /* === NUTRITION — green-tinted card === */
+  .nutrition-card {
+    border-radius: 24px; padding: 18px;
+    background: linear-gradient(145deg, #F0FDF8 0%, #DCFCE7 100%);
+    border: 1px solid rgba(5,150,105,0.15);
+    box-shadow: 0 2px 16px rgba(5,150,105,0.10), 0 1px 3px rgba(0,0,0,0.04);
+    position: relative; overflow: hidden;
+  }
+  /* Top accent stripe */
+  .nutrition-card::after {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+    background: linear-gradient(90deg, transparent, #10B981, transparent);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .n-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .n-badge {
+    background: rgba(5,150,105,0.15); border-radius: 10px;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .n-label { font-size: 13px; font-weight: 800; color: #065F46; }
+  .n-body { display: flex; align-items: center; gap: 14px; }
+  .n-left { flex: 1; }
+  .n-stats { display: flex; gap: 0; margin-bottom: 12px; }
+  .n-stat { flex: 1; }
+  .n-stat + .n-stat { padding-right: 12px; border-right: 1px solid rgba(5,150,105,0.15); }
+  .n-val-green { font-size: 36px; font-weight: 900; color: #059669; line-height: 1; letter-spacing: -0.04em; }
+  .n-val-purple { font-size: 24px; font-weight: 900; color: #7C3AED; line-height: 1; letter-spacing: -0.03em; }
+  .n-val-weight { font-size: 20px; font-weight: 900; color: #1D1D1F; line-height: 1; }
+  .n-sub { font-size: 10px; color: rgba(6,95,70,0.6); margin-top: 2px; line-height: 1.3; }
+  .macros { display: flex; gap: 14px; padding-top: 10px; border-top: 1px solid rgba(5,150,105,0.10); }
+  .macro-g { font-size: 13px; font-weight: 800; color: #059669; }
+  .macro-c { font-size: 13px; font-weight: 800; color: #D97706; }
+  .macro-f { font-size: 13px; font-weight: 800; color: #DC2626; }
+  .macro-lbl { font-size: 10px; color: rgba(6,95,70,0.5); }
+
+  /* Ring on green bg */
+  .n-ring { flex-shrink: 0; position: relative; }
+  .n-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+  .n-ring-pct { font-size: 15px; font-weight: 900; color: #065F46; }
+  .n-ring-lbl { font-size: 9px; color: rgba(6,95,70,0.5); }
+
+  /* === STUDIES — blue-tinted === */
+  .studies-card {
+    border-radius: 24px; padding: 18px;
+    background: linear-gradient(145deg, #EFF6FF 0%, #DBEAFE 100%);
+    border: 1px solid rgba(37,99,235,0.15);
+    box-shadow: 0 2px 16px rgba(37,99,235,0.08), 0 1px 3px rgba(0,0,0,0.04);
+    position: relative; overflow: hidden;
+  }
+  .studies-card::after {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+    background: linear-gradient(90deg, transparent, #3B82F6, transparent);
+    border-radius: 0 0 4px 4px;
+  }
+  .s-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .s-badge { background: rgba(37,99,235,0.12); border-radius: 10px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .s-label { font-size: 13px; font-weight: 800; color: #1E3A8A; }
+  .s-chevron { margin-right: auto; color: rgba(37,99,235,0.4); font-size: 14px; }
+
+  .exam-box {
+    background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.20);
+    border-radius: 16px; padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .e-name { font-size: 16px; font-weight: 900; color: #1E3A8A; }
+  .e-sub { font-size: 11px; color: rgba(30,58,138,0.55); margin-top: 2px; }
+  .e-days-num { font-size: 36px; font-weight: 900; color: #2563EB; line-height: 1; letter-spacing: -0.04em; }
+  .e-days-lbl { font-size: 10px; color: rgba(37,99,235,0.55); text-align: center; }
+  .s-footer { font-size: 12px; color: rgba(30,58,138,0.5); padding-top: 10px; border-top: 1px solid rgba(37,99,235,0.10); }
+
+  /* === SCHEDULE — purple-tinted === */
+  .schedule-card {
+    border-radius: 24px; padding: 18px;
+    background: linear-gradient(145deg, #F5F3FF 0%, #EDE9FE 100%);
+    border: 1px solid rgba(124,58,237,0.15);
+    box-shadow: 0 2px 16px rgba(124,58,237,0.08), 0 1px 3px rgba(0,0,0,0.04);
+    position: relative; overflow: hidden;
+  }
+  .schedule-card::after {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+    background: linear-gradient(90deg, transparent, #8B5CF6, transparent);
+    border-radius: 0 0 4px 4px;
+  }
+  .sc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sc-left { display: flex; align-items: center; gap: 8px; }
+  .sc-badge { background: rgba(124,58,237,0.12); border-radius: 10px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .sc-label { font-size: 13px; font-weight: 800; color: #4C1D95; }
+  .sc-ai { font-size: 11px; font-weight: 700; color: #7C3AED; }
+  .sc-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 12px; margin-bottom: 8px;
+    background: rgba(5,150,105,0.12); border: 1px solid rgba(5,150,105,0.20);
+  }
+  .sc-dot { width: 8px; height: 8px; border-radius: 50%; background: #059669; flex-shrink: 0; }
+  .sc-text { font-size: 13px; font-weight: 600; color: #1D1D1F; flex: 1; }
+  .sc-time { font-size: 11px; color: rgba(76,29,149,0.5); }
+  .sc-empty { font-size: 13px; color: rgba(76,29,149,0.4); text-align: center; padding: 12px 0; }
+
+  /* Quick Actions */
+  .quick-label { font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .quick-btn {
+    background: #fff; border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 16px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .qicon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .qicon.g { background: #D1FAE5; }
+  .qicon.p { background: #EDE9FE; }
+  .qicon.b { background: #DBEAFE; }
+  .qicon.a { background: #FEF3C7; }
+  .qmain { font-size: 12px; font-weight: 800; color: #1D1D1F; }
+  .qsub { font-size: 10px; color: rgba(0,0,0,0.35); margin-top: 1px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 72px;
+    background: rgba(240,240,245,0.95); backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.07);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px 8px; z-index: 50;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; cursor: pointer; }
+  .nav-icon { font-size: 20px; opacity: 0.35; }
+  .nav-label { font-size: 10px; font-weight: 700; color: rgba(0,0,0,0.35); }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-item.active .nav-label { color: #059669; font-weight: 800; }
+  .nav-item.active .nav-icon-wrap {
+    background: #D1FAE5; border-radius: 14px; padding: 4px 12px; margin-top: -4px;
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute; bottom: 88px; left: 20px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4); z-index: 60; cursor: pointer;
+  }
+  .fab-icon { font-size: 26px; color: #fff; font-weight: 300; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="direction-label">Direction C</div>
+<div class="direction-title">Tinted Layers — Color-coded Calm</div>
+<div class="direction-mood">Craft × Fantastical × Spark — כל tile מקבל tint של הצבע שלו</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="header-title">בית</div>
+      <div class="wordmark">calori<span> life</span></div>
+    </div>
+
+    <div class="content">
+
+      <!-- Greeting -->
+      <div class="greeting-card">
+        <div class="g-top">
+          <div>
+            <div class="g-date">יום רביעי, 4 יוני 2026</div>
+            <div class="g-title">ערב טוב,<br><span class="g-sub">אוריה מרגלית</span> 👋</div>
+          </div>
+          <div class="status-pill">✦ מבחן בעוד 30 ימים</div>
+        </div>
+        <hr class="g-divider">
+        <div class="g-empty">🌟 הלוז הושלם להיום</div>
+      </div>
+
+      <!-- Nutrition -->
+      <div class="nutrition-card">
+        <div class="n-header">
+          <div class="n-badge">🥗</div>
+          <div class="n-label">תזונה וכושר היום</div>
+        </div>
+        <div class="n-body">
+          <div class="n-left">
+            <div class="n-stats">
+              <div class="n-stat">
+                <div class="n-val-green">398</div>
+                <div class="n-sub">קק"ל שנאכלו / 2000</div>
+              </div>
+              <div class="n-stat">
+                <div class="n-val-purple">+0</div>
+                <div class="n-sub">קק"ל שנשרפו / 300</div>
+              </div>
+              <div class="n-stat">
+                <div class="n-val-weight">86.5<span style="font-size:12px;font-weight:500;color:rgba(0,0,0,0.4)">kg</span></div>
+                <div class="n-sub">יעד: 78 ק"ג</div>
+              </div>
+            </div>
+            <div class="macros">
+              <div><div class="macro-g">45g</div><div class="macro-lbl">חלבון</div></div>
+              <div><div class="macro-c">36g</div><div class="macro-lbl">פחמימות</div></div>
+              <div><div class="macro-f">8g</div><div class="macro-lbl">שומן</div></div>
+            </div>
+          </div>
+          <div class="n-ring">
+            <svg width="86" height="86" viewBox="0 0 86 86" fill="none">
+              <circle cx="43" cy="43" r="36" stroke="rgba(5,150,105,0.15)" stroke-width="9"/>
+              <circle cx="43" cy="43" r="36" stroke="#059669" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="181"
+                transform="rotate(-90 43 43)"/>
+              <circle cx="43" cy="43" r="25" stroke="rgba(124,58,237,0.12)" stroke-width="8"/>
+              <circle cx="43" cy="43" r="25" stroke="#7C3AED" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"
+                transform="rotate(-90 43 43)"/>
+            </svg>
+            <div class="n-ring-text">
+              <div class="n-ring-pct">20%</div>
+              <div class="n-ring-lbl">הושלם</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Studies -->
+      <div class="studies-card">
+        <div class="s-header">
+          <div class="s-badge">🎓</div>
+          <div class="s-label">לימודים</div>
+          <div class="s-chevron">‹</div>
+        </div>
+        <div class="exam-box">
+          <div>
+            <div class="e-name">אינפי 2</div>
+            <div class="e-sub">מועד A</div>
+          </div>
+          <div style="text-align:center">
+            <div class="e-days-num">30</div>
+            <div class="e-days-lbl">ימים</div>
+          </div>
+        </div>
+        <div class="s-footer">5 קורסים · סמסטר ב׳</div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="schedule-card">
+        <div class="sc-header">
+          <div class="sc-left">
+            <div class="sc-badge">🤖</div>
+            <div class="sc-label">לוז היום שלי</div>
+          </div>
+          <div class="sc-ai">פתח תכנון AI ›</div>
+        </div>
+        <div class="sc-item">
+          <div class="sc-dot"></div>
+          <div class="sc-text">משקה חלבון אייס קפה</div>
+          <div class="sc-time">09:54</div>
+        </div>
+        <div class="sc-empty">אין עוד פריטים להיום ✨</div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div>
+        <div class="quick-label">פעולות מהירות</div>
+        <div class="quick-grid">
+          <div class="quick-btn"><div class="qicon g">✦</div><div><div class="qmain">ארגן עם AI</div><div class="qsub">תכנון יומי</div></div></div>
+          <div class="quick-btn"><div class="qicon p">⏱</div><div><div class="qmain">פומודורו</div><div class="qsub">התמקד</div></div></div>
+          <div class="quick-btn"><div class="qicon b">＋</div><div><div class="qmain">הוסף משימה</div><div class="qsub">רשימות</div></div></div>
+          <div class="quick-btn"><div class="qicon a">🥗</div><div><div class="qmain">יומן תזונה</div><div class="qsub">פרטי היום</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="fab"><div class="fab-icon">+</div></div>
+
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">🤖</div><div class="nav-label">המנהל</div></div>
+    <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">בית</div></div>
+    <div class="nav-item"><div class="nav-icon">📚</div><div class="nav-label">לימודים</div></div>
+    <div class="nav-item"><div class="nav-icon">🎯</div><div class="nav-label">פוקוס</div></div>
+  </div>
+</div>
+
+</body>
+</html>

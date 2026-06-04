@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style 3 — Bold Editorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#D8D8D8;min-height:100vh;font-family:'Heebo',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:12px;}
+.lbl{font-size:11px;font-weight:700;color:#555;letter-spacing:.14em;text-transform:uppercase;text-align:center;}
+.ttl{font-size:18px;font-weight:900;color:#111;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#666;text-align:center;margin-top:3px;max-width:320px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#F7F7F8;box-shadow:0 40px 80px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.07);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#000;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER — ultra clean */
+.header{position:sticky;top:0;z-index:50;padding:52px 24px 14px;background:rgba(247,247,248,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.h-title{font-size:17px;font-weight:900;color:#1D1D1F;}
+.wordmark{font-size:16px;font-weight:900;color:#1D1D1F;letter-spacing:-.02em;}
+.wordmark em{color:#059669;font-style:normal;font-weight:500;}
+
+.content{padding:20px 20px 0;display:flex;flex-direction:column;gap:0;}
+
+/* ── GREETING — raw, no card, HUGE ── */
+.greeting{padding:0 0 20px;border-bottom:1px solid rgba(0,0,0,.07);margin-bottom:16px;}
+.g-date{font-size:11px;font-weight:700;color:rgba(0,0,0,.3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
+.g-name{font-size:44px;font-weight:900;color:#1D1D1F;letter-spacing:-.05em;line-height:.95;margin-bottom:10px;}
+.g-name em{display:block;color:#059669;font-style:normal;}
+.g-foot{display:flex;justify-content:space-between;align-items:center;}
+.g-status{font-size:13px;color:rgba(0,0,0,.4);font-weight:500;display:flex;align-items:center;gap:5px;}
+.g-dot{width:6px;height:6px;border-radius:50%;background:#059669;}
+.g-chip{background:#D1FAE5;border-radius:999px;padding:5px 13px;font-size:11px;font-weight:800;color:#059669;}
+
+/* ── NUTRITION HERO — editorial, big number leads ── */
+.nut-hero{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(0,0,0,.07);}
+.nut-label{font-size:11px;font-weight:700;color:rgba(0,0,0,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
+.nut-row{display:flex;align-items:center;gap:16px;}
+.nut-left{flex:1;}
+.nut-big-num{font-size:64px;font-weight:900;color:#059669;letter-spacing:-.06em;line-height:.9;margin-bottom:4px;}
+.nut-goal{font-size:14px;font-weight:600;color:rgba(0,0,0,.3);}
+.nut-divider{border:none;border-top:1px solid rgba(0,0,0,.07);margin:12px 0 10px;}
+.nut-burn-row{display:flex;align-items:baseline;gap:8px;}
+.nut-burn-val{font-size:28px;font-weight:900;color:#7C3AED;letter-spacing:-.04em;}
+.nut-burn-sub{font-size:11px;color:rgba(0,0,0,.35);}
+.nut-weight{display:flex;align-items:baseline;gap:4px;margin-top:8px;}
+.nut-weight-val{font-size:22px;font-weight:900;color:#1D1D1F;letter-spacing:-.03em;}
+.nut-weight-sub{font-size:11px;color:rgba(0,0,0,.35);}
+.nut-macs{display:flex;gap:10px;margin-top:10px;}
+.mac{font-size:12px;font-weight:800;}
+.mac.g{color:#059669;}
+.mac.c{color:#D97706;}
+.mac.f{color:#DC2626;}
+.mac-lbl{font-size:10px;color:rgba(0,0,0,.3);margin-top:1px;}
+
+/* Ring — right side, clean */
+.ring-clean{flex-shrink:0;position:relative;}
+.rc-t{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rc-pct{font-size:18px;font-weight:900;color:#1D1D1F;}
+.rc-lbl{font-size:9px;color:rgba(0,0,0,.3);}
+
+/* ── QUICK ACTIONS ── */
+.qa-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(0,0,0,.07);}
+.qa-row{display:flex;gap:8px;}
+.qa-big{flex:1;background:#059669;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(5,150,105,.3);}
+.qa-big-main{font-size:15px;font-weight:900;color:#fff;}
+.qa-big-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px;}
+.qa-ico-big{font-size:22px;}
+.qa-stack{display:flex;flex-direction:column;gap:8px;}
+.qa-sm{background:#fff;border:1.5px solid rgba(0,0,0,.07);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.qa-sm-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.qa-sm-ico.p{background:#EDE9FE;}
+.qa-sm-ico.b{background:#DBEAFE;}
+.qa-sm-txt{font-size:12px;font-weight:800;color:#1D1D1F;}
+
+/* ── TIMELINE ── */
+.tl-section{margin-bottom:16px;}
+.tl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+.tl-ttl{font-size:24px;font-weight:900;color:#1D1D1F;letter-spacing:-.03em;}
+.tl-lnk{font-size:12px;font-weight:700;color:#059669;}
+.tl-seg{font-size:11px;font-weight:700;color:rgba(0,0,0,.25);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.tl-row{display:flex;gap:12px;margin-bottom:8px;align-items:stretch;}
+.t-tm{width:34px;text-align:center;flex-shrink:0;padding-top:11px;font-size:10px;font-weight:700;color:rgba(0,0,0,.3);}
+.t-dc{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;}
+.t-dot{width:9px;height:9px;border-radius:50%;margin-top:11px;}
+.t-dot.g{background:#059669;}
+.t-dot.r{background:#EF4444;}
+.t-dot.gr{background:#E5E7EB;}
+.t-ln{flex:1;width:1.5px;background:rgba(0,0,0,.07);margin-top:4px;}
+.t-c{flex:1;border-radius:14px;padding:11px 14px;}
+.t-c.gf{background:#059669;}
+.t-c.rs{background:#FEF2F2;border:1px solid rgba(239,68,68,.1);}
+.t-c.ds{background:#fff;border:1.5px dashed #E5E7EB;}
+.t-tt{font-size:14px;font-weight:800;}
+.t-c.gf .t-tt{color:#fff;}
+.t-c.rs .t-tt{color:#991B1B;}
+.t-c.ds .t-tt{font-size:12px;color:rgba(0,0,0,.25);text-align:center;}
+.t-sb{font-size:11px;margin-top:2px;color:rgba(255,255,255,.7);}
+
+/* MINI ROW */
+.mini-row{display:flex;gap:8px;}
+.mini{flex:1;background:#fff;border-radius:18px;padding:14px 12px;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 6px rgba(0,0,0,.04);}
+.mini-val{font-size:28px;font-weight:900;letter-spacing:-.04em;line-height:1;margin-bottom:3px;}
+.mini-val.b{color:#2563EB;}
+.mini-val.p{color:#7C3AED;}
+.mini-val.n{color:#1D1D1F;}
+.mini-lbl{font-size:10px;color:rgba(0,0,0,.35);font-weight:600;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(247,247,248,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:700;color:rgba(0,0,0,.25);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#059669;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(5,150,105,.4);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Style 3</div>
+<div class="ttl">Bold Editorial</div>
+<div class="dsc">Linear × Things 3 × Stripe — מינימל קיצוני, typography ענק, ללא כרטיסים מיותרים</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">בית</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <!-- GREETING — raw, no card -->
+      <div class="greeting">
+        <div class="g-date">רביעי · 4 יוני 2026</div>
+        <div class="g-name">ערב טוב, <em>אוריה 👋</em></div>
+        <div class="g-foot">
+          <div class="g-status"><div class="g-dot"></div> הלוז הושלם</div>
+          <div class="g-chip">מבחן בעוד 30 ימים</div>
+        </div>
+      </div>
+
+      <!-- NUTRITION HERO — editorial -->
+      <div class="nut-hero">
+        <div class="nut-label">תזונה וכושר היום</div>
+        <div class="nut-row">
+          <div class="nut-left">
+            <div class="nut-big-num">398</div>
+            <div class="nut-goal">מתוך 2,000 קק"ל</div>
+            <hr class="nut-divider">
+            <div class="nut-burn-row">
+              <div class="nut-burn-val">+0</div>
+              <div class="nut-burn-sub">קק"ל שנשרפו</div>
+            </div>
+            <div class="nut-weight">
+              <div class="nut-weight-val">86.5</div>
+              <div class="nut-weight-sub">ק"ג · יעד 78</div>
+            </div>
+            <div class="nut-macs">
+              <div><div class="mac g">45g</div><div class="mac-lbl">חלבון</div></div>
+              <div><div class="mac c">36g</div><div class="mac-lbl">פחמימות</div></div>
+              <div><div class="mac f">8g</div><div class="mac-lbl">שומן</div></div>
+            </div>
+          </div>
+          <div class="ring-clean">
+            <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
+              <circle cx="48" cy="48" r="40" stroke="#F0F0F2" stroke-width="11"/>
+              <circle cx="48" cy="48" r="40" stroke="#059669" stroke-width="11" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="201" transform="rotate(-90 48 48)"/>
+              <circle cx="48" cy="48" r="28" stroke="#F0F0F2" stroke-width="9"/>
+              <circle cx="48" cy="48" r="28" stroke="#7C3AED" stroke-width="9" stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="176" transform="rotate(-90 48 48)"/>
+            </svg>
+            <div class="rc-t"><div class="rc-pct">20%</div><div class="rc-lbl">הושלם</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QA -->
+      <div class="qa-section">
+        <div class="qa-row">
+          <div class="qa-big">
+            <div class="qa-ico-big">✦</div>
+            <div><div class="qa-big-main">ארגן עם AI</div><div class="qa-big-sub">תכנון יומי מותאם</div></div>
+          </div>
+          <div class="qa-stack">
+            <div class="qa-sm"><div class="qa-sm-ico p">⏱</div><div class="qa-sm-txt">פומודורו</div></div>
+            <div class="qa-sm"><div class="qa-sm-ico b">＋</div><div class="qa-sm-txt">הוסף פריט</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="tl-section">
+        <div class="tl-head"><div class="tl-ttl">היום</div><div class="tl-lnk">יומן ›</div></div>
+        <div class="tl-seg">בוקר</div>
+        <div class="tl-row">
+          <div class="t-tm">09:54</div>
+          <div class="t-dc"><div class="t-dot g"></div><div class="t-ln"></div></div>
+          <div class="t-c gf"><div class="t-tt">משקה חלבון אייס קפה</div><div class="t-sb">398 קק"ל · חלבון 45g</div></div>
+        </div>
+        <div class="tl-seg">צהריים</div>
+        <div class="tl-row">
+          <div class="t-tm"></div>
+          <div class="t-dc"><div class="t-dot gr"></div></div>
+          <div class="t-c ds"><div class="t-tt">ריק · לחץ + להוסיף</div></div>
+        </div>
+        <div class="tl-seg">ערב</div>
+        <div class="tl-row">
+          <div class="t-tm">כל היום</div>
+          <div class="t-dc"><div class="t-dot r"></div></div>
+          <div class="t-c rs"><div class="t-tt">⏰ אינפי 2 — 30 ימים לבחינה</div></div>
+        </div>
+      </div>
+
+      <!-- MINI ROW -->
+      <div class="mini-row">
+        <div class="mini"><div class="mini-val b">30</div><div class="mini-lbl">ימים לאינפי 2</div></div>
+        <div class="mini"><div class="mini-val p">0</div><div class="mini-lbl">פומודורו היום</div></div>
+        <div class="mini"><div class="mini-val n">0</div><div class="mini-lbl">משימות פתוחות</div></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
+  </div>
+</div>
+</body>
+</html>

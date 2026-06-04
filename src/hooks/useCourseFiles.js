@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   getUserId,
   uploadFile,
@@ -18,18 +18,24 @@ export const useCourseFiles = (courseId, { browse = false } = {}) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  
+  const isMounted = React.useRef(true);
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!browse || !courseId) return;
     setLoading(true);
     try {
       const userId = await getUserId();
-      setFiles(await listFilesRecursive(userId, courseId));
+      const fetched = await listFilesRecursive(userId, courseId);
+      if (isMounted.current) setFiles(fetched);
     } catch (err) {
       console.error('Failed to list files', err);
-      toast.error(t('fileListError'));
+      if (isMounted.current) toast.error(t('fileListError'));
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [browse, courseId, t]);
 
@@ -59,13 +65,13 @@ export const useCourseFiles = (courseId, { browse = false } = {}) => {
             }
           }
         }
-        if (uploaded.length > 0) toast.success(t('fileUploadSuccess'));
-        if (browse) await refresh();
+        if (isMounted.current && uploaded.length > 0) toast.success(t('fileUploadSuccess'));
+        if (isMounted.current && browse) await refresh();
       } catch (err) {
         console.error('Upload failed', err);
-        toast.error(t('fileUploadError'));
+        if (isMounted.current) toast.error(t('fileUploadError'));
       } finally {
-        setUploading(false);
+        if (isMounted.current) setUploading(false);
       }
       return uploaded;
     },

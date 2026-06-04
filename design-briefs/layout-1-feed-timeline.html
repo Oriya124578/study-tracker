@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layout 1 — Day Feed Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#E5E5EA;
+  min-height:100vh; font-family:'Heebo',sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+  padding:32px 20px 48px; gap:16px;
+}
+.label { font-size:11px; font-weight:700; color:#666; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
+.title { font-size:20px; font-weight:900; color:#111; text-align:center; margin-top:4px; }
+.desc { font-size:12px; color:#888; text-align:center; margin-top:4px; max-width:320px; line-height:1.5; }
+
+.phone {
+  width:390px; height:844px; border-radius:50px;
+  overflow:hidden; position:relative;
+  background:#F5F5F7;
+  box-shadow:0 40px 80px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.08);
+  flex-shrink:0;
+}
+.notch { position:absolute; top:14px; left:50%; transform:translateX(-50%); width:126px; height:34px; background:#000; border-radius:20px; z-index:100; }
+.screen { position:absolute; inset:0; overflow-y:auto; scrollbar-width:none; padding-bottom:80px; }
+.screen::-webkit-scrollbar { display:none; }
+
+/* ── HEADER ── */
+.header {
+  position:sticky; top:0; z-index:50;
+  padding:52px 20px 12px;
+  background:rgba(245,245,247,.92); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(0,0,0,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.avatar { width:34px; height:34px; border-radius:50%; background:#059669; color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.h-title { font-size:17px; font-weight:900; color:#1D1D1F; }
+.wordmark { font-size:16px; font-weight:900; color:#1D1D1F; letter-spacing:-.02em; flex-shrink:0; }
+.wordmark em { color:#059669; font-style:normal; font-weight:500; }
+
+/* ── GREETING — compact single line ── */
+.greeting-bar {
+  margin:14px 16px 0;
+  background:#fff; border-radius:20px;
+  padding:16px 18px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 1px 6px rgba(0,0,0,.04);
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.g-left {}
+.g-date { font-size:10px; font-weight:700; color:rgba(0,0,0,.35); letter-spacing:.1em; text-transform:uppercase; }
+.g-text { font-size:17px; font-weight:900; color:#1D1D1F; margin-top:2px; letter-spacing:-.02em; }
+.g-chip { background:#D1FAE5; border:1px solid rgba(5,150,105,.2); border-radius:999px; padding:5px 12px; font-size:11px; font-weight:700; color:#059669; white-space:nowrap; flex-shrink:0; }
+
+/* ── SECTION HEADER ── */
+.section { padding:18px 16px 8px; }
+.section-row { display:flex; align-items:center; justify-content:space-between; }
+.section-title { font-size:20px; font-weight:900; color:#1D1D1F; letter-spacing:-.02em; }
+.section-meta { font-size:12px; font-weight:600; color:#8E8E93; }
+.section-link { font-size:12px; font-weight:700; color:#059669; }
+
+/* ── STAT BAR — horizontal compact ── */
+.stat-bar {
+  margin:0 16px 10px;
+  background:#fff; border-radius:16px;
+  padding:12px 16px;
+  display:flex; align-items:center; gap:14px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.stat-bar-icon { width:36px; height:36px; border-radius:10px; background:#D1FAE5; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.stat-bar-icon.purple { background:#EDE9FE; }
+.stat-bar-body { flex:1; }
+.stat-bar-label { font-size:10px; font-weight:700; color:#8E8E93; letter-spacing:.06em; text-transform:uppercase; }
+.stat-bar-val { font-size:15px; font-weight:900; color:#1D1D1F; margin-top:1px; }
+.stat-bar-sub { font-size:11px; color:#8E8E93; }
+.stat-ring { flex-shrink:0; position:relative; }
+.ring-label { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10px; font-weight:900; color:#059669; }
+
+/* ── TIMELINE ── */
+.timeline { padding:0 16px; }
+.tl-day-header { font-size:13px; font-weight:700; color:#8E8E93; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.tl-day-header::after { content:''; flex:1; height:1px; background:rgba(0,0,0,.08); }
+
+.tl-item {
+  display:flex; gap:12px; margin-bottom:8px;
+  align-items:stretch;
+}
+.tl-time-col { width:40px; text-align:center; flex-shrink:0; padding-top:14px; }
+.tl-time { font-size:10px; font-weight:700; color:#8E8E93; }
+.tl-line-col { display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:18px; }
+.tl-dot { width:10px; height:10px; border-radius:50%; margin-top:14px; flex-shrink:0; }
+.tl-dot.green { background:#059669; box-shadow:0 0 0 3px rgba(5,150,105,.15); }
+.tl-dot.blue { background:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.15); }
+.tl-dot.red { background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,.15); }
+.tl-dot.gray { background:#9CA3AF; box-shadow:0 0 0 3px rgba(156,163,175,.15); }
+.tl-line { flex:1; width:1.5px; background:rgba(0,0,0,.07); margin-top:4px; }
+.tl-card {
+  flex:1; border-radius:16px; padding:12px 14px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  margin-bottom:0;
+}
+.tl-card.white { background:#fff; }
+.tl-card.green { background:#059669; border-color:transparent; }
+.tl-card.blue-soft { background:#EFF6FF; border-color:rgba(37,99,235,.12); }
+.tl-card.red { background:#FEF2F2; border-color:rgba(239,68,68,.15); }
+
+.tl-card-title { font-size:14px; font-weight:700; color:#1D1D1F; }
+.tl-card.green .tl-card-title { color:#fff; }
+.tl-card-sub { font-size:11px; color:#8E8E93; margin-top:2px; }
+.tl-card.green .tl-card-sub { color:rgba(255,255,255,.7); }
+.tl-card.blue-soft .tl-card-title { color:#1E40AF; }
+.tl-card.blue-soft .tl-card-sub { color:#93C5FD; }
+.tl-card.red .tl-card-title { color:#991B1B; }
+.tl-card.red .tl-card-sub { color:#FCA5A5; }
+
+.tl-macros { display:flex; gap:10px; margin-top:8px; }
+.tl-macro { font-size:11px; font-weight:700; }
+.tl-macro.g { color:rgba(255,255,255,.9); }
+.tl-macro.w { color:rgba(255,255,255,.6); }
+
+/* empty state in timeline */
+.tl-empty { background:#F9F9FB; border:1.5px dashed #E5E7EB; border-radius:16px; padding:16px; text-align:center; font-size:13px; color:#C7C7CC; margin-bottom:8px; }
+
+/* ── QUICK ACTIONS ── */
+.qa-section { padding:8px 16px 0; }
+.qa-label { font-size:11px; font-weight:700; color:#8E8E93; letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; }
+.qa-scroll { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+.qa-scroll::-webkit-scrollbar { display:none; }
+.qa-pill {
+  flex-shrink:0; background:#fff; border:1px solid rgba(0,0,0,.07);
+  border-radius:14px; padding:10px 14px;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  white-space:nowrap;
+}
+.qa-pill-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.qa-pill-icon.g { background:#D1FAE5; }
+.qa-pill-icon.p { background:#EDE9FE; }
+.qa-pill-icon.b { background:#DBEAFE; }
+.qa-pill-icon.a { background:#FEF3C7; }
+.qa-pill-text { font-size:12px; font-weight:800; color:#1D1D1F; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position:absolute; bottom:0; left:0; right:0; height:72px;
+  background:rgba(245,245,247,.95); backdrop-filter:blur(20px);
+  border-top:1px solid rgba(0,0,0,.08);
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 8px 8px; z-index:50;
+}
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; cursor:pointer; }
+.nav-icon { font-size:20px; opacity:.3; }
+.nav-lbl { font-size:10px; font-weight:700; color:rgba(0,0,0,.3); }
+.nav-item.active .nav-icon { opacity:1; }
+.nav-item.active .nav-lbl { color:#059669; }
+
+.fab {
+  position:absolute; bottom:88px; left:20px;
+  width:52px; height:52px; border-radius:50%;
+  background:#059669; color:#fff; font-size:26px; font-weight:300;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 20px rgba(5,150,105,.4); z-index:60;
+}
+</style>
+</head>
+<body>
+
+<div class="label">Layout 1</div>
+<div class="title">Day Feed — הכל בטיימליין אחת</div>
+<div class="desc">Greeting קומפקטי → סטטיסטיקות כ-bars → טיימליין אחת של היום עם הכל → Quick Actions</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">בית</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+
+    <!-- Greeting bar — compact -->
+    <div class="greeting-bar">
+      <div class="g-left">
+        <div class="g-date">רביעי, 4 יוני</div>
+        <div class="g-text">ערב טוב, אוריה 👋</div>
+      </div>
+      <div class="g-chip">✦ מבחן בעוד 30 ימים</div>
+    </div>
+
+    <!-- Stat bars — nutrition + studies compact -->
+    <div style="margin-top:10px">
+      <div class="stat-bar">
+        <div class="stat-bar-icon">🥗</div>
+        <div class="stat-bar-body">
+          <div class="stat-bar-label">תזונה היום</div>
+          <div class="stat-bar-val"><span style="color:#059669">398</span> / 2,000 קק"ל</div>
+          <div class="stat-bar-sub">חלבון 45g · פחמימות 36g · שומן 8g</div>
+        </div>
+        <div class="stat-ring">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="18" stroke="#E5E7EB" stroke-width="5"/>
+            <circle cx="22" cy="22" r="18" stroke="#059669" stroke-width="5"
+              stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="90"
+              transform="rotate(-90 22 22)"/>
+          </svg>
+          <div class="ring-label">20%</div>
+        </div>
+      </div>
+
+      <div class="stat-bar">
+        <div class="stat-bar-icon purple">🎓</div>
+        <div class="stat-bar-body">
+          <div class="stat-bar-label">הבא בלימודים</div>
+          <div class="stat-bar-val">אינפי 2 · מועד A</div>
+          <div class="stat-bar-sub">5 קורסים · 30 ימים לבחינה</div>
+        </div>
+        <div style="background:#EFF6FF;border:1px solid rgba(37,99,235,.15);border-radius:12px;padding:6px 10px;text-align:center;flex-shrink:0;">
+          <div style="font-size:22px;font-weight:900;color:#2563EB;line-height:1">30</div>
+          <div style="font-size:9px;color:#93C5FD">ימים</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline section -->
+    <div class="section">
+      <div class="section-row">
+        <div class="section-title">היום</div>
+        <div class="section-link">פתח יומן ›</div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-day-header">בוקר</div>
+
+      <!-- Meal item -->
+      <div class="tl-item">
+        <div class="tl-time-col"><div class="tl-time">09:54</div></div>
+        <div class="tl-line-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+        <div class="tl-card green">
+          <div class="tl-card-title">משקה חלבון אייס קפה</div>
+          <div class="tl-macros">
+            <span class="tl-macro g">398 קק"ל</span>
+            <span class="tl-macro w">חלבון 45g</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-day-header">צהריים</div>
+
+      <!-- Empty -->
+      <div class="tl-empty">אין פריטים בצהריים · לחץ + להוסיף</div>
+
+      <div class="tl-day-header">ערב</div>
+
+      <!-- Exam reminder -->
+      <div class="tl-item">
+        <div class="tl-time-col"><div class="tl-time">כל היום</div></div>
+        <div class="tl-line-col"><div class="tl-dot red"></div></div>
+        <div class="tl-card red">
+          <div class="tl-card-title">⏰ אינפי 2 — 30 ימים לבחינה</div>
+          <div class="tl-card-sub">מועד A · הכן חומר</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="qa-section">
+      <div class="qa-label">פעולות מהירות</div>
+      <div class="qa-scroll">
+        <div class="qa-pill"><div class="qa-pill-icon g">✦</div><div class="qa-pill-text">ארגן עם AI</div></div>
+        <div class="qa-pill"><div class="qa-pill-icon p">⏱</div><div class="qa-pill-text">פומודורו</div></div>
+        <div class="qa-pill"><div class="qa-pill-icon b">＋</div><div class="qa-pill-text">הוסף משימה</div></div>
+        <div class="qa-pill"><div class="qa-pill-icon a">🥗</div><div class="qa-pill-text">יומן תזונה</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">🤖</div><div class="nav-lbl">המנהל</div></div>
+    <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-lbl">בית</div></div>
+    <div class="nav-item"><div class="nav-icon">📚</div><div class="nav-lbl">לימודים</div></div>
+    <div class="nav-item"><div class="nav-icon">🎯</div><div class="nav-lbl">פוקוס</div></div>
+  </div>
+</div>
+
+</body>
+</html>

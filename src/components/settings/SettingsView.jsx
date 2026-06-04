@@ -648,7 +648,7 @@ export const SettingsView = () => {
 
       {/* Version Indicator */}
       <div className="text-center mt-8 pb-4 opacity-50 text-xs font-mono">
-        v6.4.1
+        v6.5.0
       </div>
     </div>
   );

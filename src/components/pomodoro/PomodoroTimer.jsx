@@ -83,7 +83,7 @@ export const PomodoroTimer = ({ inline = false }) => {
     }
 
     return () => clearInterval(interval);
-  }, [pomodoro.active, pomodoro.timeLeft, pomodoro.mode, pomodoro.courseId, pomoSettings, addPomodoroSession, setPomodoro]);
+  }, [pomodoro.active, pomodoro.mode, pomodoro.courseId, pomoSettings, addPomodoroSession, setPomodoro]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);

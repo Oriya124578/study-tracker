@@ -7,7 +7,7 @@ import { chatWithCoach } from '../../lib/coachAiService';
 import { cn } from '../../lib/utils';
 import { toast } from '../../store/useToast';
 
-export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes }) => {
+export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onReplan }) => {
   const {
     data,
     addPersonalTask,
@@ -69,6 +69,73 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes }) => {
         action: m.action || null,
       }));
 
+      // Gather Calori metrics and totals
+      const meals = data?.calori?.meals || [];
+      const workouts = data?.calori?.workouts || [];
+      const dayHistory = data?.calori?.dayHistory;
+
+      const totalCalories = meals.length > 0 ? meals.reduce((s, m) => s + (m.calories || 0), 0) : (dayHistory?.calories ?? 0);
+      const totalProtein  = meals.length > 0 ? meals.reduce((s, m) => s + (m.protein  || 0), 0) : (dayHistory?.protein  ?? 0);
+      const totalCarbs    = meals.length > 0 ? meals.reduce((s, m) => s + (m.carbs    || 0), 0) : (dayHistory?.carbs    ?? 0);
+      const totalFats     = meals.length > 0 ? meals.reduce((s, m) => s + (m.fats     || 0), 0) : (dayHistory?.fats     ?? 0);
+      const totalBurned   = workouts.length > 0 ? workouts.reduce((s, w) => s + (w.caloriesBurned || 0), 0) : (dayHistory?.workout_calories ?? 0);
+
+      const caloriContext = {
+        goals: {
+          calories: data?.calori?.dailyGoal || 1300,
+          protein: data?.calori?.proteinGoal || 0,
+          carbs: data?.calori?.carbsGoal || 0,
+          fats: data?.calori?.fatsGoal || 0,
+        },
+        totalsToday: {
+          caloriesConsumed: totalCalories,
+          proteinConsumed: totalProtein,
+          carbsConsumed: totalCarbs,
+          fatsConsumed: totalFats,
+          caloriesBurned: totalBurned,
+        },
+        mealsToday: meals.map(m => ({
+          name: m.name,
+          calories: m.calories,
+          protein: m.protein,
+          time: m.timestamp ? m.timestamp.substring(11, 16) : ''
+        })),
+        workoutsToday: workouts.map(w => ({
+          name: w.name,
+          caloriesBurned: w.caloriesBurned,
+          duration: w.durationMinutes,
+          time: w.timestamp ? w.timestamp.substring(11, 16) : ''
+        }))
+      };
+
+      // Active courses
+      const coursesContext = (data?.courses || []).filter(c => !c.isArchived).map(c => ({
+        id: c.id,
+        name: c.name,
+      }));
+
+      // Upcoming exams sorted by date
+      const upcomingExams = [];
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      (data?.courses || []).filter(c => !c.isArchived).forEach((course) => {
+        ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+          const examDate = course[moed] || course.exams?.[moed];
+          if (examDate) {
+            const dt = new Date(examDate);
+            if (dt >= todayStart) {
+              upcomingExams.push({
+                courseName: course.name,
+                moed: moed.replace('moed', ''),
+                date: examDate.substring(0, 10),
+              });
+            }
+          }
+        });
+      });
+      upcomingExams.sort((a, b) => a.date.localeCompare(b.date));
+
       const res = await chatWithCoach({
         history: contextHistory,
         message: query,
@@ -81,6 +148,9 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes }) => {
           shabbatMode: !!data?.profile?.shabbatMode,
         },
         shabbatTimes,
+        courses: coursesContext,
+        upcomingExams,
+        caloriData: caloriContext,
       });
 
       // Append bot response
@@ -193,9 +263,8 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes }) => {
         }
         toast.success(payload.locked ? 'הבלוק ננעל' : 'הבלוק שוחרר מנעילה');
       } else if (type === 'replan') {
-        // AI Tuning trigger
-        // This is handled by triggering auto-plan with context
-        toast.info('מעדכן את תכנון ה-AI...');
+        toast.info('משנה את תכנון הלו"ז בעזרת ה-AI...');
+        onReplan?.(payload.tuneCommand);
         onClose(); // Close chat to let user see AI planning in background
         return;
       }

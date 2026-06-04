@@ -28,7 +28,7 @@ export const BrandedLoadingScreen = () => {
 
       {/* Main Centered Branding Block */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Floating App Icon Logo */}
+        {/* Floating App Video Logo */}
         <motion.div
           animate={{ y: [-7, 7] }}
           transition={{
@@ -37,12 +37,15 @@ export const BrandedLoadingScreen = () => {
             duration: 2.5,
             ease: 'easeInOut',
           }}
-          className="w-[140px] h-[140px]"
+          className="w-[180px] h-[180px] rounded-[32px] overflow-hidden shadow-2xl shadow-[#059669]/20"
         >
-          <img
-            src="/logo.svg"
-            alt="Calori Life Logo"
-            className="w-full h-full object-contain pointer-events-none"
+          <video
+            src="/loading_animation.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover pointer-events-none"
           />
         </motion.div>
 
@@ -92,7 +95,7 @@ export const BrandedLoadingScreen = () => {
           className="mt-[10px] text-[12px] font-semibold text-black/30 dark:text-white/30 tracking-[1.2px] uppercase select-text"
           style={{ fontFamily: "'Heebo', sans-serif" }}
         >
-          v6.3.1
+          v6.5.0
         </div>
 
         {/* Indicator dots */}

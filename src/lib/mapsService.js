@@ -100,12 +100,6 @@ export const calculateTravelTime = async (origin, destination) => {
   if (!origin || !destination) return 0;
 
   const key = getGoogleMapsApiKey();
-  const cacheKey = `route-${typeof origin === 'string' ? origin : `${origin.lat},${origin.lon}`}-${typeof destination === 'string' ? destination : `${destination.lat},${destination.lon}`}`;
-
-  if (cache[cacheKey] !== undefined) {
-    return cache[cacheKey];
-  }
-
   // Helper to format string representation
   const getLat = (coord) => coord?.lat ?? coord?.latitude;
   const getLon = (coord) => coord?.lon ?? coord?.longitude;
@@ -117,6 +111,12 @@ export const calculateTravelTime = async (origin, destination) => {
 
   const originStr = typeof origin === 'string' ? origin : `${originLat},${originLon}`;
   const destStr = typeof destination === 'string' ? destination : `${destLat},${destLon}`;
+
+  const cacheKey = `route-${originStr}-${destStr}`;
+
+  if (cache[cacheKey] !== undefined) {
+    return cache[cacheKey];
+  }
 
   // 1. Try Google Maps if API key is provided
   if (key && typeof origin === 'string' && typeof destination === 'string') {

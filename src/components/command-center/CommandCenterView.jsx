@@ -8,6 +8,7 @@ import {
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
+import { swrFetch } from '../../lib/cacheService';
 import { dateKey } from '../../lib/caloriRepo';
 import { generateDailySchedule, tuneSchedule } from '../../lib/gemini';
 import { fetchShabbatTimes } from '../../lib/shabbatService';
@@ -70,10 +71,12 @@ export const CommandCenterView = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         if (!mounted) return;
-        try {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        const cacheKey = `weather_geo_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+        
+        const fetcher = async () => {
           const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=he`);
           const geoData = await geoRes.json();
           const city = geoData.city || geoData.locality || 'מיקום נוכחי';
@@ -81,21 +84,26 @@ export const CommandCenterView = () => {
           const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
           const weatherData = await weatherRes.json();
           
-          if (!mounted) return;
-          const isNight = weatherData.current_weather.is_day === 0;
-
-          setWeather({
+          return {
             temp: Math.round(weatherData.current_weather.temperature),
             min: Math.round(weatherData.daily.temperature_2m_min[0]),
             max: Math.round(weatherData.daily.temperature_2m_max[0]),
             city,
+            isNight: weatherData.current_weather.is_day === 0
+          };
+        };
+
+        // Revalidate every 2 hours (2 * 60 * 60 * 1000)
+        swrFetch(cacheKey, fetcher, (data) => {
+          if (!mounted) return;
+          setWeather({
+            ...data,
             loading: false,
             error: false,
-            isNight
           });
-        } catch {
+        }, 2 * 60 * 60 * 1000).catch(() => {
           if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
-        }
+        });
       }, () => {
         if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
       });
@@ -107,41 +115,46 @@ export const CommandCenterView = () => {
 
   // Fetch Shabbat times based on GPS or settings
   useEffect(() => {
+    let mounted = true;
     const loadShabbat = async () => {
       if (!data?.profile?.shabbatMode) {
-        setShabbatTimes(null);
+        if (mounted) setShabbatTimes(null);
         return;
       }
 
       let locationParam = { city: data?.profile?.selectedCity || 'tel_aviv' };
 
+      const onDataCb = (times) => {
+        if (mounted) setShabbatTimes(times);
+      };
+
       if (data?.profile?.useGPS) {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            async (position) => {
+            (position) => {
+              if (!mounted) return;
               const coords = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
               };
               setGpsLocation(coords);
-              const times = await fetchShabbatTimes(coords, dateStr);
-              setShabbatTimes(times);
+              fetchShabbatTimes(coords, dateStr, onDataCb);
             },
-            async (err) => {
+            (err) => {
               console.warn('[GPS] Geolocation blocked or failed, using city fallback:', err);
-              const times = await fetchShabbatTimes(locationParam, dateStr);
-              setShabbatTimes(times);
+              if (!mounted) return;
+              fetchShabbatTimes(locationParam, dateStr, onDataCb);
             }
           );
           return;
         }
       }
 
-      const times = await fetchShabbatTimes(locationParam, dateStr);
-      setShabbatTimes(times);
+      fetchShabbatTimes(locationParam, dateStr, onDataCb);
     };
 
     loadShabbat();
+    return () => { mounted = false; };
   }, [data?.profile?.shabbatMode, data?.profile?.useGPS, data?.profile?.selectedCity, dateStr]);
 
   // Aggregate blocks for the timeline
@@ -450,8 +463,9 @@ export const CommandCenterView = () => {
   }, [dateStr, data?.events, draftSchedule, loading, handleAutoPlan]);
 
   // Tune schedule with input query
-  const handleTuneSchedule = async () => {
-    if (!tuneCommand.trim()) return;
+  const handleTuneSchedule = async (cmdOverride) => {
+    const cmd = typeof cmdOverride === 'string' ? cmdOverride : tuneCommand;
+    if (!cmd || !cmd.trim()) return;
     setLoading(true);
     try {
       const context = {
@@ -465,7 +479,7 @@ export const CommandCenterView = () => {
         } : null,
       };
 
-      const result = await tuneSchedule(timelineBlocks, tuneCommand, context);
+      const result = await tuneSchedule(timelineBlocks, cmd, context);
       
       const processedBlocks = (result.blocks || [])
         .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
@@ -475,7 +489,7 @@ export const CommandCenterView = () => {
         }));
 
       setDraftSchedule({ blocks: processedBlocks, coachNote: result.coachNote });
-      setTuneCommand('');
+      if (!cmdOverride) setTuneCommand('');
       toast.success(t('ccTuneSuccess'));
     } catch {
       toast.error(t('ccTuneError'));
@@ -1199,6 +1213,7 @@ export const CommandCenterView = () => {
         onClose={() => setIsChatOpen(false)}
         dateStr={dateStr}
         shabbatTimes={shabbatTimes}
+        onReplan={handleTuneSchedule}
       />
 
       {/* Loading Overlay */}

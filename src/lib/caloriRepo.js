@@ -89,8 +89,12 @@ const toIso = (ts) => {
  * Subscribe to a single day's aggregate snapshot.
  * cb receives { date, calories, protein, ... } | null.
  */
-export const subscribeDailyHistory = (uid, date, cb) =>
-  onSnapshot(
+export const subscribeDailyHistory = (uid, date, cb) => {
+  if (!date) {
+    cb(null);
+    return () => {};
+  }
+  return onSnapshot(
     dailyHistoryDoc(uid, date),
     (snap) => cb(snap.exists() ? { id: snap.id, ...snap.data() } : null),
     (err) => {
@@ -98,6 +102,7 @@ export const subscribeDailyHistory = (uid, date, cb) =>
       cb(null);
     },
   );
+};
 
 /**
  * Subscribe to the most-recent N daily_history docs (sorted desc by date).

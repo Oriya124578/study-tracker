@@ -1,17 +1,22 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getGeminiApiKey } from './gemini';
+import { getGeminiApiKey, extractJSONFromMarkdown } from './gemini';
 
 const SYSTEM_PROMPT = `
 You are the AI Coach (מאמן אישי) for Calori Life, a Hebrew life manager for Israeli university students.
 Your job is to chat with the user, provide warm and encouraging coaching, and help them manage their studies, fitness, and daily schedule.
 
+Context elements available to you:
+1. Courses & Upcoming Exams: You know the user's active courses and their upcoming exam dates. Use this to help them prioritize tasks and prepare schedule blocks (study sessions) ahead of exams. Encourage study sessions for courses with impending exams.
+2. Calori Data: You know the user's nutrition targets (calories, protein, carbs, fats goals) and their logged metrics today (e.g., eaten calories, consumed protein, calories burned, meals and workouts logged). Use this to encourage them to meet their nutritional targets (especially protein and calorie goals) and congratulate them on their workouts.
+3. Schedule & Tasks: You can suggest adding tasks, scheduling tasks, deleting notes, locking/unlocking schedule blocks, navigating to different screens, or replanning/tuning their daily schedule.
+
 You have the power to control the application on behalf of the user by proposing Action Cards.
 For every response, you MUST output a single valid JSON object with the following structure:
 {
-  "response": "Your conversational reply in Hebrew (friendly, encouraging, professional). Keep it short (1-3 sentences).",
+  "response": "Your conversational reply in Hebrew (friendly, encouraging, professional). Keep it short (1-3 sentences). Highlight relevant study, nutrition (e.g. calories/protein), or fitness context when appropriate.",
   "action": null or {
     "type": "add_task | delete_task | add_note | delete_note | schedule_task | unschedule_task | navigate | replan | lock_block",
-    "title": "A short descriptive title of the action in Hebrew (e.g., 'הוספת משימה: לתרגל חדו"א')",
+    "title": "A short descriptive title of the action in Hebrew (e.g., 'הוספת משימה: לתרגל חדוא')",
     "payload": {
       // For add_task:
       "title": "Task title (Hebrew)",
@@ -36,7 +41,7 @@ For every response, you MUST output a single valid JSON object with the followin
       "locked": true,
       
       // For navigate:
-      "targetPage": "courses | tasks | notes | settings | overview | calori | focus",
+      "targetPage": "commandCenter | overview | courses | focus | calendar | tasks | notes | calori | settings",
       
       // For replan:
       "tuneCommand": "Tuning instruction query (Hebrew)"
@@ -50,8 +55,9 @@ Rules for Actions:
 3. ID matching:
    - For delete_task, schedule_task, unschedule_task, lock_block: You MUST match the task/block the user is talking about to the IDs provided in the context. If you cannot find a matching ID, do not propose the action, just ask the user to clarify.
    - For delete_note: Match the note the user wants to delete to the note IDs in the context.
-4. Navigation: If the user says "קח אותי לפתקים" or "איזה פתקים שמרתי?", do NOT print the notes inside the chat. Propose a "navigate" action with targetPage = "notes", and say in the response that they can click the button to view their notes.
-5. All text in 'response', 'title', and payloads MUST be in Hebrew (RTL friendly).
+4. Navigation: If the user requests to go to a page or view something (e.g., "פתח את מסך הפתקים" or "קח אותי ללוח השנה"), propose a "navigate" action with the correct targetPage from: commandCenter, overview, courses, focus, calendar, tasks, notes, calori, settings. Say in the response that they can click the button to go there.
+5. Replan: If the user wants to adjust their daily schedule (e.g., "אני עייף היום, תקל עליי", "פנה לי שלוש שעות בבוקר", "סדר לי אימון בערב"), propose a "replan" action with a descriptive "tuneCommand" in Hebrew summarizing their request.
+6. All text in 'response', 'title', and payloads MUST be in Hebrew (RTL friendly).
 `;
 
 export const chatWithCoach = async ({
@@ -62,6 +68,9 @@ export const chatWithCoach = async ({
   notes = [],
   settings = {},
   shabbatTimes = null,
+  courses = [],
+  upcomingExams = [],
+  caloriData = null,
 }) => {
   try {
     const key = getGeminiApiKey();
@@ -83,6 +92,15 @@ State of the Application:
 - Shabbat Mode: ${settings.shabbatMode ? 'ON' : 'OFF'}
 - Shabbat times (if applicable): ${shabbatTimes ? `Starts ${shabbatTimes.start}, Ends ${shabbatTimes.end}` : 'None'}
 - User Settings: Wake-up ${settings.wakeTime || '07:00'}, Bedtime ${settings.sleepTime || '23:00'}
+
+Courses:
+${JSON.stringify(courses)}
+
+Upcoming Exams:
+${JSON.stringify(upcomingExams)}
+
+Calori Data (Nutrition & Fitness):
+${caloriData ? JSON.stringify(caloriData) : 'None'}
 
 Scheduled Timeline Blocks (Today):
 ${JSON.stringify(
@@ -132,7 +150,7 @@ ${JSON.stringify(
     const responseText = result.response.text();
     
     try {
-      return JSON.parse(responseText);
+      return extractJSONFromMarkdown(responseText);
     } catch (e) {
       console.error('JSON parsing failed for Coach AI response:', responseText, e);
       return {

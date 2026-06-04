@@ -53,18 +53,17 @@ Scheduling Rules:
 12. NEVER generate any blocks of type 'leisure' or any block representing breaks, rest, leisure, or free time (e.g. 'הפסקה קצרה', 'הפסקה', 'זמן חופשי', 'מנוחה'). The timeline MUST only contain active blocks like 'study', 'meal', 'workout', 'event', 'sleep', 'travel'. Gaps in the timeline represent free/break time and must simply have no blocks at all.
 `;
 
+export const extractJSONFromMarkdown = (text) => {
+  let cleanText = text.trim();
+  const match = cleanText.match(/```(?:json)?\n([\s\S]*?)```/);
+  if (match) cleanText = match[1].trim();
+  return JSON.parse(cleanText);
+};
+
 const parseGeminiJSON = (text) => {
   if (!text) return { blocks: [], coachNote: '' };
   try {
-    let cleanText = text.trim();
-    if (cleanText.startsWith('```')) {
-      const firstNewline = cleanText.indexOf('\n');
-      const lastBacktick = cleanText.lastIndexOf('```');
-      if (firstNewline !== -1 && lastBacktick !== -1) {
-        cleanText = cleanText.substring(firstNewline + 1, lastBacktick).trim();
-      }
-    }
-    return JSON.parse(cleanText);
+    return extractJSONFromMarkdown(text);
   } catch (err) {
     console.error('[Gemini Service] Failed to parse JSON:', err, text);
     return { blocks: [], coachNote: 'Failed to parse AI response' };

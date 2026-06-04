@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Instrument · Calori</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;}
+.wordmark{font-size:15px;font-weight:700;color:#2A1A0A;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:17px;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:12px;}
+
+/* DATE NAV */
+.date-nav{background:#fff;border:1px solid rgba(180,140,80,.14);border-radius:14px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(40,20,0,.04);}
+.dn-btn{width:32px;height:32px;border-radius:50%;background:#F5F0E8;display:flex;align-items:center;justify-content:center;color:#8A7A6A;font-size:14px;}
+.dn-c{text-align:center;}
+.dn-day{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;line-height:1;letter-spacing:-.02em;}
+.dn-day em{font-style:italic;color:#059669;}
+.dn-date{font-size:11px;color:#8A7A6A;margin-top:2px;}
+
+/* HERO */
+.c-hero{background:#fff;border-radius:22px;padding:22px 20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);position:relative;overflow:hidden;}
+.c-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#10B981,#059669,#7C3AED);}
+.ch-eyb{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
+.ch-row{display:flex;align-items:center;gap:16px;}
+.ch-left{flex:1;}
+.ch-big{font-family:'Instrument Serif',serif;font-size:64px;font-weight:400;color:#059669;letter-spacing:-.05em;line-height:.85;font-style:italic;}
+.ch-unit{font-family:'Instrument Serif',serif;font-size:16px;color:#8A7A6A;font-style:italic;margin-right:6px;}
+.ch-goal{font-size:12px;color:#8A7A6A;margin-top:6px;}
+.ch-ring{flex-shrink:0;position:relative;}
+.rt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rt-p{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;font-style:italic;}
+.rt-l{font-size:9px;color:#8A7A6A;}
+
+.ch-macs{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(180,140,80,.1);}
+.mac{flex:1;text-align:center;}
+.mac-v{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;letter-spacing:-.02em;font-style:italic;line-height:1;}
+.mac-v.p{color:#059669;}
+.mac-v.c{color:#D97706;}
+.mac-v.f{color:#DC2626;}
+.mac-v.w{color:#2A1A0A;}
+.mac-l{font-size:9px;color:#8A7A6A;margin-top:3px;}
+
+/* SECTION HEAD */
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 4px;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.sec-ttl em{font-style:italic;color:#059669;}
+.sec-ttl em.p{color:#7C3AED;}
+.sec-cnt{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#8A7A6A;}
+
+/* MEAL ROW — green flood */
+.meal{background:#059669;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:6px;color:#fff;}
+.m-time{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.7);width:46px;flex-shrink:0;letter-spacing:-.02em;}
+.m-body{flex:1;}
+.m-name{font-size:14px;font-weight:600;color:#fff;}
+.m-meta{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;}
+.m-cal{font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;color:#fff;letter-spacing:-.03em;line-height:1;flex-shrink:0;}
+
+/* WORKOUT ROW — purple flood */
+.workout{background:#7C3AED;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:6px;color:#fff;}
+.w-time{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.7);width:46px;flex-shrink:0;letter-spacing:-.02em;}
+.w-body{flex:1;}
+.w-name{font-size:14px;font-weight:600;}
+.w-meta{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;}
+.w-cal{font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;color:#fff;letter-spacing:-.03em;line-height:1;flex-shrink:0;}
+
+/* EMPTY */
+.empty{background:rgba(180,140,80,.05);border:1.5px dashed rgba(180,140,80,.2);border-radius:14px;padding:16px;text-align:center;color:#8A7A6A;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Instrument · Screen 4</div>
+<div class="ttl">Calori — <em>תזונה וכושר</em></div>
+<div class="dsc">מספר קלוריות ענק באיטליק (64px) · ארוחות בירוק · אימונים בסגול · רק קריאה מהאפליקציה המקושרת</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">קלורי</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="date-nav">
+        <div class="dn-btn">›</div>
+        <div class="dn-c">
+          <div class="dn-day">היום · <em>רביעי</em></div>
+          <div class="dn-date">4 ביוני 2026</div>
+        </div>
+        <div class="dn-btn">‹</div>
+      </div>
+
+      <div class="c-hero">
+        <div class="ch-eyb">סיכום יומי · 20% מהיעד</div>
+        <div class="ch-row">
+          <div class="ch-left">
+            <div><span class="ch-big">398</span><span class="ch-unit">קק"ל</span></div>
+            <div class="ch-goal">מתוך 2,000 · נשרפו +0</div>
+          </div>
+          <div class="ch-ring">
+            <svg width="84" height="84" viewBox="0 0 84 84" fill="none">
+              <circle cx="42" cy="42" r="35" stroke="rgba(5,150,105,.1)" stroke-width="10"/>
+              <circle cx="42" cy="42" r="35" stroke="#059669" stroke-width="10" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="176" transform="rotate(-90 42 42)"/>
+              <circle cx="42" cy="42" r="24" stroke="rgba(124,58,237,.08)" stroke-width="8"/>
+            </svg>
+            <div class="rt"><div class="rt-p">20%</div><div class="rt-l">הושלם</div></div>
+          </div>
+        </div>
+        <div class="ch-macs">
+          <div class="mac"><div class="mac-v p">45g</div><div class="mac-l">חלבון</div></div>
+          <div class="mac"><div class="mac-v c">36g</div><div class="mac-l">פחמימות</div></div>
+          <div class="mac"><div class="mac-v f">8g</div><div class="mac-l">שומן</div></div>
+          <div class="mac"><div class="mac-v w">86.5</div><div class="mac-l">ק"ג</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head">
+          <div class="sec-ttl">ארוחות <em>היום</em></div>
+          <div class="sec-cnt">1 פריט · 398 קק"ל</div>
+        </div>
+        <div class="meal">
+          <div class="m-time">09:54</div>
+          <div class="m-body">
+            <div class="m-name">משקה חלבון אייס קפה</div>
+            <div class="m-meta">חלבון 45g · פחמימות 36g · שומן 8g</div>
+          </div>
+          <div class="m-cal">398</div>
+        </div>
+        <div class="empty">לא נוסף עוד פריט · פתח את אפליקציית קלורי</div>
+      </div>
+
+      <div>
+        <div class="sec-head">
+          <div class="sec-ttl">אימונים <em class="p">היום</em></div>
+          <div class="sec-cnt">0 דקות · +0 קק"ל</div>
+        </div>
+        <div class="empty">אין אימונים היום · יעד: 30 דק׳</div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item active"><div class="ni">🥗</div><div class="nl">קלורי</div></div>
+  </div>
+</div>
+</body>
+</html>

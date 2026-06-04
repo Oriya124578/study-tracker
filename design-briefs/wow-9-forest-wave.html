@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WOW 9 — Forest Wave</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#C8D8C4;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:12px;font-family:'Plus Jakarta Sans','Heebo',sans-serif;}
+.lbl{font-size:10px;font-weight:600;color:#3A5A36;letter-spacing:.18em;text-transform:uppercase;text-align:center;}
+.ttl{font-size:18px;font-weight:800;color:#1A3018;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#5A7A56;text-align:center;margin-top:3px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FFFCF7;box-shadow:0 40px 80px rgba(5,80,30,.25),0 0 0 1px rgba(5,150,105,.1);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:rgba(5,95,60,.95);border-radius:20px;z-index:100;}
+
+/* FOREST GREEN top — with organic wave bottom edge */
+.green-top{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:54%;
+  background:linear-gradient(165deg,#065F46 0%,#047857 45%,#059669 80%,#10B981 100%);
+  z-index:0;
+}
+
+/* SVG wave at the bottom of green zone */
+.wave-svg{
+  position:absolute;
+  bottom:-1px;left:0;right:0;
+  z-index:1;
+  line-height:0;
+}
+
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;z-index:2;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;padding:52px 22px 13px;background:rgba(6,95,70,.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.wordmark{font-size:15px;font-weight:800;letter-spacing:-.03em;color:#fff;}
+.wordmark em{font-style:normal;opacity:.55;}
+
+/* GREEN CONTENT */
+.green-content{padding:18px 22px 0;}
+.g-date{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.18em;text-transform:uppercase;margin-bottom:9px;}
+.g-name{font-size:34px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:.95;margin-bottom:8px;}
+.g-name em{font-style:normal;color:rgba(255,255,255,.65);}
+
+/* inline status */
+.g-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.g-status{font-size:12px;color:rgba(255,255,255,.5);font-weight:500;display:flex;align-items:center;gap:5px;}
+.gs-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.7);}
+.g-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:600;color:#fff;}
+
+/* Big number + ring side by side */
+.hero-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.hero-left{flex:1;}
+.big-cal{font-size:72px;font-weight:800;color:#fff;letter-spacing:-.07em;line-height:.85;}
+.big-cal-sub{font-size:13px;color:rgba(255,255,255,.45);font-weight:500;margin-top:4px;}
+.secondary-stats{display:flex;gap:14px;margin-top:10px;}
+.ss-val{font-size:20px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:-.03em;line-height:1;}
+.ss-lbl{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;}
+
+/* Ring */
+.ring-w{flex-shrink:0;position:relative;}
+.rt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rt-p{font-size:15px;font-weight:800;color:#fff;}
+.rt-l{font-size:8px;color:rgba(255,255,255,.45);}
+
+/* Macros */
+.macs-row{display:flex;gap:6px;padding-bottom:36px;}
+.mac{border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);color:#fff;}
+
+/* CREAM ZONE content */
+.cream-content{padding:6px 16px 0;}
+
+.qa-row{display:flex;gap:8px;margin-bottom:14px;}
+.qa-big{flex:1;background:#059669;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 5px 18px rgba(5,150,105,.28);}
+.qa-big-ico{font-size:20px;}
+.qa-big-main{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+.qa-big-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px;}
+.qa-stack{display:flex;flex-direction:column;gap:8px;}
+.qa-sm{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.qa-sm-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.qa-sm-ico.p{background:#EDE9FE;}
+.qa-sm-ico.b{background:#DBEAFE;}
+.qa-sm-txt{font-size:12px;font-weight:700;color:#1D1D1F;}
+
+.tl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.tl-ttl{font-size:20px;font-weight:800;color:#1D1D1F;letter-spacing:-.03em;}
+.tl-lnk{font-size:11px;font-weight:700;color:#059669;}
+.tl-seg{font-size:10px;font-weight:600;color:rgba(0,0,0,.28);letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tl-seg::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.08);}
+.tl-row{display:flex;gap:10px;margin-bottom:8px;align-items:stretch;}
+.t-tm{width:34px;text-align:center;flex-shrink:0;padding-top:11px;font-size:10px;font-weight:600;color:rgba(0,0,0,.28);}
+.t-dc{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;}
+.t-dot{width:9px;height:9px;border-radius:50%;margin-top:11px;}
+.t-dot.g{background:#059669;}
+.t-dot.r{background:#EF4444;}
+.t-dot.gr{background:#D1D5DB;}
+.t-ln{flex:1;width:1.5px;background:rgba(0,0,0,.07);margin-top:4px;}
+.t-c{flex:1;border-radius:14px;padding:11px 14px;}
+.t-c.gf{background:#059669;}
+.t-c.rs{background:#FEF2F2;border:1px solid rgba(239,68,68,.12);}
+.t-c.ds{background:#fff;border:1.5px dashed rgba(0,0,0,.1);}
+.t-tt{font-size:13px;font-weight:700;}
+.t-c.gf .t-tt{color:#fff;}
+.t-c.rs .t-tt{color:#991B1B;}
+.t-c.ds .t-tt{font-size:12px;color:rgba(0,0,0,.28);text-align:center;}
+.t-sb{font-size:11px;margin-top:2px;color:rgba(255,255,255,.65);}
+
+.mini-row{display:flex;gap:8px;}
+.mini{flex:1;background:#fff;border-radius:16px;padding:12px 11px;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 6px rgba(0,0,0,.04);}
+.mv{font-size:24px;font-weight:800;letter-spacing:-.04em;line-height:1;}
+.mv.g{color:#059669;}
+.mv.p{color:#7C3AED;}
+.mv.n{color:#1D1D1F;}
+.ml{font-size:10px;color:rgba(0,0,0,.3);font-weight:500;margin-top:3px;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(255,252,247,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(0,0,0,.25);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.4);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">WOW 9</div>
+<div class="ttl">Forest Wave · Plus Jakarta Sans · 72px Number</div>
+<div class="dsc">ירוק כהה (#065F46) + גל SVG כגבול + רקע קרם חמים + 72px לקלוריות</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="green-top"></div>
+
+  <!-- SVG WAVE at bottom of green zone -->
+  <div class="wave-svg" style="position:absolute;top:52%;left:0;right:0;z-index:1;transform:translateY(-100%);">
+    <svg viewBox="0 0 390 50" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" width="390" height="50">
+      <path d="M0,20 C60,50 130,0 195,25 C260,50 330,10 390,30 L390,50 L0,50 Z" fill="#FFFCF7"/>
+    </svg>
+  </div>
+
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div style="width:34px"></div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+
+    <!-- GREEN CONTENT -->
+    <div class="green-content">
+      <div class="g-date">Wed · 04 Jun 2026</div>
+      <div class="g-name">ערב טוב,<br><em>אוריה 👋</em></div>
+      <div class="g-row">
+        <div class="g-status"><div class="gs-dot"></div>הלוז הושלם</div>
+        <div class="g-badge">30 יום לאינפי 2</div>
+      </div>
+
+      <!-- BIG number + ring -->
+      <div class="hero-row">
+        <div class="hero-left">
+          <div class="big-cal">398</div>
+          <div class="big-cal-sub">קק"ל · מתוך 2,000</div>
+          <div class="secondary-stats">
+            <div><div class="ss-val">+0</div><div class="ss-lbl">שנשרפו</div></div>
+            <div><div class="ss-val">86.5</div><div class="ss-lbl">ק"ג · יעד 78</div></div>
+          </div>
+        </div>
+        <div class="ring-w">
+          <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+            <circle cx="44" cy="44" r="37" stroke="rgba(255,255,255,.16)" stroke-width="10"/>
+            <circle cx="44" cy="44" r="37" stroke="#fff" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="233" stroke-dashoffset="186"
+              transform="rotate(-90 44 44)"/>
+            <circle cx="44" cy="44" r="26" stroke="rgba(255,255,255,.1)" stroke-width="8"/>
+          </svg>
+          <div class="rt"><div class="rt-p">20%</div><div class="rt-l">הושלם</div></div>
+        </div>
+      </div>
+
+      <div class="macs-row">
+        <span class="mac">חלבון 45g</span>
+        <span class="mac">פחמימות 36g</span>
+        <span class="mac">שומן 8g</span>
+      </div>
+    </div>
+
+    <!-- CREAM ZONE -->
+    <div class="cream-content">
+      <div class="qa-row">
+        <div class="qa-big">
+          <div class="qa-big-ico">✦</div>
+          <div><div class="qa-big-main">ארגן עם AI</div><div class="qa-big-sub">תכנון יומי מותאם</div></div>
+        </div>
+        <div class="qa-stack">
+          <div class="qa-sm"><div class="qa-sm-ico p">⏱</div><div class="qa-sm-txt">פומודורו</div></div>
+          <div class="qa-sm"><div class="qa-sm-ico b">＋</div><div class="qa-sm-txt">הוסף</div></div>
+        </div>
+      </div>
+
+      <div class="tl-head"><div class="tl-ttl">היום</div><div class="tl-lnk">יומן ›</div></div>
+      <div class="tl-seg">בוקר</div>
+      <div class="tl-row">
+        <div class="t-tm">09:54</div>
+        <div class="t-dc"><div class="t-dot g"></div><div class="t-ln"></div></div>
+        <div class="t-c gf"><div class="t-tt">משקה חלבון אייס קפה</div><div class="t-sb">398 קק"ל · 45g חלבון</div></div>
+      </div>
+      <div class="tl-seg">ערב</div>
+      <div class="tl-row">
+        <div class="t-tm">כל היום</div>
+        <div class="t-dc"><div class="t-dot r"></div></div>
+        <div class="t-c rs"><div class="t-tt">⏰ אינפי 2 · 30 ימים</div></div>
+      </div>
+      <div class="tl-row">
+        <div class="t-tm"></div>
+        <div class="t-dc"><div class="t-dot gr"></div></div>
+        <div class="t-c ds"><div class="t-tt">+ הוסף פריט לצהריים</div></div>
+      </div>
+
+      <div class="mini-row">
+        <div class="mini"><div class="mv g">30</div><div class="ml">ימים לבחינה</div></div>
+        <div class="mini"><div class="mv p">0</div><div class="ml">פומודורו</div></div>
+        <div class="mini"><div class="mv n">0</div><div class="ml">משימות</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WOW 2 — Ring as Hero</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#F0EDE8;min-height:100vh;font-family:'Heebo',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:12px;}
+.lbl{font-size:11px;font-weight:700;color:#666;letter-spacing:.14em;text-transform:uppercase;text-align:center;}
+.ttl{font-size:18px;font-weight:900;color:#111;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#777;text-align:center;margin-top:3px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FFFDF9;box-shadow:0 40px 80px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.06);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#000;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;padding:52px 22px 13px;background:rgba(255,253,249,.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,.05);}
+.avatar{width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.wordmark{font-size:16px;font-weight:900;color:#1D1D1F;letter-spacing:-.02em;}
+.wordmark em{color:#059669;font-style:normal;font-weight:500;}
+
+/* ── RING HERO ── full bleed, no card */
+.ring-hero{
+  position:relative;
+  padding:24px 22px 0;
+  overflow:visible;
+}
+
+/* The HUGE ring — full bleed, centered */
+.ring-stage{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:0;
+}
+
+/* Glow behind ring */
+.ring-glow{
+  position:absolute;
+  width:260px;height:260px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(5,150,105,.12) 0%,transparent 70%);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  filter:blur(20px);
+}
+
+/* Text floating INSIDE the ring */
+.ring-inner{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  width:140px;
+}
+.ri-date{font-size:9px;font-weight:700;color:rgba(0,0,0,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
+.ri-greeting{font-size:16px;font-weight:900;color:#1D1D1F;letter-spacing:-.03em;line-height:1.1;}
+.ri-greeting em{color:#059669;font-style:normal;}
+.ri-divider{width:30px;height:1px;background:rgba(0,0,0,.12);margin:6px auto;}
+.ri-pct{font-size:32px;font-weight:900;color:#059669;letter-spacing:-.05em;line-height:1;}
+.ri-lbl{font-size:9px;color:rgba(0,0,0,.3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+
+/* Floating stats around the ring */
+.stat-float{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;
+  background:rgba(255,253,249,.92);
+  border:1px solid rgba(0,0,0,.07);
+  border-radius:14px;
+  padding:8px 12px;
+  box-shadow:0 4px 16px rgba(0,0,0,.07);
+  backdrop-filter:blur(8px);
+}
+.sf-val{font-size:22px;font-weight:900;letter-spacing:-.04em;line-height:1;}
+.sf-val.g{color:#059669;}
+.sf-val.p{color:#7C3AED;}
+.sf-val.n{color:#1D1D1F;}
+.sf-lbl{font-size:9px;color:rgba(0,0,0,.35);font-weight:600;margin-top:2px;}
+
+/* Position floaters */
+.sf-cal{top:20%;right:-10px;}
+.sf-burn{top:20%;left:-10px;}
+.sf-weight{bottom:10%;right:-10px;}
+
+/* Chips row below ring */
+.ring-chips{display:flex;justify-content:center;gap:6px;margin-top:10px;padding-bottom:18px;}
+.chip{border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;}
+.chip.g{background:#D1FAE5;color:#059669;}
+.chip.c{background:#FEF3C7;color:#D97706;}
+.chip.f{background:#FEE2E2;color:#DC2626;}
+.chip.exam{background:#EFF6FF;color:#1D4ED8;}
+
+/* Divider before actions */
+.zone-div{height:1px;background:rgba(0,0,0,.07);margin:0 22px 16px;}
+
+/* QUICK ACTIONS */
+.qa-content{padding:0 16px;}
+.qa-row{display:flex;gap:8px;margin-bottom:14px;}
+.qa-big{flex:1;background:#059669;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 5px 20px rgba(5,150,105,.3);}
+.qa-big-ico{font-size:22px;}
+.qa-big-main{font-size:14px;font-weight:900;color:#fff;}
+.qa-big-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px;}
+.qa-stack{display:flex;flex-direction:column;gap:8px;}
+.qa-sm{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.qa-sm-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.qa-sm-ico.p{background:#EDE9FE;}
+.qa-sm-ico.b{background:#DBEAFE;}
+.qa-sm-txt{font-size:12px;font-weight:800;color:#1D1D1F;}
+
+/* TIMELINE */
+.tl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.tl-ttl{font-size:20px;font-weight:900;color:#1D1D1F;letter-spacing:-.02em;}
+.tl-lnk{font-size:11px;font-weight:700;color:#059669;}
+.tl-seg{font-size:10px;font-weight:700;color:rgba(0,0,0,.28);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tl-seg::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.07);}
+.tl-row{display:flex;gap:10px;margin-bottom:8px;align-items:stretch;}
+.t-tm{width:34px;text-align:center;flex-shrink:0;padding-top:11px;font-size:10px;font-weight:700;color:rgba(0,0,0,.3);}
+.t-dc{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;}
+.t-dot{width:9px;height:9px;border-radius:50%;margin-top:11px;}
+.t-dot.g{background:#059669;}
+.t-dot.r{background:#EF4444;}
+.t-dot.gr{background:#E5E7EB;}
+.t-ln{flex:1;width:1px;background:rgba(0,0,0,.07);margin-top:4px;}
+.t-c{flex:1;border-radius:14px;padding:10px 13px;}
+.t-c.gf{background:#059669;}
+.t-c.rs{background:#FEF2F2;border:1px solid rgba(239,68,68,.1);}
+.t-c.ds{background:rgba(0,0,0,.03);border:1.5px dashed rgba(0,0,0,.08);}
+.t-tt{font-size:13px;font-weight:700;}
+.t-c.gf .t-tt{color:#fff;}
+.t-c.rs .t-tt{color:#991B1B;}
+.t-c.ds .t-tt{font-size:12px;color:rgba(0,0,0,.25);text-align:center;}
+.t-sb{font-size:11px;margin-top:2px;color:rgba(255,255,255,.65);}
+
+/* Mini tiles */
+.mini-row{display:flex;gap:8px;}
+.mini{flex:1;background:#fff;border-radius:18px;padding:12px 11px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.mv{font-size:24px;font-weight:900;letter-spacing:-.04em;line-height:1;}
+.mv.b{color:#2563EB;}
+.mv.p{color:#7C3AED;}
+.mv.n{color:#1D1D1F;}
+.ml{font-size:10px;color:rgba(0,0,0,.35);font-weight:600;margin-top:3px;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(255,253,249,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:700;color:rgba(0,0,0,.25);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#059669;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(5,150,105,.4);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">WOW 2</div>
+<div class="ttl">Ring as Hero — הרינג תופס את הבמה</div>
+<div class="dsc">הרינג הוא ה-hero — גדול, מרכזי, בלי כרטיס. הברכה ומספרים צפים בתוכו ומסביבו.</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+
+    <div class="header">
+      <div class="avatar">א</div>
+      <div style="width:34px"></div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+
+    <!-- RING HERO SECTION -->
+    <div class="ring-hero">
+      <div class="ring-stage">
+        <div class="ring-glow"></div>
+
+        <!-- THE BIG RING -->
+        <svg width="240" height="240" viewBox="0 0 240 240" fill="none">
+          <!-- Outer track -->
+          <circle cx="120" cy="120" r="104" stroke="#F0FDF4" stroke-width="14"/>
+          <!-- Outer progress — 20% = 130px out of 654px -->
+          <circle cx="120" cy="120" r="104" stroke="#059669" stroke-width="14"
+            stroke-linecap="round" stroke-dasharray="654" stroke-dashoffset="523"
+            transform="rotate(-90 120 120)"
+            filter="drop-shadow(0 0 8px rgba(5,150,105,.4))"/>
+          <!-- Inner track -->
+          <circle cx="120" cy="120" r="80" stroke="#F5F3FF" stroke-width="11"/>
+          <!-- Inner progress — 0% -->
+          <circle cx="120" cy="120" r="80" stroke="#7C3AED" stroke-width="11"
+            stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="503"
+            transform="rotate(-90 120 120)"/>
+        </svg>
+
+        <!-- Text inside ring -->
+        <div class="ring-inner">
+          <div class="ri-date">רביעי · 4.6.26</div>
+          <div class="ri-greeting">ערב טוב,<br><em>אוריה 👋</em></div>
+          <div class="ri-divider"></div>
+          <div class="ri-pct">20%</div>
+          <div class="ri-lbl">הושלם היום</div>
+        </div>
+
+        <!-- Floating stat cards -->
+        <div class="stat-float sf-cal">
+          <div class="sf-val g">398</div>
+          <div class="sf-lbl">קק"ל שנאכלו</div>
+        </div>
+        <div class="stat-float sf-burn">
+          <div class="sf-val p">+0</div>
+          <div class="sf-lbl">שנשרפו</div>
+        </div>
+        <div class="stat-float sf-weight">
+          <div class="sf-val n" style="font-size:18px">86.5</div>
+          <div class="sf-lbl">ק"ג · יעד 78</div>
+        </div>
+      </div>
+
+      <!-- Chips row -->
+      <div class="ring-chips">
+        <span class="chip g">חלבון 45g</span>
+        <span class="chip c">פחמימות 36g</span>
+        <span class="chip f">שומן 8g</span>
+        <span class="chip exam">מבחן בעוד 30 יום</span>
+      </div>
+    </div>
+
+    <div class="zone-div"></div>
+
+    <!-- QA + Timeline -->
+    <div class="qa-content">
+      <div class="qa-row">
+        <div class="qa-big">
+          <div class="qa-big-ico">✦</div>
+          <div><div class="qa-big-main">ארגן עם AI</div><div class="qa-big-sub">תכנון יומי</div></div>
+        </div>
+        <div class="qa-stack">
+          <div class="qa-sm"><div class="qa-sm-ico p">⏱</div><div class="qa-sm-txt">פומודורו</div></div>
+          <div class="qa-sm"><div class="qa-sm-ico b">＋</div><div class="qa-sm-txt">הוסף פריט</div></div>
+        </div>
+      </div>
+
+      <div class="tl-h"><div class="tl-ttl">היום</div><div class="tl-lnk">יומן ›</div></div>
+      <div class="tl-seg">בוקר</div>
+      <div class="tl-row">
+        <div class="t-tm">09:54</div>
+        <div class="t-dc"><div class="t-dot g"></div><div class="t-ln"></div></div>
+        <div class="t-c gf"><div class="t-tt">משקה חלבון אייס קפה</div><div class="t-sb">398 קק"ל · חלבון 45g</div></div>
+      </div>
+      <div class="tl-seg">ערב</div>
+      <div class="tl-row">
+        <div class="t-tm">כל היום</div>
+        <div class="t-dc"><div class="t-dot r"></div></div>
+        <div class="t-c rs"><div class="t-tt">⏰ אינפי 2 · 30 ימים לבחינה</div></div>
+      </div>
+
+      <div class="mini-row">
+        <div class="mini"><div class="mv b">30</div><div class="ml">ימים לבחינה</div></div>
+        <div class="mini"><div class="mv p">0</div><div class="ml">פומודורו</div></div>
+        <div class="mini"><div class="mv n">0</div><div class="ml">משימות</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
+  </div>
+</div>
+</body>
+</html>

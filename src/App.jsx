@@ -35,10 +35,7 @@ function App() {
       }
     });
     return () => unsub();
-    // initFromAuth/cleanup are stable Zustand actions; intentionally omitted
-    // from deps so we don't accidentally re-subscribe.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initFromAuth, cleanup]);
 
   // Apply theme and language to <html>.
   useEffect(() => {

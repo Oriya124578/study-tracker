@@ -61,34 +61,40 @@ export const FocusHub = () => {
 
   // Fetch Shabbat times for today to pass to background rescheduling if interrupted
   useEffect(() => {
+    let mounted = true;
     const loadShabbat = async () => {
       if (!data?.profile?.shabbatMode) {
-        setShabbatTimes(null);
+        if (mounted) setShabbatTimes(null);
         return;
       }
       let locationParam = { city: data?.profile?.selectedCity || 'tel_aviv' };
+      
+      const onDataCb = (times) => {
+        if (mounted) setShabbatTimes(times);
+      };
+
       if (data?.profile?.useGPS && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
+          (position) => {
+            if (!mounted) return;
             const coords = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             };
             setGpsLocation(coords);
-            const times = await fetchShabbatTimes(coords, dateStr);
-            setShabbatTimes(times);
+            fetchShabbatTimes(coords, dateStr, onDataCb);
           },
-          async () => {
-            const times = await fetchShabbatTimes(locationParam, dateStr);
-            setShabbatTimes(times);
+          () => {
+            if (!mounted) return;
+            fetchShabbatTimes(locationParam, dateStr, onDataCb);
           }
         );
         return;
       }
-      const times = await fetchShabbatTimes(locationParam, dateStr);
-      setShabbatTimes(times);
+      fetchShabbatTimes(locationParam, dateStr, onDataCb);
     };
     loadShabbat();
+    return () => { mounted = false; };
   }, [data?.profile?.shabbatMode, data?.profile?.useGPS, data?.profile?.selectedCity, dateStr]);
 
   // Aggregate blocks for today's timeline

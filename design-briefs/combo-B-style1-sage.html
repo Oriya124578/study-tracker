@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Combo B — Soft Sage</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#C9D4C5;min-height:100vh;font-family:'Plus Jakarta Sans','Heebo',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:700;color:#4A6A44;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-size:19px;font-weight:800;color:#1A2E18;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#6A8A64;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#EEF3ED;box-shadow:0 40px 80px rgba(20,60,20,.2),0 0 0 1.5px rgba(5,150,105,.12);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#1A2E18;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(238,243,237,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(5,150,105,.1);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.h-title{font-size:17px;font-weight:800;color:#1A2E18;}
+.wordmark{font-size:15px;font-weight:800;color:#1A2E18;letter-spacing:-.02em;}
+.wordmark em{color:#059669;font-style:normal;font-weight:600;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:10px;}
+
+/* HERO CARD — sage tinted */
+.hero{background:#FFFFFF;border-radius:24px;padding:20px 18px 18px;border:1px solid rgba(5,150,105,.12);box-shadow:0 2px 20px rgba(5,150,105,.08);position:relative;overflow:hidden;}
+/* Green left accent bar */
+.hero::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:linear-gradient(180deg,#10B981,#059669 60%,rgba(5,150,105,.3));}
+
+/* Greeting */
+.hc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.hc-date{font-size:10px;font-weight:600;color:#6A8A64;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}
+.hc-name{font-size:26px;font-weight:800;color:#1A2E18;letter-spacing:-.04em;line-height:1.05;}
+.hc-name em{color:#059669;font-style:normal;}
+.hc-status{display:flex;align-items:center;gap:5px;margin-top:7px;}
+.hc-dot{width:6px;height:6px;border-radius:50%;background:#059669;}
+.hc-st{font-size:12px;font-weight:600;color:#6A8A64;}
+.hc-badge{background:#D1FAE5;border:1px solid rgba(5,150,105,.2);border-radius:14px;padding:9px 12px;text-align:center;flex-shrink:0;}
+.hc-bnum{font-size:26px;font-weight:800;color:#059669;line-height:1;}
+.hc-blbl{font-size:9px;color:rgba(5,150,105,.55);margin-top:1px;}
+
+.hc-div{border:none;border-top:1px solid rgba(5,150,105,.1);margin:0 0 14px;}
+
+/* Nutrition row */
+.hc-nut{display:flex;align-items:center;gap:12px;}
+.hc-left{flex:1;}
+.hc-stats{display:flex;gap:0;margin-bottom:10px;}
+.hc-s{flex:1;padding:0 10px 0 0;}
+.hc-s+.hc-s{padding:0 10px;border-right:1px solid rgba(5,150,105,.1);}
+.vg{font-size:28px;font-weight:800;color:#059669;letter-spacing:-.04em;line-height:1;}
+.vp{font-size:20px;font-weight:800;color:#7C3AED;letter-spacing:-.03em;line-height:1;}
+.vw{font-size:18px;font-weight:800;color:#1A2E18;letter-spacing:-.02em;line-height:1;}
+.vs{font-size:10px;color:#6A8A64;margin-top:3px;}
+.hc-macs{display:flex;gap:6px;}
+.mac{border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;}
+.mac.g{background:#D1FAE5;color:#047857;}
+.mac.c{background:#FEF3C7;color:#D97706;}
+.mac.f{background:#FEE2E2;color:#DC2626;}
+
+/* Ring */
+.ring-w{flex-shrink:0;position:relative;}
+.rt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rt-p{font-size:15px;font-weight:800;color:#1A2E18;}
+.rt-l{font-size:9px;color:#6A8A64;}
+
+/* QA */
+.qa-pills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
+.qa-pills::-webkit-scrollbar{display:none;}
+.qa-pill{flex-shrink:0;border-radius:14px;padding:11px 16px;display:flex;align-items:center;gap:8px;}
+.qa-pill.prim{background:#059669;box-shadow:0 4px 16px rgba(5,150,105,.3);}
+.qa-pill.sec{background:#fff;border:1px solid rgba(5,150,105,.15);box-shadow:0 1px 6px rgba(5,150,105,.06);}
+.qa-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.qa-ico.w{background:rgba(255,255,255,.2);}
+.qa-ico.p{background:#EDE9FE;}
+.qa-ico.b{background:#DBEAFE;}
+.qa-ico.a{background:#D1FAE5;}
+.qa-t{font-size:12px;font-weight:700;}
+.qa-pill.prim .qa-t{color:#fff;}
+.qa-pill.sec .qa-t{color:#1A2E18;}
+
+/* TIMELINE */
+.tl-head{display:flex;justify-content:space-between;align-items:center;padding:2px 2px 8px;}
+.tl-ttl{font-size:18px;font-weight:800;color:#1A2E18;letter-spacing:-.02em;}
+.tl-lnk{font-size:11px;font-weight:700;color:#059669;}
+.tl-seg{font-size:10px;font-weight:700;color:#6A8A64;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tl-seg::after{content:'';flex:1;height:1px;background:rgba(5,150,105,.1);}
+.tl-row{display:flex;gap:10px;margin-bottom:8px;align-items:stretch;}
+.t-tm{width:34px;text-align:center;flex-shrink:0;padding-top:11px;font-size:10px;font-weight:600;color:#6A8A64;}
+.t-dc{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;}
+.t-dot{width:9px;height:9px;border-radius:50%;margin-top:11px;}
+.t-dot.g{background:#059669;box-shadow:0 0 0 2px rgba(5,150,105,.2);}
+.t-dot.r{background:#EF4444;}
+.t-dot.gr{background:#A7C4A0;}
+.t-ln{flex:1;width:1.5px;background:rgba(5,150,105,.12);margin-top:4px;}
+.t-c{flex:1;border-radius:14px;padding:11px 14px;}
+.t-c.gf{background:#059669;}
+.t-c.rs{background:#FEF2F2;border:1px solid rgba(239,68,68,.12);}
+.t-c.ds{background:rgba(5,150,105,.04);border:1.5px dashed rgba(5,150,105,.15);}
+.t-tt{font-size:13px;font-weight:700;}
+.t-c.gf .t-tt{color:#fff;}
+.t-c.rs .t-tt{color:#991B1B;}
+.t-c.ds .t-tt{font-size:12px;color:#6A8A64;text-align:center;}
+.t-sb{font-size:11px;margin-top:2px;color:rgba(255,255,255,.65);}
+
+/* MINI */
+.mini-row{display:flex;gap:8px;}
+.mini{flex:1;background:#fff;border-radius:18px;padding:13px 12px;border:1px solid rgba(5,150,105,.1);box-shadow:0 1px 8px rgba(5,150,105,.06);}
+.mv{font-size:24px;font-weight:800;letter-spacing:-.04em;line-height:1;}
+.mv.g{color:#059669;}
+.mv.p{color:#7C3AED;}
+.mv.n{color:#1A2E18;}
+.ml{font-size:10px;color:#6A8A64;font-weight:600;margin-top:3px;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(238,243,237,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(5,150,105,.1);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:700;color:rgba(26,46,24,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#059669;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(5,150,105,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Combo B · Style 1</div>
+<div class="ttl">Soft Sage — ירוק חם, טבעי, wellness</div>
+<div class="dsc">Plus Jakarta Sans · רקע sage ירקרק · כרטיסים עם accent bar ירוק</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">בית</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="hero">
+        <div class="hc-top">
+          <div>
+            <div class="hc-date">רביעי · 4 יוני 2026</div>
+            <div class="hc-name">ערב טוב,<br><em>אוריה 👋</em></div>
+            <div class="hc-status"><div class="hc-dot"></div><div class="hc-st">הלוז הושלם להיום</div></div>
+          </div>
+          <div class="hc-badge"><div class="hc-bnum">30</div><div class="hc-blbl">ימים לאינפי 2</div></div>
+        </div>
+        <hr class="hc-div">
+        <div class="hc-nut">
+          <div class="hc-left">
+            <div class="hc-stats">
+              <div class="hc-s"><div class="vg">398</div><div class="vs">קק"ל / 2,000</div></div>
+              <div class="hc-s"><div class="vp">+0</div><div class="vs">שנשרפו / 300</div></div>
+              <div class="hc-s"><div class="vw">86.5</div><div class="vs">ק"ג · יעד 78</div></div>
+            </div>
+            <div class="hc-macs">
+              <span class="mac g">45g</span><span class="mac c">36g</span><span class="mac f">8g</span>
+            </div>
+          </div>
+          <div class="ring-w">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <circle cx="44" cy="44" r="37" stroke="rgba(5,150,105,.1)" stroke-width="10"/>
+              <circle cx="44" cy="44" r="37" stroke="#059669" stroke-width="10" stroke-linecap="round" stroke-dasharray="233" stroke-dashoffset="186" transform="rotate(-90 44 44)"/>
+              <circle cx="44" cy="44" r="26" stroke="rgba(124,58,237,.08)" stroke-width="9"/>
+              <circle cx="44" cy="44" r="26" stroke="#7C3AED" stroke-width="9" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="163" transform="rotate(-90 44 44)"/>
+            </svg>
+            <div class="rt"><div class="rt-p">20%</div><div class="rt-l">הושלם</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qa-pills">
+        <div class="qa-pill prim"><div class="qa-ico w">✦</div><div class="qa-t">ארגן עם AI</div></div>
+        <div class="qa-pill sec"><div class="qa-ico p">⏱</div><div class="qa-t">פומודורו</div></div>
+        <div class="qa-pill sec"><div class="qa-ico b">＋</div><div class="qa-t">הוסף פריט</div></div>
+        <div class="qa-pill sec"><div class="qa-ico a">🥗</div><div class="qa-t">תזונה</div></div>
+      </div>
+
+      <div>
+        <div class="tl-head"><div class="tl-ttl">היום</div><div class="tl-lnk">יומן ›</div></div>
+        <div class="tl-seg">בוקר</div>
+        <div class="tl-row">
+          <div class="t-tm">09:54</div>
+          <div class="t-dc"><div class="t-dot g"></div><div class="t-ln"></div></div>
+          <div class="t-c gf"><div class="t-tt">משקה חלבון אייס קפה</div><div class="t-sb">398 קק"ל · חלבון 45g</div></div>
+        </div>
+        <div class="tl-seg">צהריים</div>
+        <div class="tl-row">
+          <div class="t-tm"></div>
+          <div class="t-dc"><div class="t-dot gr"></div></div>
+          <div class="t-c ds"><div class="t-tt">ריק · לחץ + להוסיף</div></div>
+        </div>
+        <div class="tl-seg">ערב</div>
+        <div class="tl-row">
+          <div class="t-tm">כל היום</div>
+          <div class="t-dc"><div class="t-dot r"></div></div>
+          <div class="t-c rs"><div class="t-tt">⏰ אינפי 2 · 30 ימים</div></div>
+        </div>
+      </div>
+
+      <div class="mini-row">
+        <div class="mini"><div class="mv g">30</div><div class="ml">ימים לבחינה</div></div>
+        <div class="mini"><div class="mv p">0</div><div class="ml">פומודורו</div></div>
+        <div class="mini"><div class="mv n">0</div><div class="ml">משימות</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
+  </div>
+</div>
+</body>
+</html>

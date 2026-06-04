@@ -1,7 +1,4 @@
-/**
- * Service to fetch Shabbat times from the Hebcal API.
- * Hebcal is a free, public API that does not require keys.
- */
+import { swrFetch } from './cacheService';
 
 // Simple local cache to avoid redundant network calls during the same session.
 const cache = {};
@@ -32,9 +29,10 @@ export const CITIES_LIST = [
  * Fetch Shabbat times for a given location (coords or city).
  * @param {Object} location - { latitude, longitude } or { city: 'jerusalem' }
  * @param {string} dateStr - Optional date query (YYYY-MM-DD), default is current week.
+ * @param {Function} onData - Optional SWR callback receiving (data, isCached)
  * @returns {Promise<{start: string, end: string, title: string}|null>}
  */
-export const fetchShabbatTimes = async (location, dateStr = '') => {
+export const fetchShabbatTimes = async (location, dateStr = '', onData = null) => {
   // b = minutes before sunset for candle-lighting.
   // Standard in Israel: 30 min (Jerusalem: 40). Google/Chabad use 30.
   // M=on calculates Havdalah based on 8.5 degrees (standard Israeli 3 stars).
@@ -60,12 +58,12 @@ export const fetchShabbatTimes = async (location, dateStr = '') => {
     cacheKey = `city-${cityKey}-${dateStr}`;
   }
 
-  // Return cached result if available
-  if (cache[cacheKey]) {
+  // Return session cached result if available immediately
+  if (cache[cacheKey] && !onData) {
     return cache[cacheKey];
   }
 
-  try {
+  const fetcher = async () => {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Hebcal request failed with status: ${response.status}`);
@@ -79,22 +77,27 @@ export const fetchShabbatTimes = async (location, dateStr = '') => {
       const candlesItem = data.items.find((item) => item.category === 'candles');
       const havdalahItem = data.items.find((item) => item.category === 'havdalah');
 
-      if (candlesItem) start = candlesItem.date; // ISO String (e.g. 2026-06-05T19:18:00+03:00)
-      if (havdalahItem) end = havdalahItem.date; // ISO String (e.g. 2026-06-06T20:25:00+03:00)
+      if (candlesItem) start = candlesItem.date; // ISO String
+      if (havdalahItem) end = havdalahItem.date; // ISO String
     }
 
-    if (!start || !end) {
-      return null;
-    }
+    if (!start || !end) return null;
 
     const result = {
       start,
       end,
       title: data.location?.title || 'שבת',
     };
-
-    // Cache the result
+    
     cache[cacheKey] = result;
+    return result;
+  };
+
+  try {
+    // We use a TTL of 24 hours (24 * 60 * 60 * 1000) because Shabbat times for a specific date don't change.
+    const result = await swrFetch(cacheKey, fetcher, (data, isCached) => {
+      if (onData) onData(data, isCached);
+    }, 24 * 60 * 60 * 1000);
     return result;
   } catch (error) {
     console.error('[Shabbat Service] Error fetching times:', error);

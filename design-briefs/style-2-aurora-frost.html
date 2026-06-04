@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style 2 — Aurora Frost</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#C8D0E0;min-height:100vh;font-family:'Heebo',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:12px;}
+.lbl{font-size:11px;font-weight:700;color:#555;letter-spacing:.14em;text-transform:uppercase;text-align:center;}
+.ttl{font-size:18px;font-weight:900;color:#111;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#666;text-align:center;margin-top:3px;max-width:320px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.6);flex-shrink:0;}
+
+/* Aurora background */
+.phone-bg{position:absolute;inset:0;background:linear-gradient(160deg,#EEF2FF 0%,#F0FEFF 40%,#F5F0FF 70%,#ECFDF5 100%);}
+.aurora{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.aurora-g{width:300px;height:300px;top:-80px;right:-80px;background:radial-gradient(circle,rgba(16,185,129,.18) 0%,transparent 70%);animation:af 14s ease-in-out infinite;}
+.aurora-p{width:280px;height:280px;bottom:60px;left:-80px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);animation:af 18s ease-in-out infinite reverse;}
+.aurora-b{width:200px;height:200px;top:200px;left:50%;background:radial-gradient(circle,rgba(37,99,235,.08) 0%,transparent 70%);animation:af 11s ease-in-out infinite;}
+@keyframes af{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,30px) scale(1.1);}}
+
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;z-index:1;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(240,242,255,.7);backdrop-filter:blur(32px) saturate(2);-webkit-backdrop-filter:blur(32px) saturate(2);border-bottom:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(5,150,105,.3);}
+.h-title{font-size:17px;font-weight:900;color:#1D1D1F;}
+.wordmark{font-size:16px;font-weight:900;color:#1D1D1F;letter-spacing:-.02em;}
+.wordmark em{color:#059669;font-style:normal;font-weight:500;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:10px;}
+
+/* FROSTED GLASS CARD */
+.frost{background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.85);backdrop-filter:blur(40px) saturate(2.2);-webkit-backdrop-filter:blur(40px) saturate(2.2);border-radius:28px;padding:20px;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.9);}
+
+/* Subtle inner shimmer */
+.frost::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.4) 0%,transparent 100%);pointer-events:none;border-radius:28px 28px 0 0;}
+
+/* ── HERO ── */
+.hc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.hc-date{font-size:10px;font-weight:700;color:rgba(29,29,31,.35);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}
+.hc-name{font-size:30px;font-weight:900;color:#1D1D1F;letter-spacing:-.04em;line-height:1.05;}
+.hc-name em{color:#059669;font-style:normal;}
+.hc-status{display:flex;align-items:center;gap:5px;margin-top:7px;}
+.hc-dot{width:6px;height:6px;border-radius:50%;background:#059669;animation:ping 2.5s infinite;}
+@keyframes ping{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.8);}}
+.hc-st{font-size:12px;font-weight:600;color:rgba(29,29,31,.45);}
+.hc-badge{background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:9px 12px;text-align:center;flex-shrink:0;backdrop-filter:blur(8px);}
+.hc-bnum{font-size:28px;font-weight:900;color:#059669;line-height:1;}
+.hc-blbl{font-size:9px;color:rgba(5,150,105,.55);margin-top:1px;}
+
+.hc-div{border:none;border-top:1px solid rgba(29,29,31,.06);margin:0 0 14px;}
+
+.hc-nut-row{display:flex;align-items:center;gap:12px;}
+.hc-left{flex:1;}
+.hc-stats{display:flex;gap:0;margin-bottom:10px;}
+.hc-s{flex:1;padding:0 10px 0 0;}
+.hc-s+.hc-s{padding:0 10px;border-right:1px solid rgba(29,29,31,.07);}
+.vg{font-size:30px;font-weight:900;color:#059669;letter-spacing:-.04em;line-height:1;}
+.vp{font-size:20px;font-weight:900;color:#7C3AED;letter-spacing:-.03em;line-height:1;}
+.vw{font-size:18px;font-weight:900;color:#1D1D1F;letter-spacing:-.02em;line-height:1;}
+.vs{font-size:10px;color:rgba(29,29,31,.35);margin-top:3px;}
+.hc-macs{display:flex;gap:6px;}
+.mac{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;backdrop-filter:blur(8px);}
+.mac.g{background:rgba(5,150,105,.12);color:#059669;}
+.mac.c{background:rgba(217,119,6,.1);color:#D97706;}
+.mac.f{background:rgba(220,38,38,.08);color:#DC2626;}
+
+.ring-wrap{flex-shrink:0;position:relative;}
+.rt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rt-p{font-size:16px;font-weight:900;color:#1D1D1F;}
+.rt-l{font-size:9px;color:rgba(29,29,31,.35);}
+
+/* QA */
+.qa-pills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
+.qa-pills::-webkit-scrollbar{display:none;}
+.qa-pill{flex-shrink:0;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.qa-pill.prim{background:linear-gradient(135deg,#10B981,#059669 50%,#047857);box-shadow:0 5px 20px rgba(5,150,105,.35);}
+.qa-pill.sec{background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.9);backdrop-filter:blur(20px);box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);}
+.qa-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.qa-ico.w{background:rgba(255,255,255,.2);}
+.qa-ico.p{background:rgba(124,58,237,.12);}
+.qa-ico.b{background:rgba(37,99,235,.1);}
+.qa-ico.a{background:rgba(245,158,11,.12);}
+.qa-t{font-size:12px;font-weight:800;}
+.qa-pill.prim .qa-t{color:#fff;}
+.qa-pill.sec .qa-t{color:#1D1D1F;}
+
+/* TIMELINE */
+.tl-h{display:flex;justify-content:space-between;align-items:center;padding:0 4px 8px;}
+.tl-t{font-size:18px;font-weight:900;color:#1D1D1F;}
+.tl-l{font-size:11px;font-weight:700;color:#059669;}
+.tl-seg{font-size:11px;font-weight:700;color:rgba(29,29,31,.3);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tl-seg::after{content:'';flex:1;height:1px;background:rgba(29,29,31,.07);}
+.tl-row{display:flex;gap:10px;margin-bottom:8px;align-items:stretch;}
+.t-tm{width:36px;text-align:center;flex-shrink:0;padding-top:12px;font-size:10px;font-weight:700;color:rgba(29,29,31,.35);}
+.t-dc{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:16px;}
+.t-dot{width:9px;height:9px;border-radius:50%;margin-top:12px;}
+.t-dot.g{background:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.15);}
+.t-dot.r{background:#EF4444;box-shadow:0 0 0 3px rgba(239,68,68,.12);}
+.t-dot.gr{background:#D1D5DB;}
+.t-ln{flex:1;width:1px;background:rgba(29,29,31,.07);margin-top:4px;}
+.t-c{flex:1;border-radius:16px;padding:11px 14px;backdrop-filter:blur(20px);}
+.t-c.gf{background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.5);}
+.t-c.rs{background:rgba(254,242,242,.8);border:1px solid rgba(239,68,68,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);}
+.t-c.ds{background:rgba(255,255,255,.35);border:1.5px dashed rgba(29,29,31,.1);}
+.t-tt{font-size:14px;font-weight:700;}
+.t-c.gf .t-tt{color:#065F46;}
+.t-c.rs .t-tt{color:#991B1B;}
+.t-c.ds .t-tt{font-size:12px;color:rgba(29,29,31,.3);text-align:center;}
+.t-sb{font-size:11px;color:rgba(6,95,70,.6);margin-top:2px;}
+
+/* MINI ROW */
+.mini-row{display:flex;gap:8px;}
+.mini{flex:1;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.85);border-radius:20px;padding:13px 12px;backdrop-filter:blur(30px);box-shadow:0 2px 12px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.8);}
+.mini-ico{font-size:18px;margin-bottom:6px;}
+.mini-val{font-size:24px;font-weight:900;letter-spacing:-.03em;line-height:1;}
+.mini-val.b{color:#2563EB;}
+.mini-val.p{color:#7C3AED;}
+.mini-val.n{color:#1D1D1F;}
+.mini-lbl{font-size:10px;color:rgba(29,29,31,.35);font-weight:600;margin-top:3px;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(235,238,255,.75);backdrop-filter:blur(32px) saturate(2);-webkit-backdrop-filter:blur(32px) saturate(2);border-top:1px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:700;color:rgba(29,29,31,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(5,150,105,.45),inset 0 1px 0 rgba(255,255,255,.3);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Style 2</div>
+<div class="ttl">Aurora Frost</div>
+<div class="dsc">iOS 26 Liquid Glass · Aurora background · Ultra-frosted cards</div>
+
+<div class="phone">
+  <div class="phone-bg"></div>
+  <div class="aurora aurora-g"></div>
+  <div class="aurora aurora-p"></div>
+  <div class="aurora aurora-b"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">בית</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <!-- HERO -->
+      <div class="frost">
+        <div class="hc-top">
+          <div>
+            <div class="hc-date">רביעי · 4 יוני 2026</div>
+            <div class="hc-name">ערב טוב,<br><em>אוריה</em> 👋</div>
+            <div class="hc-status"><div class="hc-dot"></div><div class="hc-st">הלוז הושלם</div></div>
+          </div>
+          <div class="hc-badge"><div class="hc-bnum">30</div><div class="hc-blbl">ימים לאינפי 2</div></div>
+        </div>
+        <hr class="hc-div">
+        <div class="hc-nut-row">
+          <div class="hc-left">
+            <div class="hc-stats">
+              <div class="hc-s"><div class="vg">398</div><div class="vs">קק"ל / 2,000</div></div>
+              <div class="hc-s"><div class="vp">+0</div><div class="vs">שנשרפו / 300</div></div>
+              <div class="hc-s"><div class="vw">86.5</div><div class="vs">ק"ג · יעד 78</div></div>
+            </div>
+            <div class="hc-macs">
+              <span class="mac g">45g</span>
+              <span class="mac c">36g</span>
+              <span class="mac f">8g</span>
+            </div>
+          </div>
+          <div class="ring-wrap">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <circle cx="44" cy="44" r="37" stroke="rgba(5,150,105,.12)" stroke-width="10"/>
+              <circle cx="44" cy="44" r="37" stroke="#059669" stroke-width="10" stroke-linecap="round" stroke-dasharray="233" stroke-dashoffset="186" transform="rotate(-90 44 44)"/>
+              <circle cx="44" cy="44" r="26" stroke="rgba(124,58,237,.1)" stroke-width="9"/>
+              <circle cx="44" cy="44" r="26" stroke="#7C3AED" stroke-width="9" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="163" transform="rotate(-90 44 44)"/>
+            </svg>
+            <div class="rt"><div class="rt-p">20%</div><div class="rt-l">הושלם</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QA -->
+      <div class="qa-pills">
+        <div class="qa-pill prim"><div class="qa-ico w">✦</div><div class="qa-t">ארגן עם AI</div></div>
+        <div class="qa-pill sec"><div class="qa-ico p">⏱</div><div class="qa-t">פומודורו</div></div>
+        <div class="qa-pill sec"><div class="qa-ico b">＋</div><div class="qa-t">הוסף פריט</div></div>
+        <div class="qa-pill sec"><div class="qa-ico a">🥗</div><div class="qa-t">תזונה</div></div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div>
+        <div class="tl-h"><div class="tl-t">היום</div><div class="tl-l">יומן ›</div></div>
+        <div class="tl-seg">בוקר</div>
+        <div class="tl-row">
+          <div class="t-tm">09:54</div>
+          <div class="t-dc"><div class="t-dot g"></div><div class="t-ln"></div></div>
+          <div class="t-c gf"><div class="t-tt">משקה חלבון אייס קפה</div><div class="t-sb">398 קק"ל · חלבון 45g</div></div>
+        </div>
+        <div class="tl-seg">צהריים</div>
+        <div class="tl-row">
+          <div class="t-tm"></div>
+          <div class="t-dc"><div class="t-dot gr"></div></div>
+          <div class="t-c ds"><div class="t-tt">ריק · לחץ + להוסיף</div></div>
+        </div>
+        <div class="tl-seg">ערב</div>
+        <div class="tl-row">
+          <div class="t-tm">כל היום</div>
+          <div class="t-dc"><div class="t-dot r"></div></div>
+          <div class="t-c rs"><div class="t-tt">⏰ אינפי 2 — 30 ימים לבחינה</div></div>
+        </div>
+      </div>
+
+      <!-- MINI ROW -->
+      <div class="mini-row">
+        <div class="mini"><div class="mini-ico">🎓</div><div class="mini-val b">30</div><div class="mini-lbl">ימים לבחינה</div></div>
+        <div class="mini"><div class="mini-ico">🎯</div><div class="mini-val p">0</div><div class="mini-lbl">פומודורו היום</div></div>
+        <div class="mini"><div class="mini-ico">✅</div><div class="mini-val n">0</div><div class="mini-lbl">משימות פתוחות</div></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+    <div class="nav-item active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+    <div class="nav-item"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
+  </div>
+</div>
+</body>
+</html>
