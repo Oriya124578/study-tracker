@@ -43,7 +43,7 @@ Scheduling Rules:
 2. Morning Prayer: Immediately after the user's wake-up time (e.g., if wake time is 07:00, then from 07:00 to 07:45), ALWAYS schedule a block titled "תפילה" (type: 'event') for 45 minutes.
 3. Fixed events (events, university lectures, tutorials, exams, doctor appointments): These are pre-existing and MUST NOT be moved. Mark them with isLocked = true, isProposed = false.
 4. Travel blocks: For fixed events with location, check the travelTimeMinutes (provided in context) and insert a 'travel' block (e.g. "נסיעה") before and after the event.
-5. Shabbat: If Shabbat starts today (Shabbat times provided in context), ensure NO blocks are scheduled from 1 hour before Shabbat starts until the end of the day. Shabbat time is sacred rest.
+5. Shabbat: If Shabbat starts today (Shabbat times provided in context), ensure NO blocks are scheduled from 1 hour before Shabbat starts until the end of the day. If Shabbat ends today, ensure NO blocks (like study, workout, travel) are scheduled from the start of the day until 1 hour after Shabbat ends. Shabbat time is sacred rest.
 6. Calori Workouts: If there is a planned Calori workout for today (provided in context), schedule a 'workout' block (isProposed = true, type = 'workout') at an optimal time (e.g. late afternoon/evening, avoiding study hours/fixed events).
 7. Study Blocks: Schedule study blocks ('study') focusing on courses with upcoming exams (exams are sorted by days remaining). Group tasks under these study blocks. A study block should ideally be around 90-120 minutes, or match the user's preferred duration. Name the block like "למידה: [Course Name]".
 8. Tasks: Incorporate high/med priority tasks into appropriate study blocks or as separate task blocks, setting refId to the task id.

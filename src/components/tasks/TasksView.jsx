@@ -159,7 +159,7 @@ const SubtaskRow = ({ taskId, sub }) => {
 // ── Task row ─────────────────────────────────────────────────────────────────
 
 const TaskRow = ({ task }) => {
-  const { togglePersonalTask, deletePersonalTask, addSubtask, toggleStarPersonalTask } = useStore();
+  const { togglePersonalTask, deletePersonalTask, addSubtask, toggleStarPersonalTask, updatePersonalTask } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
   const [expanded, setExpanded] = useState(false);
@@ -284,8 +284,33 @@ const TaskRow = ({ task }) => {
                 )}
               </div>
 
-              {/* Delete task */}
-              <div className="flex justify-end mt-2 pt-2 border-t border-border/40">
+              {/* Priority & Delete task */}
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-muted-foreground font-semibold me-1">{t('priority')}:</span>
+                  {[
+                    { value: 'high', label: t('priorityHigh'), color: 'bg-red-500 text-white' },
+                    { value: 'med', label: t('priorityMed'), color: 'bg-amber-500 text-white' },
+                    { value: 'low', label: t('priorityLow', 'רגילה'), color: 'bg-emerald-500 text-white' },
+                  ].map((p) => {
+                    const isActive = task.priority === p.value || (p.value === 'low' && !task.priority);
+                    return (
+                      <button
+                        key={p.value}
+                        onClick={() => updatePersonalTask(task.id, { priority: p.value })}
+                        className={cn(
+                          "px-2.5 py-1 rounded-xl font-bold text-[10px] transition-all active:scale-95 border",
+                          isActive
+                            ? p.color + " border-transparent shadow-sm"
+                            : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
+                        )}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <button
                   onClick={() => deletePersonalTask(task.id)}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"

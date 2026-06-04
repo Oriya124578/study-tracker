@@ -9,7 +9,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { fetchShabbatTimes } from '../../lib/shabbatService';
 import { cn } from '../../lib/utils';
-import { parseISO, isValid } from 'date-fns';
+import { parseISO, isValid, format } from 'date-fns';
 
 const blockIcons = {
   sleep: Clock,

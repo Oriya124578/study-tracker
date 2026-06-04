@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import {
   format,
   startOfMonth,
   endOfMonth,
   startOfWeek,
-  endOfWeek,
   startOfDay,
   eachDayOfInterval,
   isSameDay,
@@ -29,10 +28,7 @@ import {
   MapPin,
   GraduationCap,
   Plus,
-  Menu,
   LayoutList,
-  Moon,
-  Sun,
   List as ListIcon,
   LayoutGrid,
   CalendarDays,
@@ -45,7 +41,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 const WEEKDAYS_HE = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 const WEEKDAYS_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-const VIEW_MODES = ['day', '3days', 'week', 'month', 'list'];
+
 
 function safeParse(d) {
   if (!d) return null;
@@ -54,7 +50,7 @@ function safeParse(d) {
 }
 
 export const CalendarView = () => {
-  const { data, openAddSheet, setActiveCategory } = useStore();
+  const { data, openAddSheet } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
   const locale = isRTL ? he : undefined;
@@ -64,48 +60,7 @@ export const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
 
-  // Weather and Location State
-  const [weather, setWeather] = useState({ temp: null, min: null, max: null, city: null, loading: true, error: false, isNight: false });
 
-  useEffect(() => {
-    let mounted = true;
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        if (!mounted) return;
-        try {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          
-          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=he`);
-          const geoData = await geoRes.json();
-          const city = geoData.city || geoData.locality || 'מיקום נוכחי';
-
-          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
-          const weatherData = await weatherRes.json();
-          
-          if (!mounted) return;
-          const isNight = weatherData.current_weather.is_day === 0;
-
-          setWeather({
-            temp: Math.round(weatherData.current_weather.temperature),
-            min: Math.round(weatherData.daily.temperature_2m_min[0]),
-            max: Math.round(weatherData.daily.temperature_2m_max[0]),
-            city,
-            loading: false,
-            error: false,
-            isNight
-          });
-        } catch (e) {
-          if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
-        }
-      }, () => {
-        if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
-      });
-    } else {
-      setWeather(w => ({ ...w, loading: false, error: true }));
-    }
-    return () => { mounted = false; };
-  }, []);
 
   // ─── Aggregate all items into a flat calendar-item list ────────────
 
@@ -271,7 +226,7 @@ export const CalendarView = () => {
                     <div
                       key={item.id}
                       className={cn(
-                        'text-[9px] md:text-[11px] leading-tight px-1 py-0.5 rounded-[3px] truncate w-full text-right font-medium',
+                        'text-[9px] md:text-[11px] leading-tight px-1 py-0.5 rounded-[3px] truncate w-full text-start font-medium',
                         item.kind === 'exam'
                           ? 'bg-destructive/90 text-white'
                           : item.kind === 'event'
@@ -300,10 +255,10 @@ export const CalendarView = () => {
 
   // ─── Day/column list view ────────────────────────────────────
 
-  const renderDayColumn = (day) => {
+  const renderDayColumn = (day, isFullWidth = false) => {
     const items = itemsForDay(day);
     return (
-      <div key={day.toISOString()} className="flex-1 min-w-[140px] max-w-[280px] snap-start">
+      <div key={day.toISOString()} className={cn("snap-start flex-1", isFullWidth ? "w-full max-w-none" : "min-w-0 md:max-w-[280px]")}>
         <div
           className={cn(
             'text-center py-2.5 mb-3 rounded-2xl text-sm font-bold shadow-sm border',
@@ -324,7 +279,7 @@ export const CalendarView = () => {
             </div>
           )}
           {items.map((item) => (
-            <CalendarItem key={item.id} item={item} t={t} />
+            <CalendarItem key={item.id} item={item} />
           ))}
           <button
             onClick={() =>
@@ -369,7 +324,7 @@ export const CalendarView = () => {
                   <div className="h-px bg-border flex-1" />
                 </h3>
               )}
-              <CalendarItem item={item} t={t} />
+              <CalendarItem item={item} />
             </React.Fragment>
           );
         })}
@@ -397,40 +352,17 @@ export const CalendarView = () => {
   // ─── Render ────────────────────────────────────────────────
 
   return (
-    <div className="px-4 py-5 sm:px-6 max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+    <div 
+      dir={isRTL ? 'rtl' : 'ltr'}
+      className={cn(
+        "px-4 py-5 sm:px-6 mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6",
+        viewMode === 'week' ? "max-w-6xl" : "max-w-4xl"
+      )}
+    >
       {/* Custom Top Header matching requested design */}
       <div className="flex flex-col gap-4 mb-2">
         <div className="flex items-center justify-between">
-          {/* Menu Button - Now functional and clickable */}
-          <button 
-            onClick={() => setActiveCategory('commandCenter')}
-            className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors cursor-pointer active:scale-95"
-            title={t('navCommandCenter', 'תפריט ראשי')}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          
-          {/* Title and Weather/Location */}
-          <div className="text-center flex flex-col items-center">
-            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">יומן</h1>
-            <div className="flex items-center justify-center gap-1.5 text-[12px] font-medium text-muted-foreground mt-1 bg-muted/40 px-2.5 py-0.5 rounded-full border border-border/30">
-              {weather.loading ? (
-                <span className="animate-pulse">מאתר מיקום...</span>
-              ) : weather.error ? (
-                <span>מיקום לא זמין</span>
-              ) : (
-                <>
-                  <MapPin className="w-3.5 h-3.5 text-primary/70" />
-                  <span className="max-w-[100px] truncate">{weather.city}</span>
-                  <span className="mx-0.5 opacity-60">•</span>
-                  <span>{weather.min}° - {weather.max}°</span>
-                  {weather.isNight ? <Moon className="w-3.5 h-3.5 text-indigo-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Actions: View Selector (Removed Bell) */}
+          {/* Actions: View Selector (Moved to top right/left where Menu was) */}
           <div className="flex items-center gap-2 relative">
             <div className="relative">
               <button 
@@ -446,15 +378,20 @@ export const CalendarView = () => {
               
               {/* View Mode Dropdown */}
               {isViewMenuOpen && (
-                <div className="absolute top-[calc(100%+8px)] left-0 w-44 bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="text-[11px] font-bold text-muted-foreground px-3 py-1.5 uppercase tracking-wider">מצב תצוגה:</div>
+                <div className={cn(
+                  "absolute top-[calc(100%+8px)] w-44 bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200",
+                  isRTL ? "right-0" : "left-0"
+                )}>
+                  <div className="text-[11px] font-bold text-muted-foreground px-3 py-1.5 uppercase tracking-wider">
+                    {t('viewMode', 'מצב תצוגה')}:
+                  </div>
                   <div className="flex flex-col gap-1 mt-1">
                     {[
-                      { id: 'list', label: 'רשימה', icon: ListIcon },
-                      { id: 'day', label: 'יום', icon: Columns },
-                      { id: '3days', label: '3 ימים', icon: Columns },
-                      { id: 'week', label: 'שבוע', icon: CalendarDays },
-                      { id: 'month', label: 'חודש', icon: LayoutGrid }
+                      { id: 'list', label: t('viewList', 'רשימה'), icon: ListIcon },
+                      { id: 'day', label: t('viewDay', 'יום'), icon: Columns },
+                      { id: '3days', label: t('view3Days', '3 ימים'), icon: Columns },
+                      { id: 'week', label: t('viewWeek', 'שבוע'), icon: CalendarDays },
+                      { id: 'month', label: t('viewMonth', 'חודש'), icon: LayoutGrid }
                     ].map((mode) => {
                       const Icon = mode.icon;
                       return (
@@ -465,7 +402,7 @@ export const CalendarView = () => {
                             setIsViewMenuOpen(false);
                           }}
                           className={cn(
-                            "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full text-right",
+                            "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full text-start",
                             viewMode === mode.id 
                               ? "bg-primary text-primary-foreground shadow-md" 
                               : "hover:bg-muted text-foreground"
@@ -481,6 +418,14 @@ export const CalendarView = () => {
               )}
             </div>
           </div>
+          
+          {/* Title */}
+          <div className="text-center flex flex-col items-center">
+            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">יומן</h1>
+          </div>
+          
+          {/* Symmetric placeholder to keep title centered */}
+          <div className="w-10 h-10" />
         </div>
       </div>
 
@@ -527,8 +472,58 @@ export const CalendarView = () => {
           {viewMode === 'month' && renderMonthGrid()}
           {viewMode === 'list' && renderList()}
           {(viewMode === 'day' || viewMode === '3days' || viewMode === 'week') && (
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
-              {getDateRange().map((day) => renderDayColumn(day))}
+            <div className="space-y-4">
+              {/* Mobile Week View Day Selector */}
+              {viewMode === 'week' && (
+                <div className="flex md:hidden justify-between bg-muted/40 p-2 rounded-2xl border border-border/30 mb-2">
+                  {getDateRange().map((day) => {
+                    const isSel = isSameDay(day, selectedDate);
+                    const isCurr = isToday(day);
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        onClick={() => setSelectedDate(day)}
+                        className={cn(
+                          "flex flex-col items-center justify-center w-10 h-12 rounded-xl transition-all cursor-pointer",
+                          isSel
+                            ? "bg-primary text-primary-foreground shadow-md scale-105 font-bold"
+                            : isCurr
+                            ? "bg-primary/10 text-primary hover:bg-primary/20 font-bold"
+                            : "hover:bg-muted text-muted-foreground hover:text-foreground font-medium"
+                        )}
+                      >
+                        <span className="text-[10px] uppercase opacity-80">
+                          {format(day, 'E', { locale }).substring(0, 1)}
+                        </span>
+                        <span className="text-sm mt-0.5 font-bold">
+                          {format(day, 'd')}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Grid / Column Container */}
+              <div
+                className={cn(
+                  "w-full",
+                  viewMode === 'day' && "flex flex-col",
+                  viewMode === '3days' && "grid grid-cols-1 md:grid-cols-3 gap-4",
+                  viewMode === 'week' && "hidden md:grid md:grid-cols-7 gap-2"
+                )}
+              >
+                {viewMode === 'day' && renderDayColumn(selectedDate, true)}
+                {viewMode === '3days' && getDateRange().map((day) => renderDayColumn(day, false))}
+                {viewMode === 'week' && getDateRange().map((day) => renderDayColumn(day, false))}
+              </div>
+
+              {/* Mobile View for Week View (Only shows selected day) */}
+              {viewMode === 'week' && (
+                <div className="md:hidden">
+                  {renderDayColumn(selectedDate, true)}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -550,7 +545,7 @@ const ITEM_ICONS = {
   note: StickyNote,
 };
 
-const CalendarItem = ({ item, t }) => {
+const CalendarItem = ({ item }) => {
   const Icon = ITEM_ICONS[item.kind] || CalendarIcon;
   return (
     <div
@@ -564,7 +559,7 @@ const CalendarItem = ({ item, t }) => {
     >
       {/* Decorative side stripe */}
       <div className={cn(
-        "absolute top-0 bottom-0 right-0 w-1.5",
+        "absolute top-0 bottom-0 end-0 w-1.5",
         item.kind === 'exam' ? 'bg-destructive' :
         item.kind === 'event' ? 'bg-primary' :
         item.kind === 'task' ? 'bg-amber-500' : 'bg-purple-500'
