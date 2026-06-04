@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BottomNav } from './BottomNav';
-import { PomodoroTimer } from '../pomodoro/PomodoroTimer';
 import { MobileCourseMenu } from './MobileCourseMenu';
 import { useStore } from '../../store/useStore';
 // SmartDashboard stays eager: it's the default landing view, so we don't want the
@@ -38,7 +37,7 @@ const ViewFallback = () => (
 );
 
 export const Layout = () => {
-  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory, setShowPomodoroModal } = useStore();
+  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory } = useStore();
   const displayName = data?.profile?.displayName || '';
   const { t, language } = useTranslation();
   const [isFanMenuOpen, setIsFanMenuOpen] = useState(false);
@@ -234,11 +233,9 @@ export const Layout = () => {
         )}
       </AnimatePresence>
 
-      {/* Navigation & overlays */}
       <BottomNav />
       <MobileCourseMenu />
       <AddItemSheet />
-      <PomodoroTimer />
       <GlobalLoadingOverlay />
       <Toaster />
     </div>

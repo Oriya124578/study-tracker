@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import {
   format,
@@ -30,9 +30,9 @@ import {
   GraduationCap,
   Plus,
   Menu,
-  Bell,
   LayoutList,
   Moon,
+  Sun,
   List as ListIcon,
   LayoutGrid,
   CalendarDays,
@@ -54,7 +54,7 @@ function safeParse(d) {
 }
 
 export const CalendarView = () => {
-  const { data, openAddSheet } = useStore();
+  const { data, openAddSheet, setActiveCategory } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
   const locale = isRTL ? he : undefined;
@@ -63,6 +63,49 @@ export const CalendarView = () => {
   const [viewMode, setViewMode] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
+
+  // Weather and Location State
+  const [weather, setWeather] = useState({ temp: null, min: null, max: null, city: null, loading: true, error: false, isNight: false });
+
+  useEffect(() => {
+    let mounted = true;
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        if (!mounted) return;
+        try {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=he`);
+          const geoData = await geoRes.json();
+          const city = geoData.city || geoData.locality || 'מיקום נוכחי';
+
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
+          const weatherData = await weatherRes.json();
+          
+          if (!mounted) return;
+          const isNight = weatherData.current_weather.is_day === 0;
+
+          setWeather({
+            temp: Math.round(weatherData.current_weather.temperature),
+            min: Math.round(weatherData.daily.temperature_2m_min[0]),
+            max: Math.round(weatherData.daily.temperature_2m_max[0]),
+            city,
+            loading: false,
+            error: false,
+            isNight
+          });
+        } catch (e) {
+          if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
+        }
+      }, () => {
+        if (mounted) setWeather(w => ({ ...w, loading: false, error: true }));
+      });
+    } else {
+      setWeather(w => ({ ...w, loading: false, error: true }));
+    }
+    return () => { mounted = false; };
+  }, []);
 
   // ─── Aggregate all items into a flat calendar-item list ────────────
 
@@ -191,9 +234,9 @@ export const CalendarView = () => {
             <div key={i}>{d}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-1">
           {Array.from({ length: startPad }).map((_, i) => (
-            <div key={`pad-${i}`} className="min-h-[44px] md:min-h-[80px]" />
+            <div key={`pad-${i}`} className="min-h-[48px] md:min-h-[80px]" />
           ))}
           {days.map((day) => {
             const dayItems = itemsForDay(day);
@@ -207,42 +250,42 @@ export const CalendarView = () => {
                   setViewMode('day');
                 }}
                 className={cn(
-                  'min-h-[44px] md:min-h-[80px] p-0.5 sm:p-1 border rounded-xl transition-all relative flex flex-col items-center justify-start text-start',
+                  'min-h-[48px] md:min-h-[80px] p-0.5 sm:p-1 border rounded-xl transition-all relative flex flex-col items-center justify-start text-start overflow-hidden',
                   isSel
-                    ? 'border-primary bg-primary/10'
+                    ? 'border-primary bg-primary/10 shadow-sm'
                     : isCurr
                     ? 'border-primary/50 bg-primary/5'
-                    : 'border-border/50 hover:border-primary/30',
+                    : 'border-border/50 bg-card hover:border-primary/30 hover:bg-muted/30',
                 )}
               >
                 <span
                   className={cn(
-                    'text-xs md:text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full mb-0.5',
+                    'text-[11px] md:text-sm font-bold w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full mb-0.5 shrink-0',
                     isCurr && 'bg-primary text-primary-foreground',
                   )}
                 >
                   {format(day, 'd')}
                 </span>
-                <div className="flex flex-col gap-[2px] w-full px-0.5 overflow-hidden">
+                <div className="flex flex-col gap-[2px] w-full px-0.5 overflow-hidden flex-1">
                   {dayItems.slice(0, 3).map((item) => (
                     <div
                       key={item.id}
                       className={cn(
                         'text-[9px] md:text-[11px] leading-tight px-1 py-0.5 rounded-[3px] truncate w-full text-right font-medium',
                         item.kind === 'exam'
-                          ? 'bg-destructive text-destructive-foreground'
+                          ? 'bg-destructive/90 text-white'
                           : item.kind === 'event'
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-primary/90 text-white'
                           : item.kind === 'task'
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-purple-500 text-white',
+                          ? 'bg-amber-500/90 text-white'
+                          : 'bg-purple-500/90 text-white',
                       )}
                     >
                       {item.title}
                     </div>
                   ))}
                   {dayItems.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground mt-0.5 font-medium text-center">
+                    <div className="text-[9px] text-muted-foreground mt-0.5 font-bold text-center">
                       +{dayItems.length - 3}
                     </div>
                   )}
@@ -260,22 +303,25 @@ export const CalendarView = () => {
   const renderDayColumn = (day) => {
     const items = itemsForDay(day);
     return (
-      <div key={day.toISOString()} className="flex-1 min-w-0">
+      <div key={day.toISOString()} className="flex-1 min-w-[140px] max-w-[280px] snap-start">
         <div
           className={cn(
-            'text-center py-2 mb-2 rounded-xl text-xs font-semibold',
+            'text-center py-2.5 mb-3 rounded-2xl text-sm font-bold shadow-sm border',
             isToday(day)
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground',
+              ? 'bg-primary text-primary-foreground border-primary shadow-primary/20'
+              : 'bg-card text-card-foreground border-border/60',
           )}
         >
-          {format(day, 'EEE d/M', { locale })}
+          {format(day, 'EEEE', { locale })}
+          <div className="text-[11px] font-medium opacity-80 mt-0.5">
+            {format(day, 'd/M', { locale })}
+          </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {items.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">
-              {t('noItemsThisDay')}
-            </p>
+            <div className="text-[12px] text-muted-foreground text-center py-8 bg-muted/20 rounded-2xl border border-dashed border-border/50">
+              {t('noItemsThisDay', 'אין אירועים')}
+            </div>
           )}
           {items.map((item) => (
             <CalendarItem key={item.id} item={item} t={t} />
@@ -284,10 +330,10 @@ export const CalendarView = () => {
             onClick={() =>
               openAddSheet('event', { date: format(day, 'yyyy-MM-dd') })
             }
-            className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-primary transition-colors rounded-xl border border-dashed border-border hover:border-primary/40"
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors rounded-2xl border border-dashed border-border hover:border-primary/40 bg-card/50"
           >
-            <Plus className="w-3.5 h-3.5" />
-            {t('add')}
+            <Plus className="w-4 h-4" />
+            {t('add', 'הוסף')}
           </button>
         </div>
       </div>
@@ -302,14 +348,14 @@ export const CalendarView = () => {
     );
     if (upcoming.length === 0) {
       return (
-        <p className="text-muted-foreground text-sm text-center py-8">
-          {t('noItemsThisWeek')}
-        </p>
+        <div className="text-muted-foreground text-sm text-center py-12 bg-muted/20 rounded-2xl border border-dashed border-border/50">
+          {t('noItemsThisWeek', 'אין אירועים קרובים')}
+        </div>
       );
     }
     let lastDateStr = '';
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {upcoming.map((item) => {
           const dateStr = format(item.date, 'EEEE, d MMMM', { locale });
           const showHeader = dateStr !== lastDateStr;
@@ -317,8 +363,10 @@ export const CalendarView = () => {
           return (
             <React.Fragment key={item.id}>
               {showHeader && (
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pt-3 pb-1">
-                  {isToday(item.date) ? t('today') : dateStr}
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pt-4 pb-1 flex items-center gap-2">
+                  <div className="h-px bg-border flex-1" />
+                  <span>{isToday(item.date) ? t('today', 'היום') : dateStr}</span>
+                  <div className="h-px bg-border flex-1" />
                 </h3>
               )}
               <CalendarItem item={item} t={t} />
@@ -343,59 +391,70 @@ export const CalendarView = () => {
       const we = addDays(ws, 6);
       return `${format(ws, 'd/M', { locale })} — ${format(we, 'd/M', { locale })}`;
     }
-    return t('viewList');
+    return t('viewList', 'רשימה');
   };
 
   // ─── Render ────────────────────────────────────────────────
 
   return (
-    <div className="px-4 py-5 sm:px-6 max-w-3xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5">
+    <div className="px-4 py-5 sm:px-6 max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       {/* Custom Top Header matching requested design */}
       <div className="flex flex-col gap-4 mb-2">
         <div className="flex items-center justify-between">
-          {/* Menu Button (Placeholder for Layout Menu) */}
-          <button className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors">
+          {/* Menu Button - Now functional and clickable */}
+          <button 
+            onClick={() => setActiveCategory('commandCenter')}
+            className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors cursor-pointer active:scale-95"
+            title={t('navCommandCenter', 'תפריט ראשי')}
+          >
             <Menu className="w-5 h-5" />
           </button>
           
           {/* Title and Weather/Location */}
           <div className="text-center flex flex-col items-center">
-            <h1 className="text-xl font-bold tracking-tight">יומן</h1>
-            <div className="flex items-center justify-center gap-1.5 text-[13px] text-muted-foreground mt-0.5">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>כפר הרא"ה</span>
-              <span className="mx-0.5">19°C - 27°C</span>
-              <Moon className="w-3.5 h-3.5" />
+            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">יומן</h1>
+            <div className="flex items-center justify-center gap-1.5 text-[12px] font-medium text-muted-foreground mt-1 bg-muted/40 px-2.5 py-0.5 rounded-full border border-border/30">
+              {weather.loading ? (
+                <span className="animate-pulse">מאתר מיקום...</span>
+              ) : weather.error ? (
+                <span>מיקום לא זמין</span>
+              ) : (
+                <>
+                  <MapPin className="w-3.5 h-3.5 text-primary/70" />
+                  <span className="max-w-[100px] truncate">{weather.city}</span>
+                  <span className="mx-0.5 opacity-60">•</span>
+                  <span>{weather.min}° - {weather.max}°</span>
+                  {weather.isNight ? <Moon className="w-3.5 h-3.5 text-indigo-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
+                </>
+              )}
             </div>
           </div>
           
-          {/* Actions: Bell and View Selector */}
+          {/* Actions: View Selector (Removed Bell) */}
           <div className="flex items-center gap-2 relative">
-            <button className="p-2.5 bg-background border border-border/50 shadow-sm rounded-full hover:bg-muted transition-colors">
-              <Bell className="w-5 h-5" />
-            </button>
             <div className="relative">
               <button 
                 onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
                 className={cn(
-                  "p-2.5 bg-background border shadow-sm rounded-full transition-colors",
-                  isViewMenuOpen ? "border-primary bg-primary/5" : "border-border/50 hover:bg-muted"
+                  "p-2.5 bg-background border shadow-sm rounded-full transition-colors active:scale-95 cursor-pointer",
+                  isViewMenuOpen ? "border-primary bg-primary/5 text-primary" : "border-border/50 hover:bg-muted"
                 )}
+                title={t('viewMode', 'מצב תצוגה')}
               >
                 <LayoutList className="w-5 h-5" />
               </button>
               
               {/* View Mode Dropdown */}
               {isViewMenuOpen && (
-                <div className="absolute top-full left-0 mt-2 w-40 bg-background border border-border shadow-xl rounded-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="text-[11px] font-semibold text-muted-foreground px-3 py-2 uppercase tracking-wider">מצב תצוגה:</div>
-                  <div className="flex flex-col gap-0.5">
+                <div className="absolute top-[calc(100%+8px)] left-0 w-44 bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="text-[11px] font-bold text-muted-foreground px-3 py-1.5 uppercase tracking-wider">מצב תצוגה:</div>
+                  <div className="flex flex-col gap-1 mt-1">
                     {[
                       { id: 'list', label: 'רשימה', icon: ListIcon },
                       { id: 'day', label: 'יום', icon: Columns },
-                      { id: 'month', label: 'חודש', icon: LayoutGrid },
+                      { id: '3days', label: '3 ימים', icon: Columns },
                       { id: 'week', label: 'שבוע', icon: CalendarDays },
-                      { id: '3days', label: '3 ימים', icon: Columns }
+                      { id: 'month', label: 'חודש', icon: LayoutGrid }
                     ].map((mode) => {
                       const Icon = mode.icon;
                       return (
@@ -406,14 +465,14 @@ export const CalendarView = () => {
                             setIsViewMenuOpen(false);
                           }}
                           className={cn(
-                            "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-right",
+                            "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full text-right",
                             viewMode === mode.id 
-                              ? "bg-primary/10 text-primary" 
+                              ? "bg-primary text-primary-foreground shadow-md" 
                               : "hover:bg-muted text-foreground"
                           )}
                         >
                           <span>{mode.label}</span>
-                          <Icon className="w-4 h-4 opacity-70" />
+                          <Icon className={cn("w-4 h-4", viewMode === mode.id ? "opacity-100" : "opacity-50")} />
                         </button>
                       );
                     })}
@@ -427,8 +486,8 @@ export const CalendarView = () => {
 
       {/* Navigation header */}
       {viewMode !== 'list' && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between bg-card p-2 rounded-2xl border shadow-sm">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => nav('prev')}
               className="p-2 hover:bg-muted rounded-full transition-colors"
@@ -439,7 +498,7 @@ export const CalendarView = () => {
                 <ChevronLeft className="w-4 h-4" />
               )}
             </button>
-            <h2 className="text-base md:text-lg font-bold min-w-[140px] text-center">
+            <h2 className="text-sm md:text-base font-bold min-w-[120px] text-center">
               {viewLabel()}
             </h2>
             <button
@@ -455,20 +514,20 @@ export const CalendarView = () => {
           </div>
           <button
             onClick={goToday}
-            className="text-xs font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 px-3.5 py-2 rounded-xl transition-colors"
           >
-            {t('today')}
+            {t('today', 'היום')}
           </button>
         </div>
       )}
 
       {/* Content */}
-      <Card className="shadow-none rounded-2xl">
-        <CardContent className="pt-4">
+      <Card className="shadow-sm border-border/60 rounded-3xl overflow-hidden bg-card/50">
+        <CardContent className="p-4 md:p-6">
           {viewMode === 'month' && renderMonthGrid()}
           {viewMode === 'list' && renderList()}
           {(viewMode === 'day' || viewMode === '3days' || viewMode === 'week') && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
               {getDateRange().map((day) => renderDayColumn(day))}
             </div>
           )}
@@ -491,56 +550,59 @@ const ITEM_ICONS = {
   note: StickyNote,
 };
 
-const ITEM_COLORS = {
-  exam: 'border-s-destructive bg-destructive/5',
-  event: 'border-s-primary bg-primary/5',
-  task: 'border-s-amber-500 bg-amber-50 dark:bg-amber-900/10',
-  pomodoro: 'border-s-purple-500 bg-purple-50 dark:bg-purple-900/10',
-};
-
 const CalendarItem = ({ item, t }) => {
   const Icon = ITEM_ICONS[item.kind] || CalendarIcon;
   return (
     <div
       className={cn(
-        'rounded-xl border border-border p-3 transition-colors',
-        'border-s-[3px]',
-        ITEM_COLORS[item.kind] || '',
-        item.done && 'opacity-50',
+        'relative overflow-hidden rounded-2xl border p-3 transition-all hover:shadow-md bg-background',
+        item.kind === 'exam' ? 'border-destructive/30' :
+        item.kind === 'event' ? 'border-primary/30' :
+        item.kind === 'task' ? 'border-amber-500/30' : 'border-purple-500/30',
+        item.done && 'opacity-60 grayscale-[0.5]',
       )}
     >
-      <div className="flex items-start gap-2">
-        <Icon
-          className={cn(
-            'w-4 h-4 mt-0.5 shrink-0',
-            item.kind === 'exam'
-              ? 'text-destructive'
-              : item.kind === 'event'
-              ? 'text-primary'
-              : item.kind === 'task'
-              ? 'text-amber-500'
-              : 'text-purple-500',
-          )}
-        />
+      {/* Decorative side stripe */}
+      <div className={cn(
+        "absolute top-0 bottom-0 right-0 w-1.5",
+        item.kind === 'exam' ? 'bg-destructive' :
+        item.kind === 'event' ? 'bg-primary' :
+        item.kind === 'task' ? 'bg-amber-500' : 'bg-purple-500'
+      )} />
+      
+      <div className="flex items-start gap-3">
+        <div className={cn(
+          "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+          item.kind === 'exam' ? 'bg-destructive/10 text-destructive' :
+          item.kind === 'event' ? 'bg-primary/10 text-primary' :
+          item.kind === 'task' ? 'bg-amber-500/10 text-amber-500' : 'bg-purple-500/10 text-purple-500'
+        )}>
+          <Icon className="w-4 h-4" />
+        </div>
         <div className="flex-1 min-w-0">
           <p
             className={cn(
-              'text-sm font-semibold text-foreground truncate',
-              item.done && 'line-through',
+              'text-sm font-bold text-foreground leading-snug line-clamp-2 break-words',
+              item.done && 'line-through text-muted-foreground',
             )}
+            title={item.title}
           >
             {item.title}
           </p>
           {!item.allDay && item.date && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {format(item.date, 'HH:mm')}
-              {item.endDate ? ` — ${format(item.endDate, 'HH:mm')}` : ''}
-            </p>
+            <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-muted-foreground">
+              <Clock className="w-3 h-3 opacity-70" />
+              <span>
+                {format(item.date, 'HH:mm')}
+                {item.endDate ? ` — ${format(item.endDate, 'HH:mm')}` : ''}
+              </span>
+            </div>
           )}
           {item.location && (
-            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-              <MapPin className="w-3 h-3" /> {item.location}
-            </p>
+            <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-muted-foreground">
+              <MapPin className="w-3 h-3 opacity-70" />
+              <span className="truncate">{item.location}</span>
+            </div>
           )}
         </div>
       </div>
@@ -559,36 +621,42 @@ const UpcomingExams = ({ allItems, t }) => {
   if (exams.length === 0) return null;
 
   return (
-    <Card className="border-destructive/20 shadow-none rounded-2xl">
-      <CardHeader className="py-3 px-4">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-destructive" />
-          {t('upcomingExams')}
+    <Card className="border-destructive/20 shadow-md rounded-3xl overflow-hidden">
+      <CardHeader className="py-4 px-5 bg-destructive/5 border-b border-destructive/10">
+        <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
+          <GraduationCap className="w-5 h-5" />
+          {t('upcomingExams', 'מבחנים קרובים')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
-        <div className="space-y-2">
+      <CardContent className="p-0">
+        <div className="divide-y divide-border/50">
           {exams.map((exam) => {
-            const days = differenceInDays(exam.date, new Date());
+            const days = differenceInDays(startOfDay(exam.date), startOfDay(new Date()));
             return (
               <div
                 key={exam.id}
-                className="flex items-center justify-between text-sm"
+                className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
               >
-                <span className="font-medium text-foreground truncate">
-                  {exam.title}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-sm text-foreground">
+                    {exam.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    {format(exam.date, 'dd/MM/yyyy')}
+                  </span>
+                </div>
                 <span
                   className={cn(
-                    'text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 ms-2',
+                    'text-xs font-black px-3 py-1.5 rounded-xl shrink-0 shadow-sm',
                     days <= 7
-                      ? 'bg-destructive/10 text-destructive'
-                      : 'bg-primary/10 text-primary',
+                      ? 'bg-destructive text-white'
+                      : 'bg-primary/10 text-primary border border-primary/20',
                   )}
                 >
                   {days === 0
-                    ? t('todayExclamation')
-                    : `${days} ${t('daysLabel')}`}
+                    ? t('todayExclamation', 'היום!')
+                    : `${days} ${t('daysLabel', 'ימים')}`}
                 </span>
               </div>
             );

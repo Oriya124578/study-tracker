@@ -1,12 +1,12 @@
 import React from 'react';
-import { Home, Calendar, Settings, BookOpen, Clock, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { Home, Calendar, Settings, BookOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export const Sidebar = () => {
-  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen, language, pomodoro, setShowPomodoroModal } = useStore();
+  const { data, activeCourse, activeCategory, setActiveCourse, setActiveCategory, sidebarOpen, setSidebarOpen } = useStore();
   const { t } = useTranslation();
   const displayName = data?.profile?.displayName || 'User';
 
@@ -89,16 +89,6 @@ export const Sidebar = () => {
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-border flex flex-col gap-2">
-          <Button 
-            variant="ghost" 
-            className={cn("w-full justify-start transition-colors", !sidebarOpen && "justify-center px-0", pomodoro.active ? "text-primary bg-primary/10" : "text-muted-foreground")}
-            onClick={() => setShowPomodoroModal(true)}
-            title={t('pomodoro')}
-          >
-            <Clock className={cn("w-5 h-5", sidebarOpen && "ml-3")} />
-            {sidebarOpen && <span>{t('pomodoro')}</span>}
-          </Button>
-
           <Button 
             variant={activeCategory === 'settings' ? 'secondary' : 'ghost'} 
             className={cn("w-full justify-start text-muted-foreground", !sidebarOpen && "justify-center px-0")}

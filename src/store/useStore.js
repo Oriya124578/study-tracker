@@ -51,6 +51,8 @@ import {
   subscribeCaloriProfile,
   subscribeCoachSessionsForDay,
 } from '../lib/caloriRepo';
+import { generateDailySchedule } from '../lib/gemini';
+import { format, parseISO, isValid } from 'date-fns';
 
 // ---------- Notification settings (Phase 5) --------------------------------
 
@@ -208,6 +210,15 @@ export const useStore = create((set, get) => ({
   notificationSettings: loadNotificationSettings(),
   // AI Command Center draft state
   draftSchedule: { blocks: [], coachNote: '' },
+
+  // Focus Tracking state
+  focusTracking: {
+    activeBlockId: null,
+    isTracking: false,
+    startTime: null,
+    elapsed: 0,
+    wasInterrupted: false,
+  },
 
   // ---------- Subscriptions lifecycle -----------------------------------
 
@@ -1336,5 +1347,214 @@ export const useStore = create((set, get) => ({
     get().setProfile({
       coachNotes: { [dateStr]: null },
     });
+  },
+
+  // ---------- Focus Tracking Actions --------------------------------------
+  startFocusTracking: (blockId) => {
+    set((state) => ({
+      focusTracking: {
+        ...state.focusTracking,
+        activeBlockId: blockId,
+        isTracking: true,
+        startTime: new Date().toISOString(),
+        elapsed: 0,
+        wasInterrupted: false,
+      }
+    }));
+  },
+
+  setFocusElapsed: (elapsed) => {
+    set((state) => ({
+      focusTracking: {
+        ...state.focusTracking,
+        elapsed,
+      }
+    }));
+  },
+
+  resetFocusTracking: () => {
+    set({
+      focusTracking: {
+        activeBlockId: null,
+        isTracking: false,
+        startTime: null,
+        elapsed: 0,
+        wasInterrupted: false,
+      }
+    });
+  },
+
+  finishFocusTracking: async (status) => {
+    const { uid, focusTracking, data } = get();
+    if (!uid || !focusTracking.activeBlockId) return;
+
+    if (focusTracking.activeBlockId.startsWith('task-')) {
+      const taskId = focusTracking.activeBlockId.replace('task-', '');
+      const isCompleted = status === 'completed';
+      const elapsedMinutes = Math.round(focusTracking.elapsed / 60);
+
+      // Find the task to calculate next actualDuration
+      const task = data.personalTasks.find((t) => t.id === taskId);
+      const nextDuration = (task?.actualDuration || 0) + elapsedMinutes;
+
+      set((state) => ({
+        data: {
+          ...state.data,
+          personalTasks: state.data.personalTasks.map((t) => {
+            if (t.id !== taskId) return t;
+            return {
+              ...t,
+              done: isCompleted,
+              doneAt: isCompleted ? new Date().toISOString() : null,
+              status: status,
+              actualDuration: nextDuration,
+            };
+          }),
+        },
+      }));
+
+      await fsSetPersonalTask(uid, taskId, {
+        done: isCompleted,
+        doneAt: isCompleted ? new Date().toISOString() : null,
+        status: status,
+        actualDuration: nextDuration,
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+    }
+
+    get().resetFocusTracking();
+  },
+
+  interruptFocusTracking: async (dateStr, shabbatTimes, gpsLocation) => {
+    const { uid, focusTracking, data } = get();
+    if (!uid || !focusTracking.activeBlockId) return;
+
+    const blockId = focusTracking.activeBlockId;
+
+    set((state) => ({
+      focusTracking: {
+        ...state.focusTracking,
+        isTracking: false,
+        wasInterrupted: true,
+      }
+    }));
+
+    if (blockId.startsWith('task-')) {
+      const taskId = blockId.replace('task-', '');
+
+      set((state) => ({
+        data: {
+          ...state.data,
+          personalTasks: state.data.personalTasks.map((t) => {
+            if (t.id !== taskId) return t;
+            return {
+              ...t,
+              scheduledDate: null,
+              scheduledTime: null,
+              scheduledDuration: null,
+              status: 'didnt_start',
+            };
+          }),
+        },
+      }));
+
+      await fsSetPersonalTask(uid, taskId, {
+        scheduledDate: null,
+        scheduledTime: null,
+        scheduledDuration: null,
+        status: 'didnt_start',
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+
+      // Run automatic AI rescheduling in background
+      try {
+        const fixedEvents = [];
+        (data?.events || []).forEach((ev) => {
+          if (ev.start && ev.start.startsWith(dateStr)) {
+            fixedEvents.push({
+              id: ev.id,
+              title: ev.title,
+              start: ev.start.substring(11, 16),
+              end: ev.end ? ev.end.substring(11, 16) : '23:59',
+              location: ev.location || '',
+            });
+          }
+        });
+
+        const meals = [];
+        if (dateStr === dateKey()) {
+          (data?.calori?.meals || []).forEach((m) => {
+            meals.push({ name: m.name, time: m.timestamp ? m.timestamp.substring(11, 16) : '12:00', calories: m.calories });
+          });
+        }
+
+        const upcomingExams = [];
+        (data?.courses || []).forEach((course) => {
+          ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+            const examDate = course[moed] || course.exams?.[moed];
+            if (examDate) {
+              const dt = parseISO(examDate);
+              if (isValid(dt) && dt >= new Date()) {
+                upcomingExams.push({
+                  course: course.name,
+                  moed: moed.replace('moed', ''),
+                  date: examDate.substring(0, 10),
+                });
+              }
+            }
+          });
+        });
+
+        // Filter and construct unscheduled tasks tray
+        const unscheduledTasks = data.personalTasks
+          .filter((t) => {
+            if (t.done) return false;
+            // The interrupted task (taskId) is now unscheduled in state, so we want to include it.
+            if (t.id === taskId) return true;
+            return !t.scheduledDate;
+          })
+          .map((t) => ({
+            id: t.id,
+            title: t.title,
+            priority: t.priority || 'medium',
+          }));
+
+        const plannedWorkouts = data?.calori?.coachSessions || [];
+
+        const context = {
+          todayDate: dateStr,
+          dayOfWeek: format(new Date(), 'EEEE'),
+          settings: {
+            wakeTime: data?.profile?.wakeTime || '07:00',
+            sleepTime: data?.profile?.sleepTime || '23:00',
+            studyBlockDuration: data?.profile?.studyBlockDuration || 90,
+            shabbatMode: !!data?.profile?.shabbatMode,
+            studyPreferences: data?.profile?.studyPreferences || {},
+          },
+          shabbatTimes: shabbatTimes ? {
+            start: shabbatTimes.start.substring(11, 16),
+            end: shabbatTimes.end.substring(11, 16)
+          } : null,
+          fixedEvents,
+          upcomingExams,
+          tasks: unscheduledTasks,
+          workouts: plannedWorkouts,
+          meals,
+        };
+
+        const result = await generateDailySchedule(context);
+        if (result && result.blocks) {
+          const processedBlocks = result.blocks.map((b) => ({
+            ...b,
+            id: b.id || `draft-${Math.random().toString(36).substring(2, 7)}`,
+          }));
+
+          // Save the draft schedule
+          await get().saveDraftSchedule(dateStr, processedBlocks, result.coachNote);
+        }
+      } catch (err) {
+        console.error('[Focus Tracker] Interruption rescheduling failed:', err);
+      }
+    }
   },
 }));

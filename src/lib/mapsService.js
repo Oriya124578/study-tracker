@@ -22,7 +22,7 @@ const geocodeAddress = async (address) => {
 
   try {
     // Add email to comply with Nominatim's usage policy
-    const email = import.meta.env.VITE_NOMINATIM_EMAIL || 'turhv124@gmail.com';
+    const email = import.meta.env.VITE_NOMINATIM_EMAIL || 'contact@calori.life';
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=json&limit=1&email=${email}`;
     const response = await fetch(url);
     if (!response.ok) return null;

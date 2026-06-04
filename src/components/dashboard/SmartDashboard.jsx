@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   CheckCircle2, Calendar as CalendarIcon, GraduationCap,
   UtensilsCrossed, Dumbbell, Sparkles, Play, ListTodo, Bot, ChevronLeft, ChevronRight,
-  Clock, Flame, Plus, Award, Beef, Wheat, Droplet, ExternalLink
+  Clock, Flame, Plus, Award, Beef, Wheat, Droplet, ExternalLink, Target
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -22,7 +22,7 @@ const safeParse = (d) => {
 
 // ── Main: Bento Grid Command Center dashboard ──
 export const SmartDashboard = () => {
-  const { data, setActiveCategory, setShowPomodoroModal, togglePersonalTask, draftSchedule } = useStore();
+  const { data, setActiveCategory, togglePersonalTask, draftSchedule } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
   const locale = isRTL ? he : undefined;
@@ -259,17 +259,7 @@ export const SmartDashboard = () => {
   const remainingCals = Math.max(0, dailyGoal - totalCalories);
   const calsPercentage = Math.min(100, Math.round((totalCalories / dailyGoal) * 100));
 
-  // ── 6. Pomodoro Stats today ──
-  const todayPomoStats = useMemo(() => {
-    const todaySessions = (data.pomodoroSessions || []).filter((session) => {
-      return session.date && session.date.startsWith(todayStr);
-    });
-    const totalMinutes = todaySessions.reduce((sum, s) => sum + Math.round(s.duration / 60), 0);
-    return {
-      count: todaySessions.length,
-      minutes: totalMinutes,
-    };
-  }, [data.pomodoroSessions, todayStr]);
+
 
   const Chevron = isRTL ? ChevronLeft : ChevronRight;
 
@@ -581,17 +571,17 @@ export const SmartDashboard = () => {
             </div>
           </button>
 
-          {/* Action 2: Start Pomodoro */}
+          {/* Action 2: Go to Focus */}
           <button
-            onClick={() => setShowPomodoroModal(true)}
-            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-purple-500/40 hover:bg-purple-500/5 active:scale-95 transition-all text-start"
+            onClick={() => setActiveCategory('focus')}
+            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 active:scale-95 transition-all text-start"
           >
-            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center text-[#7C3AED] shrink-0">
-              <Clock className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <Target className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-foreground">{t('startPomodoro')}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{t('focusOnStudying')}</p>
+              <p className="text-xs font-bold text-foreground">{t('navFocus', 'פוקוס')}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{t('focusOnStudying', 'עבודה בריכוז עם שעון עצר')}</p>
             </div>
           </button>
 

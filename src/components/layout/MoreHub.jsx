@@ -30,19 +30,10 @@ const HUB_ITEMS = [
     labelKey: 'caloriHubCard',
     descKey: 'caloriHubDesc',
   },
-
-  {
-    key: '__pomodoro__',
-    icon: Timer,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
-    labelKey: 'pomodoroHubCard',
-    descKey: 'pomodoroHubDesc',
-  },
 ];
 
 export const MoreHub = () => {
-  const { setActiveCategory, setShowPomodoroModal, data } = useStore();
+  const { setActiveCategory, data } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
 
@@ -56,11 +47,7 @@ export const MoreHub = () => {
   };
 
   const handleClick = (key) => {
-    if (key === '__pomodoro__') {
-      setShowPomodoroModal(true);
-    } else {
-      setActiveCategory(key);
-    }
+    setActiveCategory(key);
   };
 
   const Chevron = isRTL ? ChevronLeft : ChevronRight;
