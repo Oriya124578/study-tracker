@@ -1,1372 +1,372 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <title>Calori Life — Bento Grid Design System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-dark: #0f0f12;
-      --card-bg: #1a1a1f;
-      --card-border: #2a2a31;
-      --text-main: #ffffff;
-      --text-muted: #a3a3aa;
-      --primary-green: #059669;
-      --primary-green-hover: #10B981;
-      --primary-purple: #7C3AED;
-      --primary-purple-hover: #8B5CF6;
-      --danger-red: #EF4444;
-      --warning-amber: #F59E0B;
-      --info-blue: #2563EB;
-      
-      --bento-bg: #F5F5F7;
-      --bento-text: #1D1D1F;
-      --bento-muted: #6B7280;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: 'Heebo', system-ui, -apple-system, sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-main);
-      display: flex;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Sidebar Navigation */
-    .sidebar {
-      width: 280px;
-      background: #131317;
-      border-left: 1px solid var(--card-border);
-      padding: 32px 24px;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      right: 0;
-      overflow-y: auto;
-      z-index: 100;
-    }
-
-    .sidebar-brand {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 32px;
-      color: var(--primary-green-hover);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .sidebar-menu {
-      list-style: none;
-    }
-
-    .sidebar-item {
-      margin-bottom: 8px;
-    }
-
-    .sidebar-link {
-      display: block;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      padding: 10px 14px;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-    }
-
-    .sidebar-link:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .sidebar-link.active {
-      color: #fff;
-      background: var(--primary-green);
-      font-weight: 700;
-    }
-
-    /* Main Content Area */
-    .main-content {
-      margin-right: 280px;
-      flex: 1;
-      padding: 48px;
-      max-width: 1200px;
-    }
-
-    section {
-      margin-bottom: 96px;
-      scroll-margin-top: 48px;
-    }
-
-    .section-title {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 12px;
-      border-bottom: 1.5px solid var(--card-border);
-      padding-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .section-number {
-      color: var(--primary-green-hover);
-      font-family: 'Inter', sans-serif;
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .section-desc {
-      color: var(--text-muted);
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 32px;
-    }
-
-    /* Cards */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    .ds-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 24px;
-      position: relative;
-    }
-
-    /* Colors Spec */
-    .color-swatch {
-      height: 120px;
-      border-radius: 14px;
-      margin-bottom: 16px;
-      position: relative;
-      cursor: pointer;
-      overflow: hidden;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .color-swatch:hover {
-      transform: scale(1.03);
-    }
-
-    .color-swatch .hex-copy {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 700;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .color-swatch:hover .hex-copy {
-      opacity: 1;
-    }
-
-    .color-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .color-hex {
-      font-family: 'Inter', monospace;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .color-use {
-      font-size: 12px;
-      color: var(--primary-green-hover);
-      font-weight: 600;
-    }
-
-    /* Toast Notification */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      background: var(--primary-green);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 1000;
-    }
-
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    /* Typography Table */
-    .typo-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .typo-row {
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    .typo-row td {
-      padding: 20px 8px;
-      vertical-align: middle;
-    }
-
-    .typo-spec {
-      width: 250px;
-    }
-
-    .typo-label {
-      font-family: 'Inter', monospace;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .typo-name {
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-
-    /* Spacing Bars */
-    .space-bar-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .space-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .space-name {
-      width: 80px;
-      font-family: 'Inter', monospace;
-      font-weight: 600;
-    }
-
-    .space-visual {
-      background: var(--primary-purple);
-      height: 24px;
-      border-radius: 6px;
-      min-width: 4px;
-      transition: width 0.3s ease;
-    }
-
-    .space-value {
-      color: var(--text-muted);
-      font-size: 13px;
-      font-family: 'Inter', monospace;
-    }
-
-    /* Border Radius Spec */
-    .radius-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 24px;
-    }
-
-    .radius-box {
-      background: var(--card-bg);
-      border: 2px dashed var(--primary-green);
-      height: 120px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .radius-title {
-      font-weight: 700;
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    /* Bento Live Showcase */
-    .bento-showcase {
-      background: var(--bento-bg);
-      color: var(--bento-text);
-      border-radius: 28px;
-      padding: 24px;
-      width: 390px;
-      margin: 0 auto;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-
-    /* Interactive Component Demos */
-    .b-tile {
-      border-radius: 22px;
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
-    }
-
-    .b-tile:hover {
-      transform: scale(1.02);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    }
-
-    .b-tile.green {
-      background: #059669;
-      color: #fff;
-      min-height: 140px;
-    }
-
-    .b-tile.green .big {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 1;
-      margin-top: 8px;
-    }
-
-    .b-tile.green .lbl {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      opacity: 0.8;
-      letter-spacing: 0.05em;
-    }
-
-    .b-tile.green .meta {
-      position: absolute;
-      bottom: 14px;
-      right: 16px;
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .b-tile.purple {
-      background: #7C3AED;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 140px;
-    }
-
-    .b-tile.purple .num {
-      font-size: 28px;
-      font-weight: 800;
-    }
-
-    .b-tile.purple .lbl {
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0.8;
-    }
-
-    .b-tile.purple .ring-container {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .b-tile.white {
-      background: #fff;
-      color: #1D1D1F;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      min-height: 140px;
-    }
-
-    .b-tile.white .h {
-      font-size: 11px;
-      font-weight: 700;
-      color: #6B7280;
-      text-transform: uppercase;
-    }
-
-    .b-tile.white .t {
-      font-size: 16px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-
-    .b-tile.white .s {
-      font-size: 12px;
-      color: #6B7280;
-      margin-top: 2px;
-    }
-
-    .b-tile.white .time {
-      font-size: 22px;
-      font-weight: 800;
-      margin-top: 14px;
-    }
-
-    .b-tile.red {
-      background: #EF4444;
-      color: #fff;
-      min-height: 140px;
-    }
-
-    .b-tile.red .countdown {
-      font-size: 34px;
-      font-weight: 800;
-    }
-
-    .b-tile.red .countdown small {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .b-tile.red .t {
-      font-size: 13px;
-      font-weight: 600;
-      margin-top: 12px;
-    }
-
-    .b-tile.task {
-      background: #fff;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      border-radius: 18px;
-    }
-
-    .b-tile.task .check-box {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      border: 1.5px solid #E5E7EB;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .b-tile.task.checked .check-box {
-      background: #059669;
-      border-color: #059669;
-    }
-
-    .b-tile.task.checked .check-box::after {
-      content: '✓';
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .b-tile.task.checked .t {
-      text-decoration: line-through;
-      color: #9CA3AF;
-    }
-
-    .b-tile.task .t {
-      font-size: 14px;
-      font-weight: 500;
-      flex: 1;
-      transition: all 0.2s ease;
-    }
-
-    .b-tile.task .due {
-      font-size: 11px;
-      font-weight: 700;
-      color: #F59E0B;
-    }
-
-    /* Flip Card Logic */
-    .flip-tile-container {
-      perspective: 1000px;
-    }
-
-    .flip-tile {
-      width: 100%;
-      height: 100%;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      position: relative;
-    }
-
-    .flip-tile.flipped {
-      transform: rotateY(180deg);
-    }
-
-    .flip-front, .flip-back {
-      backface-visibility: hidden;
-      position: absolute;
-      inset: 0;
-      border-radius: 22px;
-      padding: 16px;
-    }
-
-    .flip-back {
-      transform: rotateY(180deg);
-      background: #047857;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .macro-row {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding: 6px 0;
-      font-size: 13px;
-    }
-
-    .macro-row:last-child {
-      border-bottom: none;
-    }
-
-    /* Phone Preview Frame */
-    .phone-wrap {
-      display: flex;
-      justify-content: center;
-      margin-top: 32px;
-    }
-
-    .phone {
-      width: 390px;
-      height: 800px;
-      border-radius: 48px;
-      overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 8px #2a2a31, 0 0 0 10px #0f0f12;
-      position: relative;
-      background: #fff;
-    }
-
-    .phone-inner {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      position: relative;
-      background: #F5F5F7;
-      padding: 48px 16px 88px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .phone-status-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #1D1D1F;
-      z-index: 10;
-    }
-
-    .notch {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 110px;
-      height: 30px;
-      background: #000;
-      border-bottom-left-radius: 18px;
-      border-bottom-right-radius: 18px;
-      z-index: 11;
-    }
-
-    .phone-content {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .phone-nav {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 80px;
-      background: #fff;
-      border-top: 1px solid #E5E7EB;
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      padding: 0 16px 20px;
-    }
-
-    .phone-nav .item {
-      font-size: 11px;
-      color: #9CA3AF;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .phone-nav .item.active {
-      color: #059669;
-    }
-
-    .phone-nav .fab {
-      position: absolute;
-      top: -16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #059669;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 8px 24px rgba(5,150,105,.4);
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .phone-nav .fab:hover {
-      transform: translateX(-50%) scale(1.05);
-    }
-
-    /* Live Progress Ring */
-    .progress-ring {
-      width: 44px;
-      height: 44px;
-    }
-
-    .progress-ring circle {
-      transition: stroke-dashoffset 0.8s ease-in-out;
-    }
-
-    /* Button and UI Controls */
-    .btn {
-      background: var(--primary-green);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s ease;
-    }
-
-    .btn:hover {
-      background: var(--primary-green-hover);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text-main);
-      border: 1.5px solid var(--card-border);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    /* Custom Header Info */
-    .ds-header {
-      margin-bottom: 48px;
-    }
-
-    .ds-badge {
-      display: inline-flex;
-      align-items: center;
-      background: rgba(5, 150, 105, 0.15);
-      color: var(--primary-green-hover);
-      border: 1px solid rgba(5, 150, 105, 0.3);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 700;
-      margin-top: 12px;
-    }
-
-    /* Utility */
-    .copy-val {
-      cursor: pointer;
-      transition: color 0.15s ease;
-    }
-    .copy-val:hover {
-      color: var(--primary-green-hover);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Calori Life — Design System v2 (Warm Cream + Editorial Serif)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-canvas:#FAF7F2; --c-surface:#FFFFFF; --c-ink:#2A1A0A; --c-ink-soft:#8A7A6A;
+  --c-hairline:rgba(180,140,80,.14); --c-hairline-soft:rgba(180,140,80,.10); --c-tint-warm:#F5F0E8;
+  --c-green:#059669; --c-green-deep:#065F46; --c-green-secondary:#10B981; --c-green-tertiary:#047857;
+  --c-green-soft:#F0FDF4; --c-green-softer:#ECFDF5;
+  --c-purple:#7C3AED; --c-purple-secondary:#8B5CF6; --c-purple-soft:#F3EFFB; --c-purple-softer:#EDE9FE;
+  --c-info:#2563EB; --c-info-soft:#EFF6FF; --c-info-deep:#1E40AF;
+  --c-warning:#D97706; --c-warning-soft:#FFFBEB; --c-warning-deep:#92400E;
+  --c-danger:#EF4444; --c-danger-soft:#FEF2F2; --c-danger-deep:#991B1B; --c-danger-strong:#DC2626;
+  --f-display:'Instrument Serif','Rubik',serif;
+  --f-numbers:'Fraunces','Rubik',serif;
+  --f-body:'Inter','Rubik',sans-serif;
+  --sh-card:0 4px 24px rgba(40,20,0,.07);
+  --sh-card-subtle:0 2px 10px rgba(40,20,0,.05);
+  --sh-fab:0 6px 20px rgba(6,95,70,.35);
+  --sh-qa:0 4px 16px rgba(5,150,105,.28);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--c-canvas);min-height:100vh;font-family:var(--f-body);color:var(--c-ink);padding:32px 24px 80px;}
+.container{max-width:1180px;margin:0 auto;}
+h1.doc-title{font-family:var(--f-display);font-size:48px;font-weight:400;letter-spacing:-.03em;color:var(--c-ink);line-height:1;margin-bottom:8px;}
+h1.doc-title em{font-style:italic;color:var(--c-green);}
+.doc-sub{color:var(--c-ink-soft);font-size:14px;margin-bottom:48px;max-width:680px;line-height:1.6;}
+.section{margin-bottom:56px;}
+.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;border-bottom:1px solid var(--c-hairline);padding-bottom:14px;}
+.section-num{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:28px;color:var(--c-green);letter-spacing:-.04em;}
+.section-title{font-family:var(--f-display);font-size:28px;font-weight:400;color:var(--c-ink);letter-spacing:-.03em;}
+.section-title em{font-style:italic;color:var(--c-green);}
+.section-desc{font-size:13px;color:var(--c-ink-soft);margin-bottom:20px;max-width:720px;line-height:1.6;}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+.sw{background:var(--c-surface);border:1px solid var(--c-hairline);border-radius:14px;padding:0;overflow:hidden;box-shadow:var(--sh-card-subtle);}
+.sw-chip{height:80px;}
+.sw-body{padding:10px 12px 12px;}
+.sw-name{font-size:11px;font-weight:600;color:var(--c-ink);}
+.sw-hex{font-family:var(--f-numbers);font-weight:500;font-size:13px;color:var(--c-ink-soft);letter-spacing:-.02em;margin-top:2px;}
+.sw-role{font-size:10px;color:var(--c-ink-soft);margin-top:3px;line-height:1.3;}
+.type-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+.type-row{background:var(--c-surface);border:1px solid var(--c-hairline);border-radius:14px;padding:18px 22px;box-shadow:var(--sh-card-subtle);display:grid;grid-template-columns:160px 1fr;gap:24px;align-items:center;}
+.type-class{font-family:var(--f-numbers);font-weight:500;font-size:12px;color:var(--c-green);background:var(--c-green-softer);padding:2px 8px;border-radius:6px;display:inline-block;letter-spacing:-.01em;}
+.type-spec{font-size:11px;color:var(--c-ink-soft);margin-top:4px;line-height:1.5;}
+.s-hero-greeting{font-family:var(--f-display);font-size:34px;font-weight:400;line-height:1;letter-spacing:-.04em;color:var(--c-ink);}
+.s-hero-greeting em{font-style:italic;color:var(--c-green);}
+.s-section-title{font-family:var(--f-display);font-size:22px;font-weight:400;letter-spacing:-.02em;color:var(--c-ink);}
+.s-section-title em{font-style:italic;color:var(--c-green);}
+.s-card-title{font-family:var(--f-display);font-size:18px;font-weight:400;letter-spacing:-.02em;color:var(--c-ink);}
+.s-eyebrow{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-soft);}
+.s-body{font-size:13px;color:var(--c-ink);line-height:1.6;}
+.s-num-hero{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:78px;line-height:.9;letter-spacing:-.05em;color:var(--c-ink);font-variation-settings:"opsz" 144;}
+.s-num-hero em{font-style:italic;color:var(--c-purple);}
+.s-num-calori{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:64px;line-height:.85;letter-spacing:-.05em;color:var(--c-green);font-variation-settings:"opsz" 144;}
+.s-num-stat{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:28px;line-height:1;letter-spacing:-.03em;color:var(--c-green);}
+.s-num-mini{font-family:var(--f-numbers);font-weight:600;font-size:24px;line-height:1;letter-spacing:-.04em;color:var(--c-ink);}
+.hero-demo{background:var(--c-surface);border-radius:22px;padding:20px 18px 18px;border:1px solid var(--c-hairline);box-shadow:var(--sh-card);position:relative;overflow:hidden;max-width:430px;}
+.hero-demo::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#065F46,#059669 50%,#047857);}
+.hd-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.hd-date{font-size:10px;font-weight:600;color:var(--c-ink-soft);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}
+.hd-name{font-family:var(--f-display);font-size:27px;font-weight:400;color:var(--c-ink);letter-spacing:-.04em;line-height:1.05;}
+.hd-name em{color:var(--c-green);font-style:italic;}
+.hd-status{display:flex;align-items:center;gap:5px;margin-top:7px;}
+.hd-dot{width:6px;height:6px;border-radius:50%;background:var(--c-green);}
+.hd-st{font-size:12px;font-weight:500;color:var(--c-ink-soft);}
+.hd-badge{background:var(--c-green-soft);border:1px solid rgba(5,150,105,.2);border-radius:14px;padding:9px 12px;text-align:center;flex-shrink:0;}
+.hd-bnum{font-family:var(--f-numbers);font-weight:600;font-size:26px;color:var(--c-green-deep);line-height:1;letter-spacing:-.04em;}
+.hd-blbl{font-size:9px;color:rgba(6,95,70,.5);margin-top:1px;}
+.hd-div{border:none;border-top:1px solid var(--c-hairline-soft);margin:0 0 14px;}
+.hd-stats{display:flex;gap:0;}
+.hd-s{flex:1;padding:0 10px 0 0;}
+.hd-s+.hd-s{padding:0 10px;border-right:1px solid var(--c-hairline-soft);}
+.hd-vg{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:30px;color:var(--c-green);letter-spacing:-.04em;line-height:1;}
+.hd-vp{font-family:var(--f-numbers);font-weight:600;font-style:italic;font-size:20px;color:var(--c-purple);letter-spacing:-.03em;line-height:1;}
+.hd-vw{font-family:var(--f-numbers);font-weight:600;font-size:18px;color:var(--c-ink);letter-spacing:-.02em;line-height:1;}
+.hd-vs{font-size:10px;color:var(--c-ink-soft);margin-top:3px;}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.comp{background:var(--c-surface);border:1px solid var(--c-hairline);border-radius:18px;padding:18px;box-shadow:var(--sh-card-subtle);}
+.comp-label{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-soft);margin-bottom:12px;}
+.comp-label em{font-family:var(--f-display);font-style:italic;font-size:12px;color:var(--c-green);text-transform:none;letter-spacing:0;}
+.btn{font-size:13px;font-weight:700;border-radius:14px;padding:11px 16px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary{background:var(--c-green);color:#fff;box-shadow:var(--sh-qa);}
+.btn-secondary{background:var(--c-surface);color:var(--c-ink);border:1px solid var(--c-hairline);box-shadow:var(--sh-card-subtle);}
+.btn-ghost{background:transparent;color:var(--c-green);}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;border:1px solid;}
+.chip.green{background:var(--c-green-softer);color:var(--c-green-deep);border-color:rgba(5,150,105,.15);}
+.chip.amber{background:var(--c-warning-soft);color:var(--c-warning);border-color:rgba(217,119,6,.15);}
+.chip.red{background:var(--c-danger-soft);color:var(--c-danger-strong);border-color:rgba(220,38,38,.12);}
+.chip.blue{background:var(--c-info-soft);color:var(--c-info-deep);border-color:rgba(37,99,235,.15);}
+.item-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;margin-bottom:8px;}
+.item-row .it-name{font-size:13px;font-weight:600;}
+.item-row .it-meta{font-size:11px;margin-top:2px;}
+.it-meal{background:var(--c-green);}
+.it-meal .it-name,.it-meal .it-meta{color:#fff;}
+.it-meal .it-meta{color:rgba(255,255,255,.65);}
+.it-workout{background:var(--c-purple);}
+.it-workout .it-name,.it-workout .it-meta{color:#fff;}
+.it-workout .it-meta{color:rgba(255,255,255,.65);}
+.it-exam{background:var(--c-danger-soft);border:1px solid rgba(239,68,68,.12);}
+.it-exam .it-name{color:var(--c-danger-deep);}
+.it-study{background:var(--c-info-soft);border:1px solid rgba(37,99,235,.15);}
+.it-study .it-name{color:var(--c-info-deep);}
+.it-study .it-meta{color:#3B82F6;}
+.it-note{background:var(--c-warning-soft);border:1px solid rgba(217,119,6,.15);}
+.it-note .it-name{color:var(--c-warning-deep);}
+.it-empty{background:rgba(180,140,80,.05);border:1.5px dashed rgba(180,140,80,.2);}
+.it-empty .it-name{font-family:var(--f-display);font-style:italic;color:var(--c-ink-soft);text-align:center;width:100%;}
+.wm{font-size:22px;font-weight:700;color:var(--c-ink);letter-spacing:-.02em;}
+.wm em{font-family:var(--f-display);font-style:italic;color:var(--c-green);font-weight:400;font-size:25px;}
+.header-demo{background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border:1px solid var(--c-hairline);border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.avatar-demo{width:34px;height:34px;border-radius:50%;background:var(--c-green-deep);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-demo-title{font-family:var(--f-display);font-size:22px;font-weight:400;color:var(--c-ink);}
+.nav-demo{background:rgba(250,247,242,.96);border:1px solid var(--c-hairline);border-radius:14px;padding:10px 12px;display:flex;justify-content:space-around;}
+.nav-i{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.nav-i .ni{font-size:18px;opacity:.25;}
+.nav-i .nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-i.active .ni{opacity:1;}
+.nav-i.active .nl{color:var(--c-green);}
+.fab-demo{width:52px;height:52px;border-radius:50%;background:var(--c-green-deep);color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-fab);}
+.callout{background:var(--c-green-softer);border-right:3px solid var(--c-green);border-radius:0 14px 14px 0;padding:14px 18px;margin-top:14px;}
+.callout-title{font-family:var(--f-display);font-style:italic;font-size:16px;color:var(--c-green-deep);margin-bottom:4px;}
+.callout-body{font-size:13px;color:var(--c-ink);line-height:1.6;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media (max-width:720px){.grid-2{grid-template-columns:1fr;}.type-row{grid-template-columns:1fr;}}
+</style>
 </head>
 <body>
+<div class="container">
+  <h1 class="doc-title">Calori Life — <em>Design System</em></h1>
+  <p class="doc-sub">v2.0 · Editorial × Warm × Scholarly. Three-font system (Instrument Serif · Fraunces · Inter) on a warm cream canvas (#FAF7F2). Forest green accents. Italic is emphasis. Color is information. This document is the visual ground truth.</p>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span>Calori Life Design</span>
+  <div class="section">
+    <div class="section-head"><div class="section-num">01</div><div class="section-title"><em>Color</em> · Warm Cream Palette</div></div>
+    <div class="comp-label" style="margin-bottom:10px;">Neutrals — <em>the canvas</em></div>
+    <div class="swatches" style="margin-bottom:24px;">
+      <div class="sw"><div class="sw-chip" style="background:#FAF7F2;border-bottom:1px solid var(--c-hairline);"></div><div class="sw-body"><div class="sw-name">canvas</div><div class="sw-hex">#FAF7F2</div><div class="sw-role">Every screen background</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FFFFFF;border-bottom:1px solid var(--c-hairline);"></div><div class="sw-body"><div class="sw-name">surface</div><div class="sw-hex">#FFFFFF</div><div class="sw-role">Cards, hero card</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#2A1A0A;"></div><div class="sw-body"><div class="sw-name">ink</div><div class="sw-hex">#2A1A0A</div><div class="sw-role">Primary text (warm dark)</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#8A7A6A;"></div><div class="sw-body"><div class="sw-name">ink-soft</div><div class="sw-hex">#8A7A6A</div><div class="sw-role">Secondary text</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F5F0E8;"></div><div class="sw-body"><div class="sw-name">tint-warm</div><div class="sw-hex">#F5F0E8</div><div class="sw-role">Segmented track, hover</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:rgba(180,140,80,.14);"></div><div class="sw-body"><div class="sw-name">hairline</div><div class="sw-hex">rgba(180,140,80,.14)</div><div class="sw-role">Borders</div></div></div>
     </div>
-    <ul class="sidebar-menu">
-      <li class="sidebar-item"><a href="#intro" class="sidebar-link active">מבוא ופילוסופיה</a></li>
-      <li class="sidebar-item"><a href="#colors" class="sidebar-link">פלטת צבעים</a></li>
-      <li class="sidebar-item"><a href="#typography" class="sidebar-link">טיפוגרפיה</a></li>
-      <li class="sidebar-item"><a href="#spacing" class="sidebar-link">מרווחים ורדיוס</a></li>
-      <li class="sidebar-item"><a href="#shadows" class="sidebar-link">צללים והרמה</a></li>
-      <li class="sidebar-item"><a href="#tiles" class="sidebar-link">רכיבי Bento Grid</a></li>
-      <li class="sidebar-item"><a href="#navigation" class="sidebar-link">ניווט ובקרים</a></li>
-      <li class="sidebar-item"><a href="#mockup" class="sidebar-link">מסך מלא (Mockup)</a></li>
-    </ul>
-  </aside>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    
-    <!-- Hero / Intro -->
-    <section id="intro" class="ds-header">
-      <h1>Calori Life — מערכת עיצוב (Design System)</h1>
-      <div class="ds-badge">כיוון נבחר: Bento Grid + צבע</div>
-      
-      <p style="margin-top: 24px; color: var(--text-muted); font-size: 16px; line-height: 1.8; max-width: 800px;">
-        פילוסופיית העיצוב של <b>Bento Grid</b> מבוססת על מודולריות, ניקיון ומבנה ברור. האלמנטים השונים מאורגנים בכרטיסיות (Tiles) בעלי יחסים מוגדרים מראש, מה שמאפשר תצוגה מורכבת של מידע רב ללא עומס קוגניטיבי. שימוש בצבעים סלקטיביים מדגיש את תחומי האפליקציה (ירוק לתזונה, סגול לספורט, אדום למטלות דחופות) ומעניק אופי פרימיום נקי.
-      </p>
-    </section>
+    <div class="comp-label" style="margin-bottom:10px;">Nutrition — <em>green spectrum</em></div>
+    <div class="swatches" style="margin-bottom:24px;">
+      <div class="sw"><div class="sw-chip" style="background:#065F46;"></div><div class="sw-body"><div class="sw-name">primary-deep</div><div class="sw-hex">#065F46</div><div class="sw-role">FAB, avatar, deep</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#059669;"></div><div class="sw-body"><div class="sw-name">primary</div><div class="sw-hex">#059669</div><div class="sw-role">Italic accents, CTA, meals</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#10B981;"></div><div class="sw-body"><div class="sw-name">secondary</div><div class="sw-hex">#10B981</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#047857;"></div><div class="sw-body"><div class="sw-name">tertiary</div><div class="sw-hex">#047857</div><div class="sw-role">Mid stop in gradients</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F0FDF4;border-bottom:1px solid var(--c-hairline);"></div><div class="sw-body"><div class="sw-name">soft</div><div class="sw-hex">#F0FDF4</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#ECFDF5;border-bottom:1px solid var(--c-hairline);"></div><div class="sw-body"><div class="sw-name">softer</div><div class="sw-hex">#ECFDF5</div></div></div>
+    </div>
 
-    <!-- Colors -->
-    <section id="colors">
-      <h2 class="section-title"><span class="section-number">01</span> פלטת צבעים (Colors)</h2>
-      <p class="section-desc">לחץ על ריבוע צבע כדי להעתיק את קוד ה-Hex ישירות ללוח העריכה.</p>
-      
-      <h3 style="margin-bottom: 16px;">צבעי יסוד (Primary)</h3>
-      <div class="card-grid">
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #059669;" onclick="copyHex('#059669')">
-            <div class="hex-copy">העתק #059669</div>
-          </div>
-          <div class="color-title">Nutrition Emerald</div>
-          <div class="color-hex">#059669</div>
-          <div class="color-use">תזונה / בריאות / ראשי</div>
+    <div class="comp-label" style="margin-bottom:10px;">Fitness — <em>purple</em> & Semantic</div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-chip" style="background:#7C3AED;"></div><div class="sw-body"><div class="sw-name">fitness</div><div class="sw-hex">#7C3AED</div><div class="sw-role">Workouts flood, Pomodoro</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#2563EB;"></div><div class="sw-body"><div class="sw-name">info</div><div class="sw-hex">#2563EB</div><div class="sw-role">Study events</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#D97706;"></div><div class="sw-body"><div class="sw-name">warning</div><div class="sw-hex">#D97706</div><div class="sw-role">Notes, carbs</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#EF4444;"></div><div class="sw-body"><div class="sw-name">danger</div><div class="sw-hex">#EF4444</div><div class="sw-role">Exam, overdue</div></div></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">The 30% rule</div>
+      <div class="callout-body">~70% of any screen is warm cream + white + ink. ~30% is green (FAB, italic accents, CTA, meals). Any other color is <strong>information</strong> — appears only on item-type cards or stat values. Never decorative.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-num">02</div><div class="section-title"><em>Typography</em> · Three-Font System</div></div>
+    <div class="section-desc">Instrument Serif for headings & italic accents · Fraunces 600 for ALL numbers (≥14px) · Inter for body/UI · Rubik fallback for Hebrew in every stack.</div>
+
+    <div class="type-grid">
+      <div class="type-row">
+        <div><span class="type-class">.hero-greeting</span><div class="type-spec">Instrument Serif · 27/30<br>weight 400 · -0.04em<br>em → italic green</div></div>
+        <div class="s-hero-greeting">ערב טוב,<br><em>אוריה</em> 👋</div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.section-title</span><div class="type-spec">Instrument Serif · 22/26<br>weight 400 · -0.02em</div></div>
+        <div class="s-section-title">היום · <em>רביעי</em></div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.card-title</span><div class="type-spec">Instrument Serif · 18/24<br>weight 400</div></div>
+        <div class="s-card-title">משקה חלבון אייס קפה</div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.eyebrow</span><div class="type-spec">Inter · 10/14 · 600<br>0.14em uppercase</div></div>
+        <div class="s-eyebrow">רביעי · 4 יוני 2026</div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.body</span><div class="type-spec">Inter · 13/20 · 400</div></div>
+        <div class="s-body">משקה חלבון לאחר אימון · עשיר בחלבון איכותי, מתאים גם לארוחת בוקר מהירה לפני יציאה ללימודים.</div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.num-hero (Pomodoro)</span><div class="type-spec">Fraunces · 78/70 · 600<br>italic on em · -0.05em<br>opsz 144</div></div>
+        <div class="s-num-hero">14<em>:23</em></div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.num-calori</span><div class="type-spec">Fraunces italic · 64/60<br>weight 600 · -0.05em</div></div>
+        <div class="s-num-calori">398</div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.num-stat</span><div class="type-spec">Fraunces italic · 28/30<br>weight 600</div></div>
+        <div><span class="s-num-stat">30</span><span style="font-size:11px;color:var(--c-ink-soft);margin-right:8px;">ימים לאינפי 2</span></div>
+      </div>
+      <div class="type-row">
+        <div><span class="type-class">.num-mini</span><div class="type-spec">Fraunces · 24 · 600<br>(no italic on mini-tiles)</div></div>
+        <div><span class="s-num-mini">86.5</span><span style="font-size:11px;color:var(--c-ink-soft);margin-right:8px;">ק"ג · יעד 78</span></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Italic accent rule</div>
+      <div class="callout-body">Every Instrument Serif heading contains <strong>one or two italic words in green</strong> — the editorial pull-quote effect. Names, day-of-week, key nouns, the seconds of a timer. Never italicize body text or labels.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-num">03</div><div class="section-title">Hero Card · the <em>signature</em></div></div>
+    <div class="section-desc">Combo-B layout: greeting + nutrition stats merged in ONE card. 22px radius. 3px green-gradient top accent line. Inside divider separates greeting from stats. This is the home screen.</div>
+    <div class="hero-demo">
+      <div class="hd-top">
+        <div>
+          <div class="hd-date">רביעי · 4 יוני 2026</div>
+          <div class="hd-name">ערב טוב,<br><em>אוריה 👋</em></div>
+          <div class="hd-status"><div class="hd-dot"></div><div class="hd-st">הלוז הושלם להיום</div></div>
         </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #7C3AED;" onclick="copyHex('#7C3AED')">
-            <div class="hex-copy">העתק #7C3AED</div>
-          </div>
-          <div class="color-title">Workout Purple</div>
-          <div class="color-hex">#7C3AED</div>
-          <div class="color-use">ספורט / כושר / התקדמות</div>
-        </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #10B981;" onclick="copyHex('#10B981')">
-            <div class="hex-copy">העתק #10B981</div>
-          </div>
-          <div class="color-title">Active Green</div>
-          <div class="color-hex">#10B981</div>
-          <div class="color-use">מצבים פעילים / הושלם</div>
+        <div class="hd-badge"><div class="hd-bnum">30</div><div class="hd-blbl">ימים לאינפי 2</div></div>
+      </div>
+      <hr class="hd-div">
+      <div class="hd-stats">
+        <div class="hd-s"><div class="hd-vg">398</div><div class="hd-vs">קק"ל / 2,000</div></div>
+        <div class="hd-s"><div class="hd-vp">+0</div><div class="hd-vs">שנשרפו / 300</div></div>
+        <div class="hd-s"><div class="hd-vw">86.5</div><div class="hd-vs">ק"ג · יעד 78</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-num">04</div><div class="section-title">Item Types · <em>the most important rule</em></div></div>
+    <div class="section-desc">Each item type has a strict color treatment. Never invent. Never substitute. These are how the app stays legible across timelines and calendars.</div>
+    <div style="max-width:520px;">
+      <div class="item-row it-meal"><div style="flex:1;"><div class="it-name">משקה חלבון אייס קפה</div><div class="it-meta">398 קק"ל · חלבון 45g · 09:54</div></div></div>
+      <div class="item-row it-workout"><div style="flex:1;"><div class="it-name">ריצה · 30 דקות</div><div class="it-meta">300 קק"ל נשרפו</div></div></div>
+      <div class="item-row it-exam"><div style="flex:1;"><div class="it-name">⏰ אינפי 2 · 30 ימים לבחינה</div><div class="it-meta" style="color:rgba(220,38,38,.65);">מועד A · הכן חומר</div></div></div>
+      <div class="item-row it-study"><div style="flex:1;"><div class="it-name">הרצאה · אינפי 2</div><div class="it-meta">בניין 9 · חדר 305 · 14:00</div></div></div>
+      <div class="item-row it-note"><div style="flex:1;"><div class="it-name">תזכורת · להגיש תרגיל</div><div class="it-meta" style="color:rgba(146,64,14,.65);">חלון אחרון 23:59</div></div></div>
+      <div class="item-row it-empty"><div class="it-name">ריק · לחץ + להוסיף</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-num">05</div><div class="section-title"><em>Components</em></div></div>
+    <div class="comp-grid">
+      <div class="comp">
+        <div class="comp-label">Buttons · <em>primary / secondary / ghost</em></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="btn btn-primary">✦ ארגן עם AI</button>
+          <button class="btn btn-secondary">⏱ פומודורו</button>
+          <button class="btn btn-ghost">פתח יומן ›</button>
         </div>
       </div>
-
-      <h3 style="margin: 32px 0 16px;">צבעי התראות וחיווי (Semantic)</h3>
-      <div class="card-grid">
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #EF4444;" onclick="copyHex('#EF4444')">
-            <div class="hex-copy">העתק #EF4444</div>
-          </div>
-          <div class="color-title">Danger Red</div>
-          <div class="color-hex">#EF4444</div>
-          <div class="color-use">בחינות קרובות / משימות שפגו</div>
-        </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #F59E0B;" onclick="copyHex('#F59E0B')">
-            <div class="hex-copy">העתק #F59E0B</div>
-          </div>
-          <div class="color-title">Warning Amber</div>
-          <div class="color-hex">#F59E0B</div>
-          <div class="color-use">התראות / תשומת לב</div>
-        </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #2563EB;" onclick="copyHex('#2563EB')">
-            <div class="hex-copy">העתק #2563EB</div>
-          </div>
-          <div class="color-title">Info Blue</div>
-          <div class="color-hex">#2563EB</div>
-          <div class="color-use">הרצאות / לימודים / מידע</div>
+      <div class="comp">
+        <div class="comp-label">Chips · <em>tints by semantic</em></div>
+        <div class="chip-row">
+          <span class="chip green">חלבון 45g</span>
+          <span class="chip amber">פחמימות 36g</span>
+          <span class="chip red">שומן 8g</span>
+          <span class="chip blue">קורס · אינפי 2</span>
         </div>
       </div>
-
-      <h3 style="margin: 32px 0 16px;">צבעי רקע ונייטרליים (Neutrals)</h3>
-      <div class="card-grid">
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #F5F5F7;" onclick="copyHex('#F5F5F7')">
-            <div class="hex-copy">העתק #F5F5F7</div>
-          </div>
-          <div class="color-title">Bento Gray</div>
-          <div class="color-hex">#F5F5F7</div>
-          <div class="color-use">רקע מובייל ראשי / רקע מערכת</div>
-        </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #FFFFFF;" onclick="copyHex('#FFFFFF')">
-            <div class="hex-copy">העתק #FFFFFF</div>
-          </div>
-          <div class="color-title">Pure White</div>
-          <div class="color-hex">#FFFFFF</div>
-          <div class="color-use">כרטיסיות בהירות / טקסט כהה</div>
-        </div>
-        <div class="ds-card">
-          <div class="color-swatch" style="background: #1D1D1F;" onclick="copyHex('#1D1D1F')">
-            <div class="hex-copy">העתק #1D1D1F</div>
-          </div>
-          <div class="color-title">Bento Text Dark</div>
-          <div class="color-hex">#1D1D1F</div>
-          <div class="color-use">טקסט ראשי בעיצוב הבהיר</div>
+      <div class="comp">
+        <div class="comp-label">Wordmark</div>
+        <div class="wm">calori<em> life</em></div>
+      </div>
+      <div class="comp">
+        <div class="comp-label">Header</div>
+        <div class="header-demo">
+          <div class="avatar-demo">א</div>
+          <div class="h-demo-title">בית</div>
+          <div class="wm" style="font-size:15px;">calori<em style="font-size:17px;"> life</em></div>
         </div>
       </div>
-    </section>
-
-    <!-- Typography -->
-    <section id="typography">
-      <h2 class="section-title"><span class="section-number">02</span> טיפוגרפיה (Typography)</h2>
-      <p class="section-desc">הפונט המוביל באפליקציה הוא <b>Heebo</b> לעברית ו-<b>Inter</b> למספרים ותווים לטיניים.</p>
-      
-      <div class="ds-card">
-        <table class="typo-table">
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">Display (Large Numbers)</div>
-              <div class="typo-label">34px · SemiBold/Bold · -0.02em</div>
-            </td>
-            <td>
-              <div style="font-size: 34px; font-weight: 800; letter-spacing: -0.02em;">480 קק"ל / 68%</div>
-            </td>
-          </tr>
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">H1 (Title)</div>
-              <div class="typo-label">28px · ExtraBold · -0.02em</div>
-            </td>
-            <td>
-              <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">בוקר טוב, אוריה</div>
-            </td>
-          </tr>
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">H2 (Card Title)</div>
-              <div class="typo-label">22px · Bold</div>
-            </td>
-            <td>
-              <div style="font-size: 22px; font-weight: 700;">בחינה: מבני נתונים</div>
-            </td>
-          </tr>
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">H3 / Subhead</div>
-              <div class="typo-label">17px · Bold · -0.01em</div>
-            </td>
-            <td>
-              <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">אינפי 2 — תרגול</div>
-            </td>
-          </tr>
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">Body</div>
-              <div class="typo-label">15px · Medium</div>
-            </td>
-            <td>
-              <div style="font-size: 15px; font-weight: 500;">יש לך 4 משימות להיום בלוח הזמנים</div>
-            </td>
-          </tr>
-          <tr class="typo-row">
-            <td class="typo-spec">
-              <div class="typo-name">Caption / Label</div>
-              <div class="typo-label">11px · ExtraBold · 0.08em</div>
-            </td>
-            <td>
-              <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);">ארוחת בוקר · NUTRITION</div>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </section>
-
-    <!-- Spacing & Radius -->
-    <section id="spacing">
-      <h2 class="section-title"><span class="section-number">03</span> מרווחים ורדיוס (Spacing & Radius)</h2>
-      <p class="section-desc">מרווחים קבועים השומרים על עקביות וסדר מוגדר.</p>
-
-      <div class="card-grid">
-        <div class="ds-card">
-          <h3 style="margin-bottom: 24px;">מרווחים (Spacing Scale)</h3>
-          <div class="space-bar-container">
-            <div class="space-row">
-              <div class="space-name">4px (XS)</div>
-              <div class="space-visual" style="width: 4px;"></div>
-              <div class="space-value">4px</div>
-            </div>
-            <div class="space-row">
-              <div class="space-name">8px (S)</div>
-              <div class="space-visual" style="width: 8px;"></div>
-              <div class="space-value">8px</div>
-            </div>
-            <div class="space-row">
-              <div class="space-name">12px (M)</div>
-              <div class="space-visual" style="width: 12px;"></div>
-              <div class="space-value">12px</div>
-            </div>
-            <div class="space-row">
-              <div class="space-name">16px (L)</div>
-              <div class="space-visual" style="width: 16px;"></div>
-              <div class="space-value">16px</div>
-            </div>
-            <div class="space-row">
-              <div class="space-name">24px (XL)</div>
-              <div class="space-visual" style="width: 24px;"></div>
-              <div class="space-value">24px</div>
-            </div>
-            <div class="space-row">
-              <div class="space-name">32px (XXL)</div>
-              <div class="space-visual" style="width: 32px;"></div>
-              <div class="space-value">32px</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ds-card">
-          <h3 style="margin-bottom: 24px;">פינות עגולות (Border Radius)</h3>
-          <div class="radius-grid">
-            <div class="radius-box" style="border-radius: 10px;">
-              <span class="radius-title">Small (10px)</span>
-              <span class="typo-label">כפתורים קטנים / תגיות</span>
-            </div>
-            <div class="radius-box" style="border-radius: 16px;">
-              <span class="radius-title">Medium (16px)</span>
-              <span class="typo-label">כרטיסיות משימות / תפריטים</span>
-            </div>
-            <div class="radius-box" style="border-radius: 22px;">
-              <span class="radius-title">Large (22px)</span>
-              <span class="typo-label">כרטיסיות Bento Grid ראשיות</span>
-            </div>
-          </div>
+      <div class="comp">
+        <div class="comp-label">BottomNav · <em>4 items</em></div>
+        <div class="nav-demo">
+          <div class="nav-i"><div class="ni">🤖</div><div class="nl">המנהל</div></div>
+          <div class="nav-i active"><div class="ni">🏠</div><div class="nl">בית</div></div>
+          <div class="nav-i"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+          <div class="nav-i"><div class="ni">🎯</div><div class="nl">פוקוס</div></div>
         </div>
       </div>
-    </section>
-
-    <!-- Shadows -->
-    <section id="shadows">
-      <h2 class="section-title"><span class="section-number">04</span> גובה וצללים (Shadows & Elevation)</h2>
-      <p class="section-desc">הגדרות צללים המעניקות עומק ומיקוד בממשק.</p>
-
-      <div class="card-grid">
-        <div class="ds-card" style="box-shadow: none;">
-          <h3 style="margin-bottom: 12px;">Level 0 — Flat</h3>
-          <p class="typo-label">שימוש: כרטיסיות מוגדרות רקע (צבעוניות)</p>
-        </div>
-        <div class="ds-card" style="box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 10px rgba(0,0,0,.04); background: #fff; color: #000;">
-          <h3 style="margin-bottom: 12px;">Level 1 — Light Card</h3>
-          <p class="typo-label">שימוש: כרטיסיות לבנות ב-Bento</p>
-        </div>
-        <div class="ds-card" style="box-shadow: 0 8px 24px rgba(5,150,105,.35);">
-          <h3 style="margin-bottom: 12px;">Level 2 — Elevated (Glow)</h3>
-          <p class="typo-label">שימוש: כפתורים צפים פעילים (FAB)</p>
+      <div class="comp">
+        <div class="comp-label">FAB · <em>floating green</em></div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="fab-demo">+</div>
+          <div style="font-size:12px;color:var(--c-ink-soft);line-height:1.5;">52×52 circle<br>bg <span class="s-num-mini" style="font-size:13px;color:var(--c-green-deep);">#065F46</span><br>shadow 0 6px 20px rgba(6,95,70,.35)</div>
         </div>
       </div>
-    </section>
-
-    <!-- Bento Tiles Specs -->
-    <section id="tiles">
-      <h2 class="section-title"><span class="section-number">05</span> רכיבי Bento Grid (Component Tile Primitives)</h2>
-      <p class="section-desc">פרימיטיבים של אריחים שמופיעים <strong>בתוך מסכים אחרים</strong> באפליקציה — בעיקר Calendar, Calori, Tasks, ו-Studies. <strong>אלה לא בהכרח מרכיבי מסך הבית.</strong> מסך הבית האמיתי מורכב מ-4 tiles ייעודיים אחרים (greeting / nutrition+fitness / studies / schedule) — ראה סעיף 07 בהמשך.</p>
-
-      <div style="padding: 12px 16px; margin-bottom: 16px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 12px; font-size: 12px; color: #92400E;">
-        <strong>איפה כל primitive באמת מופיע?</strong>
-        <ul style="margin: 6px 20px 0;">
-          <li><strong>Green meal tile</strong> — ב-CaloriView (רשימת ארוחות) ופריטי meal בלוז</li>
-          <li><strong>Purple workout tile</strong> — ב-CaloriView (רשימת אימונים) ופריטי workout בלוז</li>
-          <li><strong>White lecture tile</strong> — ב-CalendarView והרצאה הבאה</li>
-          <li><strong>Red exam tile</strong> — בתוך הtile של "לימודים" בבית (גרסה מוקטנת) וב-CalendarView</li>
-          <li><strong>Task tile row</strong> — ב-TasksView וב-CommandCenter</li>
-        </ul>
-      </div>
-
-      <div class="card-grid" style="background: var(--bento-bg); padding: 32px; border-radius: 24px;">
-        
-        <!-- Tile 1 -->
-        <div class="ds-card" style="background: transparent; border: none; padding: 0;">
-          <h4 class="typo-label" style="margin-bottom: 8px; color: var(--bento-text);">תזונה (Large Tile - 4x2) · לחץ להפיכה</h4>
-          <div class="flip-tile-container" style="height: 140px;" onclick="this.querySelector('.flip-tile').classList.toggle('flipped')">
-            <div class="flip-tile">
-              <div class="flip-front b-tile green">
-                <div class="lbl">ארוחת בוקר</div>
-                <div class="big">480 קק"ל</div>
-                <div class="meta">חלבונים · 08:30</div>
-              </div>
-              <div class="flip-back">
-                <div style="font-weight: 700; font-size: 14px;">ערכים תזונתיים</div>
-                <div>
-                  <div class="macro-row"><span>חלבון:</span><span>28 גרם</span></div>
-                  <div class="macro-row"><span>פחמימות:</span><span>52 גרם</span></div>
-                  <div class="macro-row"><span>שומנים:</span><span>18 גרם</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tile 2 -->
-        <div class="ds-card" style="background: transparent; border: none; padding: 0;">
-          <h4 class="typo-label" style="margin-bottom: 8px; color: var(--bento-text);">אימון (Medium Tile - 2x2)</h4>
-          <div class="b-tile purple">
-            <div>
-              <div class="num">32′</div>
-              <div class="lbl">ריצת ערב</div>
-            </div>
-            <div class="ring-container">
-              <svg class="progress-ring" viewBox="0 0 36 36">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="68, 100"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tile 3 -->
-        <div class="ds-card" style="background: transparent; border: none; padding: 0;">
-          <h4 class="typo-label" style="margin-bottom: 8px; color: var(--bento-text);">הרצאה / לימודים (Info Tile - 3x2)</h4>
-          <div class="b-tile white">
-            <div class="h">הרצאה הבאה</div>
-            <div class="t">אינפי 2 — תרגול</div>
-            <div class="s">בניין שרייבר · חדר 309</div>
-            <div class="time">10:00</div>
-          </div>
-        </div>
-
-        <!-- Tile 4 -->
-        <div class="ds-card" style="background: transparent; border: none; padding: 0;">
-          <h4 class="typo-label" style="margin-bottom: 8px; color: var(--bento-text);">בחינה (Alert Tile - 3x2)</h4>
-          <div class="b-tile red">
-            <div class="countdown">8 <small>ימים</small></div>
-            <div class="t">בחינה: מבני נתונים</div>
-          </div>
-        </div>
-
-        <!-- Tile 5 -->
-        <div class="ds-card" style="background: transparent; border: none; padding: 0; grid-column: span 2;">
-          <h4 class="typo-label" style="margin-bottom: 8px; color: var(--bento-text);">משימה (Task Tile - 6x1) · לחץ לסימון</h4>
-          <div class="b-tile task" onclick="this.classList.toggle('checked')">
-            <div class="check-box"></div>
-            <div class="t">להחזיר ספרים לספרייה</div>
-            <div class="due">היום</div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Navigation -->
-    <section id="navigation">
-      <h2 class="section-title"><span class="section-number">06</span> ניווט ובקרים (Navigation)</h2>
-      <p class="section-desc">ניווט תחתון עם <strong>4 פריטים</strong> + כפתור FAB צף בפינה הימנית-תחתונה (לא במרכז ה-nav). הFAB פותח תפריט אנכי של 3 כפתורים. זהו המבנה הקיים באפליקציה.</p>
-
-      <div class="ds-card" style="background: #F5F5F7; padding: 48px 32px; border-radius: 24px; position: relative; min-height: 280px;">
-
-        <!-- Actual BottomNav: 4 items, no center FAB -->
-        <div class="phone-nav" style="position: relative; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 64px; padding: 0 16px;">
-          <div class="item">המנהל האישי</div>
-          <div class="item active">בית</div>
-          <div class="item">לימודים</div>
-          <div class="item">פוקוס</div>
-        </div>
-
-        <!-- Floating FAB (separate, NOT in the nav) — closed state -->
-        <div style="position: absolute; right: 56px; bottom: 96px; width: 56px; height: 56px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 300; box-shadow: 0 8px 20px rgba(5,150,105,0.35); cursor: pointer;">+</div>
-        <div style="position: absolute; right: 30px; bottom: 60px; font-size: 11px; color: #6B7280; font-weight: 600;">FAB צף · פותח תפריט אנכי של 3 כפתורים</div>
-
-        <!-- FAB open state preview (mock) -->
-        <div style="position: absolute; right: 132px; bottom: 96px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">פתקים</span>
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: #F59E0B; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 4px 10px rgba(245,158,11,0.3);">📝</div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">משימות</span>
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: #3B82F6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 4px 10px rgba(59,130,246,0.3);">✓</div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #fff; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">הוסף פריט</span>
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(5,150,105,0.3);">+</div>
-          </div>
-        </div>
-
-      </div>
-
-      <div style="margin-top: 16px; padding: 16px 20px; border-radius: 16px; background: #fff; border: 1px solid #E5E7EB; font-size: 13px; color: #1D1D1F; line-height: 1.6;">
-        <strong style="color: #059669;">4 פריטים ב-BottomNav:</strong>
-        <ol style="margin: 8px 24px 0; padding: 0;">
-          <li><strong>המנהל האישי</strong> (אייקון Bot) — פותח Command Center / מתכנן AI</li>
-          <li><strong>בית</strong> (אייקון Home) — פעיל כברירת מחדל</li>
-          <li><strong>לימודים</strong> (אייקון BookOpen) — פותח Studies hub</li>
-          <li><strong>פוקוס</strong> (אייקון Target) — פותח FocusHub (PomodoroTimer inline)</li>
-        </ol>
-        <strong style="color: #7C3AED; margin-top: 12px; display: inline-block;">FAB צף (לא חלק מה-nav):</strong>
-        <ul style="margin: 8px 24px 0; padding: 0;">
-          <li>מיקום: <code>fixed right-6 bottom-24</code> · עיגול 56×56 · רקע #059669 · אייקון <code>&lt;Plus&gt;</code> לבן · shadow primary/30</li>
-          <li>במצב פתוח: האייקון <strong>מסתובב 135°</strong> ויוצר X, רקע מטושטש מופיע, ו-<strong>3 כפתורים קטנים (48×48) נערמים בעמודה אנכית מעל</strong> ה-FAB, כל אחד עם תווית טקסט בצד שמאל:
-            <ol style="margin: 4px 0;">
-              <li><strong>Add</strong> (ירוק primary #059669, אייקון Plus) → פותח AddItemSheet</li>
-              <li><strong>Tasks</strong> (כחול blue-500, אייקון CheckSquare) → פותח TasksView</li>
-              <li><strong>Notes</strong> (אמבר amber-500, אייקון StickyNote) → פותח NotesView</li>
-            </ol>
-          </li>
-          <li>תוויות: <code>whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm</code></li>
-          <li>Motion: fade+slide-up 150ms לכל כפתור, stagger 50ms</li>
-          <li><strong>שינויים מהמסמך הישן:</strong> Pomodoro עבר ל-Focus tab ב-BottomNav. Calori נגיש דרך כרטיס "תזונה וכושר היום" בבית.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Mockup Preview -->
-    <section id="mockup">
-      <h2 class="section-title"><span class="section-number">07</span> תצוגת מסך הבית האמיתי (Live Home Mockup)</h2>
-      <p class="section-desc">כך נראה מסך הבית בפועל באפליקציה — banner ברכה מלא רוחב, בלוק תזונה+כושר עם טבעות כפולות, בלוק לימודים עם מבחן הקרוב, ובלוק לוז יום. למטה: BottomNav 3 פריטים + FAB צף.</p>
-
-      <div class="phone-wrap">
-        <div class="phone">
-          <div class="notch"></div>
-          <div class="phone-status-bar">
-            <span id="live-clock">09:41</span>
-            <span>📶 🛜 🔋</span>
-          </div>
-
-          <div class="phone-inner">
-
-            <!-- Top App Header (no logo card — only large wordmark) -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0 12px; flex-shrink: 0;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 28px; height: 28px; border-radius: 999px; background: #ECECEF; color: #4A4A4F; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">א</div>
-                <div style="font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #10B981 0%, #059669 35%, #2563EB 65%, #7C3AED 100%); -webkit-background-clip: text; background-clip: text; color: transparent;">בית</div>
-              </div>
-              <div style="font-size: 22px; font-weight: 900; color: #1D1D1F; letter-spacing: -0.02em; line-height: 1;">calori<span style="color: #059669; font-weight: 500; margin-inline-start: 3px;">life</span></div>
-            </div>
-
-            <div class="phone-content" style="display: flex; flex-direction: column; gap: 16px;">
-
-              <!-- Tile 1: Greeting Banner (Full Width) -->
-              <div style="position: relative; overflow: hidden; border-radius: 22px; border: 1px solid #E5E7EB; background: #fff; padding: 18px; min-height: 130px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);">
-                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(5,150,105,0.05); border-radius: 50%; filter: blur(20px);"></div>
-                <div style="position: absolute; bottom: -20px; left: -20px; width: 100px; height: 100px; background: rgba(124,58,237,0.05); border-radius: 50%; filter: blur(20px);"></div>
-                <div style="position: relative; z-index: 1;">
-                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
-                    <div>
-                      <div style="font-size: 10px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">יום רביעי, 3 יוני</div>
-                      <h1 style="font-size: 20px; font-weight: 800; color: #1D1D1F; margin-top: 4px;">ערב טוב, אוריה! 👋</h1>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px; background: #D1FAE5; border: 1px solid rgba(5,150,105,0.1); padding: 6px 12px; border-radius: 14px; flex-shrink: 0;">
-                      <span style="color: #059669;">✦</span>
-                      <span style="font-size: 10px; font-weight: 700; color: #059669; line-height: 1;">מבחן בעוד 30 ימים</span>
-                    </div>
-                  </div>
-                  <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(229,231,235,0.6); display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6B7280; font-weight: 600;">
-                    <span>🌟</span>
-                    <span>הלוז הושלם להיום</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tile 2: Nutrition & Fitness (Calori) — span full width on mobile -->
-              <div style="border-radius: 22px; border: 1px solid #E5E7EB; background: #fff; padding: 16px; min-height: 200px; display: flex; flex-direction: row; gap: 12px;">
-                <!-- Left content -->
-                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                  <!-- Header (no external chip — tile itself is the button to Calori) -->
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <div style="width: 28px; height: 28px; border-radius: 10px; background: #D1FAE5; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥗</div>
-                    <span style="font-size: 12px; font-weight: 700; color: #1D1D1F;">תזונה וכושר היום</span>
-                  </div>
-                  <!-- Stats -->
-                  <div style="display: flex; flex-direction: column; gap: 4px; margin: 10px 0;">
-                    <div style="display: flex; align-items: baseline; gap: 6px;">
-                      <span style="font-size: 22px; font-weight: 900; color: #059669;">398</span>
-                      <span style="font-size: 9px; color: #6B7280;">/ 2000 קק"ל שנאכלו</span>
-                    </div>
-                    <div style="display: flex; align-items: baseline; gap: 6px;">
-                      <span style="font-size: 22px; font-weight: 900; color: #7C3AED;">+0</span>
-                      <span style="font-size: 9px; color: #6B7280;">/ 300 קק"ל שנשרפו (0 דק)</span>
-                    </div>
-                    <div style="font-size: 9px; color: #6B7280; font-weight: 700; text-transform: uppercase; margin-top: 4px;">משקל</div>
-                    <div><span style="font-size: 18px; font-weight: 900; color: #1D1D1F;">86.5</span> <span style="font-size: 9px; color: #6B7280;">kg · Target: 78 kg</span></div>
-                  </div>
-                  <!-- Macros -->
-                  <div style="display: flex; gap: 12px; padding-top: 8px; border-top: 1px solid #E5E7EB;">
-                    <div><div style="font-size: 8px; color: #6B7280; font-weight: 700; text-transform: uppercase;">חלבון</div><div style="font-size: 11px; font-weight: 800; color: #059669;">45g</div></div>
-                    <div><div style="font-size: 8px; color: #6B7280; font-weight: 700; text-transform: uppercase;">פחמימות</div><div style="font-size: 11px; font-weight: 800; color: #F59E0B;">36g</div></div>
-                    <div><div style="font-size: 8px; color: #6B7280; font-weight: 700; text-transform: uppercase;">שומנים</div><div style="font-size: 11px; font-weight: 800; color: #F43F5E;">8g</div></div>
-                  </div>
-                </div>
-                <!-- Right: Double Ring -->
-                <div style="width: 110px; height: 110px; position: relative; display: flex; align-items: center; justify-content: center; align-self: center; flex-shrink: 0;">
-                  <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; transform: rotate(-90deg);">
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(5,150,105,0.1)" stroke-width="7.5"/>
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#059669" stroke-width="7.5" stroke-dasharray="238.8" stroke-dashoffset="190" stroke-linecap="round"/>
-                    <circle cx="50" cy="50" r="27" fill="transparent" stroke="rgba(124,58,237,0.1)" stroke-width="7.5"/>
-                    <circle cx="50" cy="50" r="27" fill="transparent" stroke="#7C3AED" stroke-width="7.5" stroke-dasharray="169.6" stroke-dashoffset="169.6" stroke-linecap="round"/>
-                  </svg>
-                  <div style="position: absolute; text-align: center;">
-                    <div style="font-size: 11px; font-weight: 900; color: #1D1D1F;">20%</div>
-                    <div style="font-size: 7px; color: #6B7280; font-weight: 700;">הושלם</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tile 3: Studies / Exam (span 1) -->
-              <div style="border-radius: 22px; border: 1px solid #E5E7EB; background: #fff; padding: 16px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between;">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <div style="width: 28px; height: 28px; border-radius: 10px; background: rgba(37,99,235,0.08); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2563EB;">🎓</div>
-                    <span style="font-size: 12px; font-weight: 700; color: #1D1D1F;">לימודים</span>
-                  </div>
-                  <span style="color: #9CA3AF; font-size: 14px;">‹</span>
-                </div>
-                <div style="margin: 12px 0; padding: 10px; border-radius: 14px; border: 1px solid rgba(37,99,235,0.2); background: rgba(37,99,235,0.05); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                  <div style="min-width: 0;">
-                    <div style="font-weight: 700; font-size: 12px; color: #1D1D1F;">אינפי 2</div>
-                    <div style="font-size: 9px; color: #6B7280; margin-top: 2px;">מועד A</div>
-                  </div>
-                  <div style="text-align: center; flex-shrink: 0;">
-                    <div style="font-size: 18px; font-weight: 900; color: #2563EB; line-height: 1;">30</div>
-                    <div style="font-size: 8px; color: #2563EB; text-transform: uppercase; letter-spacing: 0.05em;">ימים</div>
-                  </div>
-                </div>
-                <div style="padding-top: 10px; border-top: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #6B7280;">
-                  <span>התקדמות סמסטר</span>
-                  <span style="font-weight: 700; color: #1D1D1F;">5 קורסים</span>
-                </div>
-              </div>
-
-              <!-- Tile 4: My Day Schedule -->
-              <div style="border-radius: 22px; border: 1px solid #E5E7EB; background: #fff; padding: 16px; min-height: 160px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <div style="width: 28px; height: 28px; border-radius: 10px; background: rgba(5,150,105,0.1); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #059669;">🤖</div>
-                    <span style="font-size: 12px; font-weight: 700; color: #1D1D1F;">לוז היום שלי</span>
-                  </div>
-                  <div style="font-size: 10px; font-weight: 700; color: #059669; display: flex; align-items: center; gap: 2px;">פתח תכנון AI ‹</div>
-                </div>
-                <!-- One meal block -->
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 14px; border: 1px solid rgba(5,150,105,0.2); background: rgba(209,250,229,0.4); font-size: 11px; font-weight: 600; color: #059669;">
-                  <span>משקה חלבון אייס קפה</span>
-                  <span style="font-weight: 700; opacity: 0.8;">09:54</span>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Bottom Nav: 4 items -->
-            <div class="phone-nav" style="padding: 0 16px 20px;">
-              <div class="item">המנהל האישי</div>
-              <div class="item active">בית</div>
-              <div class="item">לימודים</div>
-              <div class="item">פוקוס</div>
-            </div>
-
-            <!-- Floating FAB (NOT in nav) — Plus icon -->
-            <div style="position: absolute; right: 18px; bottom: 96px; width: 48px; height: 48px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 300; box-shadow: 0 8px 20px rgba(5,150,105,0.4); cursor: pointer; z-index: 5; line-height: 1;">+</div>
-
-          </div>
+      <div class="comp">
+        <div class="comp-label">Ring · <em>double progress (Apple Watch)</em></div>
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <svg width="92" height="92" viewBox="0 0 92 92" fill="none">
+            <circle cx="46" cy="46" r="38" stroke="rgba(5,150,105,.1)" stroke-width="10"/>
+            <circle cx="46" cy="46" r="38" stroke="#059669" stroke-width="10" stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="191" transform="rotate(-90 46 46)"/>
+            <circle cx="46" cy="46" r="27" stroke="rgba(124,58,237,.08)" stroke-width="9"/>
+            <circle cx="46" cy="46" r="27" stroke="#7C3AED" stroke-width="9" stroke-linecap="round" stroke-dasharray="170" stroke-dashoffset="170" transform="rotate(-90 46 46)"/>
+            <text x="46" y="49" text-anchor="middle" font-family="Fraunces" font-weight="600" font-size="14" fill="#2A1A0A">20%</text>
+            <text x="46" y="60" text-anchor="middle" font-family="Inter" font-size="8" fill="#8A7A6A">הושלם</text>
+          </svg>
         </div>
       </div>
-
-      <div style="max-width: 600px; margin: 20px auto 0; padding: 16px 20px; border-radius: 16px; background: #fff; border: 1px solid #E5E7EB; font-size: 13px; color: #1D1D1F; line-height: 1.7;">
-        <strong style="color: #059669;">סדר המסך (מלמעלה למטה):</strong>
-        <ol style="margin: 8px 24px 0; padding: 0;">
-          <li><strong>Header עליון</strong> — כפתור avatar (פותח הגדרות) + כותרת עמוד עם גרדיאנט brand + <strong>wordmark "calori life" גדול בלבד</strong> (text-2xl, ללא ריבוע לוגו)</li>
-          <li><strong>Greeting banner</strong> (רוחב מלא) — תאריך + ברכה לפי שעה + chip סטטוס (ספירת משימות / מבחן הקרוב / "הכל סגור"). שורת "next up" עם נקודה פועמת או "הלוז הושלם"</li>
-          <li><strong>תזונה וכושר היום</strong> (col-span 2 ב-md+) — לוגו calori, סטטיסטיקות (קלוריות, משקל), macros, וטבעת כפולה Apple-Watch (חוץ ירוק = שנאכל, פנים סגול = שנשרף). <strong>כל הכרטיס לחיץ → CaloriView</strong> (אין יותר chip "פתח קלורי" נפרד)</li>
-          <li><strong>לימודים</strong> (col-span 1) — אייקון GraduationCap כחול, מבחן הקרוב עם countdown</li>
-          <li><strong>לוז היום שלי</strong> (col-span 2 ב-md+) — אייקון Bot, פריטים מתוזמנים בצבעים לפי סוג (meal=ירוק tint, workout=סגול tint, study=כחול, event=ניטרלי)</li>
-          <li><strong>פעולות מהירות</strong> — 4 כפתורי pill (AI / Pomodoro / Add / Calori)</li>
-          <li><strong>קישורי AI מהירים</strong> (אופציונלי, owner בלבד) — chips אופקיים</li>
-          <li><strong>בקרוב</strong> — fallback רק כשהיום ריק</li>
-        </ol>
-        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #E5E7EB;">
-          <strong style="color: #2563EB;">BottomNav (4 פריטים):</strong> המנהל האישי · בית · לימודים · <strong>פוקוס</strong>
-          <br>
-          <strong style="color: #7C3AED;">FAB (פינה ימנית-תחתונה, אייקון +):</strong> פותח 3 כפתורים בעמודה עם תוויות — Add (ירוק), Tasks (כחול), Notes (אמבר). הPlus מסתובב 135° ליצירת X.
+      <div class="comp">
+        <div class="comp-label">Mini Tile · <em>stat block</em></div>
+        <div style="background:var(--c-surface);border:1px solid var(--c-hairline);border-radius:16px;padding:13px 12px;width:fit-content;box-shadow:var(--sh-card-subtle);">
+          <div class="s-num-mini" style="color:var(--c-green);">30</div>
+          <div style="font-size:10px;color:var(--c-ink-soft);font-weight:600;margin-top:3px;">ימים לבחינה</div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
 
-  </main>
+  <div class="section">
+    <div class="section-head"><div class="section-num">06</div><div class="section-title"><em>Spacing</em> & Radius</div></div>
+    <div class="grid-2">
+      <div class="comp">
+        <div class="comp-label">Spacing scale · <em>4pt grid</em></div>
+        <div style="font-family:var(--f-numbers);font-weight:500;font-size:13px;color:var(--c-ink);line-height:2;">
+          <div>4 · 8 · 12 · <strong>16</strong> · 20 · <strong>24</strong> · 32 · 48</div>
+        </div>
+        <div style="font-size:11px;color:var(--c-ink-soft);margin-top:8px;line-height:1.5;">Screen padding 14px. Section gap 12px. Card padding 14–20px. Hero card padding 20px 18px.</div>
+      </div>
+      <div class="comp">
+        <div class="comp-label">Radius scale</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:8px;"></div>
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:12px;"></div>
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:16px;"></div>
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:18px;"></div>
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:22px;"></div>
+          <div style="width:48px;height:48px;background:var(--c-green);border-radius:50%;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--c-ink-soft);margin-top:8px;line-height:1.5;">8 chips · 12 rows · 16 mini · 18 cards · <strong>22 hero</strong> · pill FAB</div>
+      </div>
+    </div>
+  </div>
 
-  <!-- Toast Notification element -->
-  <div id="toast" class="toast">הקוד הועתק בהצלחה!</div>
+  <div class="section">
+    <div class="section-head"><div class="section-num">07</div><div class="section-title"><em>Motion</em></div></div>
+    <div class="comp" style="max-width:680px;">
+      <div class="comp-label">Spring physics · <em>180–220ms</em></div>
+      <div style="font-size:13px;color:var(--c-ink);line-height:1.7;">
+        <strong>easing:</strong> cubic-bezier(0.16, 1, 0.3, 1)<br>
+        <strong>spring (sheets):</strong> stiffness 380, damping 32<br>
+        <strong>spring (taps):</strong> stiffness 500, damping 30<br>
+        <strong>card entrance:</strong> fade-in + slide-from-bottom-4 · 220ms<br>
+        <strong>list stagger:</strong> 40ms between items<br>
+        <strong>tap scale:</strong> 0.97 with spring<br>
+        <strong>honor:</strong> prefers-reduced-motion
+      </div>
+    </div>
+  </div>
 
-  <script>
-    // Live Clock Update
-    function updateClock() {
-      const clock = document.getElementById('live-clock');
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      clock.textContent = `${hours}:${minutes}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Copy to Clipboard Toast
-    function copyHex(hex) {
-      navigator.clipboard.writeText(hex).then(() => {
-        const toast = document.getElementById('toast');
-        toast.textContent = `קוד הצבע ${hex} הועתק ללוח!`;
-        toast.classList.add('show');
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, 2000);
-      });
-    }
-
-    // Scroll Spy for Sidebar Active Class
-    const sections = document.querySelectorAll('section');
-    const navLinks = document.querySelectorAll('.sidebar-link');
-
-    window.addEventListener('scroll', () => {
-      let current = '';
-      sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        if (pageYOffset >= (sectionTop - 150)) {
-          current = section.getAttribute('id');
-        }
-      });
-
-      navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href').slice(1) === current) {
-          link.classList.add('active');
-        }
-      });
-    });
-  </script>
+</div>
 </body>
 </html>

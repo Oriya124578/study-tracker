@@ -40,6 +40,9 @@ import {
   subscribeNoteCategories,
   setNoteCategory as fsSetNoteCategory,
   deleteNoteCategoryAndMigrateNotes as fsDeleteNoteCategoryAndMigrateNotes,
+  subscribeSchedule as fsSubscribeSchedule,
+  setSchedule as fsSetSchedule,
+  deleteSchedule as fsDeleteSchedule,
   newId,
 } from '../lib/firestoreRepo';
 import {
@@ -206,6 +209,9 @@ export const useStore = create((set, get) => ({
   // Phase 3: calori bridge UI state
   caloriDate: dateKey(), // currently-viewed day for calori data ('yyyy-MM-dd')
   _caloriDayUnsubs: [], // per-day calori listeners (re-subscribed on date change)
+  // Phase 6a: schedule doc subscription (per-day, re-subscribed on date change)
+  scheduleDate: dateKey(), // date currently subscribed for cl_schedule
+  _scheduleUnsub: null,
   // Phase 5: notification settings (persisted to localStorage; FCM-ready)
   notificationSettings: loadNotificationSettings(),
   // AI Command Center draft state
@@ -349,21 +355,26 @@ export const useStore = create((set, get) => ({
 
     // Subscribe to the currently-selected calori day (today by default).
     get().subscribeCaloriDay(get().caloriDate);
+    // Phase 6a: subscribe to the schedule doc for today.
+    get().subscribeScheduleDay(get().scheduleDate);
   },
 
   cleanup: () => {
     get()._unsubs.forEach((u) => { try { u(); } catch { /* ignore */ } });
     get()._caloriDayUnsubs.forEach((u) => { try { u(); } catch { /* ignore */ } });
+    try { get()._scheduleUnsub && get()._scheduleUnsub(); } catch { /* ignore */ }
     set({
       uid: null,
       _unsubs: [],
       _caloriDayUnsubs: [],
+      _scheduleUnsub: null,
       data: generateInitialState(),
       hasCompletedOnboarding: undefined,
       dataLoaded: false,
       activeCourse: null,
       activeCategory: 'overview',
       caloriDate: dateKey(),
+      scheduleDate: dateKey(),
     });
   },
 
@@ -404,6 +415,77 @@ export const useStore = create((set, get) => ({
   setCaloriDate: (date) => {
     set({ caloriDate: date });
     get().subscribeCaloriDay(date);
+  },
+
+  // ---------- Phase 6a: Schedule subscription + mutations ---------------
+
+  subscribeScheduleDay: (date) => {
+    const { uid } = get();
+    if (!uid) return;
+    try { get()._scheduleUnsub && get()._scheduleUnsub(); } catch { /* ignore */ }
+    const unsub = fsSubscribeSchedule(uid, date, (doc) => {
+      set((state) => ({ data: { ...state.data, schedule: doc } }));
+    });
+    set({ _scheduleUnsub: unsub });
+  },
+
+  setScheduleDate: (date) => {
+    set({ scheduleDate: date });
+    get().subscribeScheduleDay(date);
+  },
+
+  // Write the full block list (and optional coachNote) to cl_schedule/{date}.
+  // This is the "save 100% directly" path — no decomposition into events/tasks.
+  // For source==='task' blocks, also mirror placement back to the task doc so
+  // legacy task-list views keep working.
+  saveSchedule: async (dateStr, blocks, coachNote = '') => {
+    const { uid } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    await fsSetSchedule(uid, dateStr, {
+      blocks,
+      coachNote: coachNote || '',
+      generatedAt: now,
+      source: 'mixed',
+    });
+    // Mirror task placement (one-way: schedule -> task).
+    for (const b of blocks) {
+      if (b.source === 'task' && b.refId) {
+        await fsSetPersonalTask(uid, b.refId, {
+          scheduledDate: dateStr,
+          scheduledTime: b.startTime,
+          scheduledDuration: b.duration || 60,
+          updatedAt: now,
+        }).catch(console.error);
+      }
+    }
+  },
+
+  // Patch a single block in the schedule doc (used by lock toggle, drag, accordion).
+  updateScheduleBlock: async (dateStr, blockId, patch) => {
+    const { uid, data } = get();
+    if (!uid) return;
+    const current = data?.schedule?.blocks || [];
+    const next = current.map((b) => (b.id === blockId ? { ...b, ...patch } : b));
+    await fsSetSchedule(uid, dateStr, { blocks: next });
+    // Mirror time changes back to task doc if applicable.
+    const updated = next.find((b) => b.id === blockId);
+    if (updated && updated.source === 'task' && updated.refId &&
+        (patch.startTime || patch.endTime || patch.duration)) {
+      await fsSetPersonalTask(uid, updated.refId, {
+        scheduledDate: dateStr,
+        scheduledTime: updated.startTime,
+        scheduledDuration: updated.duration || 60,
+        updatedAt: new Date().toISOString(),
+      }).catch(console.error);
+    }
+  },
+
+  // Delete the schedule doc for a date.
+  deleteSchedule: async (dateStr) => {
+    const { uid } = get();
+    if (!uid) return;
+    await fsDeleteSchedule(uid, dateStr);
   },
 
   // ---------- Plain setters ---------------------------------------------
@@ -1242,12 +1324,17 @@ export const useStore = create((set, get) => ({
     const { uid, focusTracking, data } = get();
     if (!uid || !focusTracking.activeBlockId) return;
 
-    if (focusTracking.activeBlockId.startsWith('task-')) {
-      const taskId = focusTracking.activeBlockId.replace('task-', '');
+    // Resolve the tracked block to a task id. Prefer the schedule doc
+    // (source==='task' + refId), fall back to the legacy 'task-{id}' prefix.
+    const blockId = focusTracking.activeBlockId;
+    const docBlock = (data?.schedule?.blocks || []).find((b) => b.id === blockId);
+    const taskId = docBlock?.source === 'task' && docBlock.refId
+      ? docBlock.refId
+      : (blockId.startsWith('task-') ? blockId.replace('task-', '') : null);
+
+    if (taskId) {
       const isCompleted = status === 'completed';
       const elapsedMinutes = Math.round(focusTracking.elapsed / 60);
-
-      // Find the task to calculate next actualDuration
       const task = data.personalTasks.find((t) => t.id === taskId);
       const nextDuration = (task?.actualDuration || 0) + elapsedMinutes;
 
@@ -1277,8 +1364,13 @@ export const useStore = create((set, get) => ({
       }
     }));
 
-    if (blockId.startsWith('task-')) {
-      const taskId = blockId.replace('task-', '');
+    // Resolve to task id via schedule doc or legacy prefix.
+    const docBlock = (data?.schedule?.blocks || []).find((b) => b.id === blockId);
+    const taskId = docBlock?.source === 'task' && docBlock.refId
+      ? docBlock.refId
+      : (blockId.startsWith('task-') ? blockId.replace('task-', '') : null);
+
+    if (taskId) {
 
       await fsSetPersonalTask(uid, taskId, {
         scheduledDate: null,

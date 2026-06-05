@@ -11,6 +11,7 @@ import { cn } from '../../lib/utils';
 import { swrFetch } from '../../lib/cacheService';
 import { dateKey } from '../../lib/caloriRepo';
 import { generateDailySchedule, tuneSchedule } from '../../lib/gemini';
+import { buildTimeline } from '../../lib/scheduleBuilder';
 import { fetchShabbatTimes } from '../../lib/shabbatService';
 import { calculateTravelTime } from '../../lib/mapsService';
 import { format, parseISO, isValid, isSameDay, addDays, subDays } from 'date-fns';
@@ -157,111 +158,26 @@ export const CommandCenterView = () => {
     return () => { mounted = false; };
   }, [data?.profile?.shabbatMode, data?.profile?.useGPS, data?.profile?.selectedCity, dateStr]);
 
-  // Aggregate blocks for the timeline
+  // Aggregate blocks for the timeline (Phase 6a: unified builder).
+  // If a draft is in progress (in-memory unsaved edit), it wins over the
+  // persisted/projected data. Otherwise buildTimeline picks the right path:
+  // doc-driven if cl_schedule exists for this date, fallback otherwise.
   const timelineBlocks = useMemo(() => {
-    // If there is an active draft, display the draft blocks (excluding breaks/leisure)
     if (draftSchedule?.blocks?.length > 0) {
       return draftSchedule.blocks.filter(
         (b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break')
       );
     }
-
-    const blocks = [];
-
-    // 1. Fixed Events
-    (data?.events || []).forEach((ev) => {
-      // Check if event starts on the current date
-      if (ev.start && ev.start.startsWith(dateStr)) {
-        const startT = parseToLocalTime(ev.start);
-        const endT = ev.end ? parseToLocalTime(ev.end) : '23:59';
-        
-        blocks.push({
-          id: ev.id,
-          type: ev.type || 'event',
-          title: ev.title,
-          startTime: startT,
-          endTime: endT,
-          isLocked: ev.isLocked !== undefined ? !!ev.isLocked : true,
-          isProposed: !!ev.isProposed,
-          notes: ev.notes || '',
-        });
-      }
+    return buildTimeline({
+      scheduleDoc: data?.schedule || null,
+      events: data?.events,
+      personalTasks: data?.personalTasks,
+      calori: data?.calori,
+      dateStr,
+      todayStr: dateKey(),
+      options: { filterLeisure: true, includeCalori: 'todayOnly' },
     });
-
-    // 2. Scheduled Tasks
-    (data?.personalTasks || []).forEach((t) => {
-      if (t.scheduledDate === dateStr && t.scheduledTime) {
-        const duration = t.scheduledDuration || 60;
-        const [h, m] = t.scheduledTime.split(':').map(Number);
-        const endMinutes = h * 60 + m + duration;
-        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
-        const endM = String(endMinutes % 60).padStart(2, '0');
-
-        blocks.push({
-          id: `task-${t.id}`,
-          type: 'study',
-          title: t.title,
-          startTime: t.scheduledTime,
-          endTime: `${endH}:${endM}`,
-          duration,
-          refId: t.id,
-          isLocked: !!t.isLocked,
-          isProposed: false,
-          isCompleted: !!t.done,
-          notes: t.notes || '',
-        });
-      }
-    });
-
-    // 3. Calori Logged Meals (point-in-time — no duration block)
-    if (dateStr === dateKey()) {
-      (data?.calori?.meals || []).forEach((meal) => {
-        if (meal.timestamp) {
-          const time = parseToLocalTime(meal.timestamp);
-          blocks.push({
-            id: `meal-${meal.id}`,
-            type: 'meal',
-            title: meal.name,
-            startTime: time,
-            endTime: time,
-            refId: meal.id,
-            isLocked: true,
-            isProposed: false,
-            isPointEvent: true,
-            notes: `${meal.calories} ${t('caloriCalories')} | ${meal.protein}${t('gramsShort')} ${t('caloriProtein')}`,
-          });
-        }
-      });
-
-      // 4. Calori Logged Workouts
-      (data?.calori?.workouts || []).forEach((w) => {
-        if (w.timestamp) {
-          const time = parseToLocalTime(w.timestamp);
-          const duration = w.durationMinutes || 60;
-          const [h, m] = time.split(':').map(Number);
-          const endMinutes = h * 60 + m + duration;
-          const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
-          const endM = String(endMinutes % 60).padStart(2, '0');
-
-          blocks.push({
-            id: `workout-${w.id}`,
-            type: 'workout',
-            title: w.name,
-            startTime: time,
-            endTime: `${endH}:${endM}`,
-            refId: w.id,
-            isLocked: true,
-            isProposed: false,
-            notes: `+${w.caloriesBurned} ${t('caloriCalories')} | ${duration} ${t('caloriMinutes')}`,
-          });
-        }
-      });
-    }
-
-    return blocks
-      .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [data, dateStr, draftSchedule, t]);
+  }, [data, dateStr, draftSchedule]);
 
   // Filter tasks in sidebar
   const sidebarTasks = useMemo(() => {

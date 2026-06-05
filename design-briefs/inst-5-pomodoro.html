@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Instrument · Pomodoro</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
@@ -80,6 +80,31 @@ body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;
 .nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
 .nav-item.active .ni{opacity:1;}
 .nav-item.active .nl{color:#7C3AED;}
+
+/* === Number override — Fraunces 600 (heavier, still characterful) === */
+.timer-big, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v,
+.day-num, .sh-snum, .rt-p, .m-cal, .w-cal, .hc-bnum,
+.vg, .vp, .vw, .mv {
+  font-family: 'Fraunces','Rubik',serif !important;
+  font-weight: 600 !important;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0 !important;
+  letter-spacing: -.04em !important;
+}
+/* Italic numbers (where it was italic before) keep italic with Fraunces */
+.timer-big em, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v, .sh-snum, .rt-p, .m-cal, .w-cal {
+  font-style: italic !important;
+}
+/* Day numbers and bigger heroes get a bit more weight */
+.day-num, .timer-big, .ch-big {
+  font-weight: 600 !important;
+}
+.day.today .day-num {
+  font-weight: 700 !important;
+}
+/* Tabular figures for cleaner alignment in lists */
+.t-due, .m-time, .w-time, .ses-meta, .day-tl-meta, .sec-cnt {
+  font-feature-settings: "tnum" 1;
+}
 </style>
 </head>
 <body>

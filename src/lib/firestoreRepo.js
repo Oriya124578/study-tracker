@@ -48,6 +48,8 @@ const taskListsCol = (uid) => collection(db, 'users', uid, 'cl_taskLists');
 const taskListDoc = (uid, id) => doc(db, 'users', uid, 'cl_taskLists', id);
 const noteCategoriesCol = (uid) => collection(db, 'users', uid, 'cl_noteCategories');
 const noteCategoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_noteCategories', id);
+// Phase 6a: single source-of-truth daily schedule.
+const scheduleDoc = (uid, dateStr) => doc(db, 'users', uid, 'cl_schedule', dateStr);
 
 // New id helper for client-minted documents.
 export const newId = (uid, kind) => {
@@ -246,4 +248,27 @@ export const deleteNoteCategoryAndMigrateNotes = async (uid, categoryId, noteIds
     }, { merge: true }));
   });
   await commitInChunks(ops);
+};
+
+// --- Phase 6a: Daily schedule (cl_schedule) ------------------------------
+// Doc id = 'yyyy-MM-dd'. Single source of truth for one day's timeline.
+// Shape:
+//   { date, blocks: Block[], coachNote, source, version, generatedAt, updatedAt }
+// See src/lib/scheduleEngine.js for the canonical Block shape.
+
+export const subscribeSchedule = (uid, dateStr, cb) =>
+  onSnapshot(scheduleDoc(uid, dateStr), (snap) =>
+    cb(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+  );
+
+export const setSchedule = async (uid, dateStr, data) => {
+  await setDoc(
+    scheduleDoc(uid, dateStr),
+    { date: dateStr, version: 1, updatedAt: new Date().toISOString(), ...data },
+    { merge: true }
+  );
+};
+
+export const deleteSchedule = async (uid, dateStr) => {
+  await deleteDoc(scheduleDoc(uid, dateStr));
 };

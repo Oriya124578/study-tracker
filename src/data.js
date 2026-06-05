@@ -99,7 +99,9 @@ export const generateInitialState = () => {
       weight: null,       // current user weight in kg
       targetWeight: null, // target weight in kg
     },
+    // Phase 6a: single source of truth for one day's timeline (cl_schedule doc).
+    schedule: null,
   };
-  
+
   return state;
 };

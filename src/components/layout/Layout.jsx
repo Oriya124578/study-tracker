@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BottomNav } from './BottomNav';
-import { MobileCourseMenu } from './MobileCourseMenu';
 import { useStore } from '../../store/useStore';
 // SmartDashboard stays eager: it's the default landing view, so we don't want the
 // home screen to flash a Suspense fallback on first paint.
@@ -234,7 +233,6 @@ export const Layout = () => {
       </AnimatePresence>
 
       <BottomNav />
-      <MobileCourseMenu />
       <AddItemSheet />
       <GlobalLoadingOverlay />
       <Toaster />

@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { fetchShabbatTimes } from '../../lib/shabbatService';
 import { cn } from '../../lib/utils';
 import { parseISO, isValid, format } from 'date-fns';
+import { buildTimeline } from '../../lib/scheduleBuilder';
+import { dateKey } from '../../lib/caloriRepo';
 
 const blockIcons = {
   sleep: Clock,
@@ -97,117 +99,43 @@ export const FocusHub = () => {
     return () => { mounted = false; };
   }, [data?.profile?.shabbatMode, data?.profile?.useGPS, data?.profile?.selectedCity, dateStr]);
 
-  // Aggregate blocks for today's timeline
-  const todayBlocks = useMemo(() => {
-    const parseToLocalTime = (timestamp) => {
-      if (!timestamp) return '00:00';
-      const parsed = parseISO(timestamp);
-      return isValid(parsed) ? parseISO(timestamp).toTimeString().substring(0, 5) : timestamp.substring(11, 16);
-    };
+  // Aggregate blocks for today's timeline (Phase 6a: unified builder).
+  const todayBlocks = useMemo(
+    () =>
+      buildTimeline({
+        scheduleDoc: data?.schedule || null,
+        events: data?.events,
+        personalTasks: data?.personalTasks,
+        calori: data?.calori,
+        dateStr,
+        todayStr: dateKey(),
+        // Focus Hub shows breaks too so the user sees their full timeline.
+        options: { filterLeisure: false, includeCalori: 'todayOnly' },
+      }),
+    [data, dateStr]
+  );
 
-    const blocks = [];
-
-    // 1. Fixed Events
-    (data?.events || []).forEach((ev) => {
-      if (ev.start && ev.start.startsWith(dateStr)) {
-        const startT = parseToLocalTime(ev.start);
-        const endT = ev.end ? parseToLocalTime(ev.end) : '23:59';
-        blocks.push({
-          id: ev.id,
-          type: ev.type || 'event',
-          title: ev.title,
-          startTime: startT,
-          endTime: endT,
-          isLocked: true,
-          notes: ev.notes || '',
-        });
-      }
-    });
-
-    // 2. Scheduled Tasks
-    (data?.personalTasks || []).forEach((t) => {
-      if (t.scheduledDate === dateStr && t.scheduledTime) {
-        const duration = t.scheduledDuration || 60;
-        const [h, m] = t.scheduledTime.split(':').map(Number);
-        const endMinutes = h * 60 + m + duration;
-        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
-        const endM = String(endMinutes % 60).padStart(2, '0');
-
-        blocks.push({
-          id: `task-${t.id}`,
-          type: t.category === 'personal' ? 'personal' : 'study',
-          title: t.title,
-          startTime: t.scheduledTime,
-          endTime: `${endH}:${endM}`,
-          duration,
-          refId: t.id,
-          isLocked: false,
-          isCompleted: !!t.done,
-          notes: t.notes || '',
-        });
-      }
-    });
-
-    // 3. Calori Meals
-    (data?.calori?.meals || []).forEach((meal) => {
-      if (meal.timestamp && meal.timestamp.startsWith(dateStr)) {
-        const time = parseToLocalTime(meal.timestamp);
-        blocks.push({
-          id: `meal-${meal.id}`,
-          type: 'meal',
-          title: meal.name,
-          startTime: time,
-          endTime: time,
-          isLocked: true,
-          notes: `${meal.calories} kcal | ${meal.protein}g protein`,
-        });
-      }
-    });
-
-    // 4. Calori Workouts
-    (data?.calori?.workouts || []).forEach((w) => {
-      if (w.timestamp && w.timestamp.startsWith(dateStr)) {
-        const time = parseToLocalTime(w.timestamp);
-        const duration = w.durationMinutes || 60;
-        const [h, m] = time.split(':').map(Number);
-        const endMinutes = h * 60 + m + duration;
-        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
-        const endM = String(endMinutes % 60).padStart(2, '0');
-
-        blocks.push({
-          id: `workout-${w.id}`,
-          type: 'workout',
-          title: w.name,
-          startTime: time,
-          endTime: `${endH}:${endM}`,
-          isLocked: true,
-          notes: `+${w.caloriesBurned} kcal | ${duration} min`,
-        });
-      }
-    });
-
-    return blocks.sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [data, dateStr]);
+  // A block is "trackable" if it represents a personal task — either a
+  // doc-driven block (source==='task') or a legacy block (id starts with 'task-').
+  const isTrackableBlock = (b) => b && (b.source === 'task' || (typeof b.id === 'string' && b.id.startsWith('task-')));
 
   // Find currently active block and the next scheduled trackable task
   const { currentBlock, nextTrackableTask } = useMemo(() => {
     const now = new Date();
     const nowTimeStr = format(now, 'HH:mm');
 
-    // Current block is the one active at this exact moment
     const active = todayBlocks.find(
       (b) => b.startTime <= nowTimeStr && nowTimeStr < b.endTime && !b.isCompleted
     );
 
-    // Next trackable task is the first task (starts with 'task-') starting after now, or the current active if it is a task
-    const activeIsTask = active && active.id.startsWith('task-');
-    
+    const activeIsTask = isTrackableBlock(active);
+
     let nextTask = null;
     if (activeIsTask) {
       nextTask = active;
     } else {
       nextTask = todayBlocks.find(
-        (b) => b.id.startsWith('task-') && b.startTime > nowTimeStr && !b.isCompleted
+        (b) => isTrackableBlock(b) && b.startTime > nowTimeStr && !b.isCompleted
       );
     }
 
@@ -320,7 +248,7 @@ export const FocusHub = () => {
     setRescheduling(false);
   };
 
-  const activeIsTrackable = activeBlockToDisplay && activeBlockToDisplay.id.startsWith('task-');
+  const activeIsTrackable = isTrackableBlock(activeBlockToDisplay);
 
   // Render block content
   const renderBlockDetails = (block, label, isLive) => {
@@ -367,7 +295,7 @@ export const FocusHub = () => {
         </div>
 
         {/* Stopwatch & Action Area */}
-        {isLive && block.id.startsWith('task-') && (
+        {isLive && isTrackableBlock(block) && (
           <div className="relative z-10 flex flex-col items-center border-t border-border/40 pt-6">
             {focusTracking.isTracking ? (
               <div className="w-full text-center space-y-5 animate-in fade-in duration-300">
