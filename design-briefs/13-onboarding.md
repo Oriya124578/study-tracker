@@ -1,4 +1,36 @@
-# Prototype Brief — Onboarding (4 steps)
+# Prototype Brief — Onboarding (4 steps) v2
+
+> Paste into a **Prototype** project in claude.ai/design.
+
+> ⚠️ **This brief is v2.0 (warm cream + editorial serif). It supersedes any earlier description.**
+>
+> **Canonical visual references:**
+> - Tokens: `tokens.json` v2
+> - Master brief: `00-MASTER-BRIEF-EN.md`
+> - Visual style + font system: `inst-2-studies.html` (use as general reference)
+> - Design system library: `bento-design-system.html`
+>
+> If a textual description below disagrees with the HTML files, **the HTML files win.**
+
+---
+
+## v2 Typography (three-font system)
+
+- Headings + italic accents: Instrument Serif weight 400, italic for `<em>` in green.
+- ALL numbers ≥ 14px: Fraunces weight 600 (week counts, course counts).
+- Body + UI: Inter 400-700.
+
+**Italic accent rule.** Each step uses one italic accent in its title:
+- Step 1: `"ברוך הבא ל-<em>Calori Life</em>"`
+- Step 2: `"אילו <em>קורסים</em> אתה לומד?"`
+- Step 3: `"כלי <em>AI</em> לקורסים שלך"`
+- Step 4: `"אילו משימות <em>שבועיות</em>?"`
+
+## v2 Color tokens
+
+- Canvas `#FAF7F2`. Surface `#FFFFFF`. Ink `#2A1A0A`. Ink-soft `#8A7A6A`.
+- Hairlines `rgba(180,140,80,.14)`. Brand green `#059669` (CTA, active chip,
+  progress dot). Forest deep `#065F46` (logo, hero illustration anchor).
 
 ## Goal
 Set up name, courses, AI tools, weekly task templates — quickly.

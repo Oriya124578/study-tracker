@@ -101,6 +101,8 @@ export const generateInitialState = () => {
     },
     // Phase 6a: single source of truth for one day's timeline (cl_schedule doc).
     schedule: null,
+    // Phase 6d: recurring task rules (cl_recurringTasks).
+    recurringTasks: [],
   };
 
   return state;

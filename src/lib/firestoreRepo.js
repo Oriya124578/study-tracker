@@ -13,8 +13,12 @@ import {
   writeBatch,
   query,
   where,
+  orderBy,
+  limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+export { increment } from 'firebase/firestore';
 
 const commitInChunks = async (operations) => {
   const CHUNK_SIZE = 450;
@@ -50,6 +54,12 @@ const noteCategoriesCol = (uid) => collection(db, 'users', uid, 'cl_noteCategori
 const noteCategoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_noteCategories', id);
 // Phase 6a: single source-of-truth daily schedule.
 const scheduleDoc = (uid, dateStr) => doc(db, 'users', uid, 'cl_schedule', dateStr);
+// Phase 6e: per-day analytics aggregate doc.
+const dailyAnalyticsCol = (uid) => collection(db, 'users', uid, 'cl_dailyAnalytics');
+const dailyAnalyticsDoc = (uid, date) => doc(db, 'users', uid, 'cl_dailyAnalytics', date);
+// Phase 6d: recurring task rules.
+const recurringTasksCol = (uid) => collection(db, 'users', uid, 'cl_recurringTasks');
+const recurringTaskDoc = (uid, id) => doc(db, 'users', uid, 'cl_recurringTasks', id);
 
 // New id helper for client-minted documents.
 export const newId = (uid, kind) => {
@@ -64,6 +74,8 @@ export const newId = (uid, kind) => {
       ? taskListsCol(uid)
       : kind === 'noteCategory'
       ? noteCategoriesCol(uid)
+      : kind === 'recurringTask'
+      ? recurringTasksCol(uid)
       : null;
   if (!col) throw new Error(`newId: unknown kind ${kind}`);
   return doc(col).id;
@@ -271,4 +283,43 @@ export const setSchedule = async (uid, dateStr, data) => {
 
 export const deleteSchedule = async (uid, dateStr) => {
   await deleteDoc(scheduleDoc(uid, dateStr));
+};
+
+// --- Phase 6e: Daily analytics (cl_dailyAnalytics) -----------------------
+// Doc id = 'yyyy-MM-dd'. Counters accumulated via Firestore increment().
+// Shape:
+//   {
+//     date, plannedStudyMinutes, actualStudyMinutes, completedBlocks,
+//     interruptions, interruptedMinutes, shiftedMinutes, updatedAt,
+//   }
+
+export const subscribeDailyAnalytics = (uid, date, cb) =>
+  onSnapshot(dailyAnalyticsDoc(uid, date), (snap) =>
+    cb(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+  );
+
+export const subscribeRecentDailyAnalytics = (uid, cb, days = 14) =>
+  onSnapshot(
+    query(dailyAnalyticsCol(uid), orderBy('date', 'desc'), limit(days)),
+    (snap) => cb(snapshotToArray(snap))
+  );
+
+export const mergeDailyAnalytics = async (uid, date, patch) =>
+  setDoc(
+    dailyAnalyticsDoc(uid, date),
+    { date, ...patch, updatedAt: new Date().toISOString() },
+    { merge: true }
+  );
+
+// --- Phase 6d: Recurring tasks (cl_recurringTasks) ------------------------
+
+export const subscribeRecurringTasks = (uid, cb) =>
+  onSnapshot(recurringTasksCol(uid), (snap) => cb(snapshotToArray(snap)));
+
+export const setRecurringTask = async (uid, id, data) => {
+  await setDoc(recurringTaskDoc(uid, id), data, { merge: true });
+};
+
+export const deleteRecurringTask = async (uid, id) => {
+  await deleteDoc(recurringTaskDoc(uid, id));
 };

@@ -49,10 +49,39 @@ A clean hub, not a settings dump.
 ## A11y
 - Tile = `<button>` with descriptive label.
 
-## Prompt
+## Prompt to paste into Claude Design
 ```
-Design MoreHub for Calori Life (Hebrew RTL).
-2×3 tile grid: Tasks, Notes, Calori, Pomodoro, Settings, reserved-empty.
-Each tile: rounded 16, soft-colored category bg, centered icon + label.
-Quiet by default. Spring tap motion.
+Design MoreHub for "Calori Life" v2 — a Hebrew-first (RTL),
+editorial-warm student life manager.
+
+VISUAL DIRECTION:
+- Canvas #FAF7F2 (warm cream). Surfaces #FFFFFF. Ink #2A1A0A.
+- Hairlines rgba(180,140,80,.14). ink-soft #8A7A6A.
+- Brand green #059669 (italic accents). Forest deep #065F46 (FAB, avatar).
+- Three-font system: Instrument Serif (header + italic accents in green),
+  Fraunces weight 600 (any number ≥ 14px), Inter (tile labels, body).
+  Hebrew → Rubik.
+- Italic accent rule: header reads "<em>עוד</em>" — the word itself in
+  Instrument Serif italic green.
+
+LAYOUT:
+- Header: Instrument Serif "<em>עוד</em>" 22px, ink.
+- 2×3 tile grid (gap 12px): Tasks · Notes · Calori · Pomodoro · Settings · (reserved blank).
+- Each tile: bg #FFFFFF, radius 16, border 1px rgba(180,140,80,.14),
+  shadow 0 2px 10px rgba(40,20,0,.05), padding 18.
+- Inside each tile: 44×44 icon chip with soft category bg
+  (tasks #F5F1EA · notes #FFFBEB · calori #ECFDF5 · pomodoro #F3EFFB · settings rgba(180,140,80,.10)),
+  centered icon in matching darker tone, then label in Inter 13 weight 700 below.
+
+CHROME:
+- Header: avatar #065F46 + page title + "calori<em> life</em>" wordmark.
+- BottomNav: 4 items — המנהל האישי · בית · לימודים · פוקוס.
+- FAB: 52×52 #065F46, white +, shadow rgba(6,95,70,.35), bottom-left.
+
+Mobile 390×844 primary. AA contrast. Spring tap motion 180ms (scale 0.97).
+
+DO NOT:
+- Use #F5F5F7 or #1D1D1F or Heebo display or SF Pro for headings
+- Use weight < 600 on any number ≥ 14px
+- Italicize tile labels
 ```

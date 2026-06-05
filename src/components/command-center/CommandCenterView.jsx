@@ -19,6 +19,7 @@ import { he } from 'date-fns/locale';
 import { toast } from '../../store/useToast';
 import { CalendarView } from '../calendar/CalendarView';
 import { CoachChatDrawer } from './CoachChatDrawer';
+import { MorningCoachOverlay } from './MorningCoachOverlay';
 
 const parseToLocalTime = (timestamp) => {
   if (!timestamp) return '00:00';
@@ -38,6 +39,7 @@ export const CommandCenterView = () => {
     setDraftSchedule,
     updatePersonalTask,
     updateEvent,
+    setProfile,
   } = useStore();
 
   const { t } = useTranslation();
@@ -61,7 +63,9 @@ export const CommandCenterView = () => {
   const [activeTaskTab, setActiveTaskTab] = useState('all'); // 'all' | 'high' | 'med' | 'low'
   const [timePickerModal, setTimePickerModal] = useState(null); // { taskId, title, hourStr } for manual slot assign
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showMorningCoach, setShowMorningCoach] = useState(false);
   const hasAttemptedAutoPlan = useRef(false);
+  const hasEvaluatedMorningCoach = useRef(false);
 
   // Weather State
   const [weather, setWeather] = useState({ temp: null, min: null, max: null, city: null, loading: true, error: false, isNight: false });
@@ -255,7 +259,7 @@ export const CommandCenterView = () => {
   const setToday = () => setCurrentDate(new Date());
 
   // Call Gemini to Auto-Plan
-  const handleAutoPlan = useCallback(async () => {
+  const handleAutoPlan = useCallback(async (dayProfile = null) => {
     setLoading(true);
     try {
       const fixedEvents = [];
@@ -321,6 +325,7 @@ export const CommandCenterView = () => {
       const context = {
         todayDate: dateStr,
         dayOfWeek: format(currentDate, 'EEEE', { locale }),
+        dayProfile: dayProfile || null,
         settings: {
           wakeTime: data?.profile?.wakeTime || '07:00',
           sleepTime: data?.profile?.sleepTime || '23:00',
@@ -362,9 +367,12 @@ export const CommandCenterView = () => {
     }
   }, [data, dateStr, sidebarTasks, gpsLocation, currentDate, locale, shabbatTimes, setDraftSchedule, t]);
 
-  // Auto-plan on first load if no plan exists yet
+  // Auto-plan on first load if no plan exists yet.
+  // Gated: when the Morning Coach overlay is on screen, let the user drive the plan
+  // through the overlay instead of silently auto-planning.
   useEffect(() => {
     if (hasAttemptedAutoPlan.current) return;
+    if (showMorningCoach) return;
 
     // Check if there are any events proposed by AI for today
     const hasProposedEvents = (data?.events || []).some(
@@ -376,7 +384,69 @@ export const CommandCenterView = () => {
       hasAttemptedAutoPlan.current = true;
       handleAutoPlan();
     }
-  }, [dateStr, data?.events, draftSchedule, loading, handleAutoPlan]);
+  }, [dateStr, data?.events, draftSchedule, loading, handleAutoPlan, showMorningCoach]);
+
+  // Morning Coach overlay: decide once per mount whether to show.
+  // Predicate per Phase 6b spec.
+  useEffect(() => {
+    if (hasEvaluatedMorningCoach.current) return;
+    // Wait for profile to load before evaluating.
+    if (!data?.profile) return;
+    hasEvaluatedMorningCoach.current = true;
+
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const minutes = now.getHours() * 60 + now.getMinutes();
+
+    const lastShown = data.profile.lastCoachShownDate;
+    const dismissed = data.profile.coachOverlayDismissedDate;
+
+    const noSaved = !data?.schedule || !data.schedule.blocks || data.schedule.blocks.length === 0;
+    const noDraft = !draftSchedule?.blocks || draftSchedule.blocks.length === 0;
+
+    const shouldShow =
+      todayLocal !== lastShown &&
+      todayLocal !== dismissed &&
+      minutes >= 5 * 60 &&
+      dateStr === todayLocal &&
+      noSaved &&
+      noDraft;
+
+    if (shouldShow) {
+      setShowMorningCoach(true);
+      // Stamp immediately so re-opens stay silent.
+      setProfile({ lastCoachShownDate: todayLocal });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.profile, data?.schedule, draftSchedule, dateStr]);
+
+  // Detect whether "now" is inside Shabbat window (uses shabbatTimes already loaded).
+  const isNowDuringShabbat = useMemo(() => {
+    if (!data?.profile?.shabbatMode || !shabbatTimes) return false;
+    const now = new Date();
+    const startObj = new Date(shabbatTimes.start);
+    const endObj = new Date(shabbatTimes.end);
+    if (!isValid(startObj) || !isValid(endObj)) return false;
+    const blockStart = new Date(startObj.getTime() - 60 * 60 * 1000);
+    const blockEnd = new Date(endObj.getTime() + 60 * 60 * 1000);
+    return now >= blockStart && now <= blockEnd;
+  }, [data?.profile?.shabbatMode, shabbatTimes]);
+
+  // Overlay handlers
+  const handleCoachDismissSession = () => {
+    setShowMorningCoach(false);
+  };
+  const handleCoachDismissToday = () => {
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    setProfile({ coachOverlayDismissedDate: todayLocal });
+    setShowMorningCoach(false);
+  };
+  const handleCoachSubmit = (dayProfile) => {
+    setShowMorningCoach(false);
+    hasAttemptedAutoPlan.current = true; // prevent duplicate silent auto-plan
+    handleAutoPlan(dayProfile);
+  };
 
   // Tune schedule with input query
   const handleTuneSchedule = async (cmdOverride) => {
@@ -1122,6 +1192,16 @@ export const CommandCenterView = () => {
           </div>
         </div>
       )}
+
+      {/* Morning Coach Overlay (Phase 6b) */}
+      <MorningCoachOverlay
+        isOpen={showMorningCoach}
+        isShabbat={isNowDuringShabbat}
+        dateStr={dateStr}
+        onSubmit={handleCoachSubmit}
+        onDismissSession={handleCoachDismissSession}
+        onDismissToday={handleCoachDismissToday}
+      />
 
       {/* Interactive Coach Chat Drawer */}
       <CoachChatDrawer

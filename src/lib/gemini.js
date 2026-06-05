@@ -108,7 +108,10 @@ Input data:
   ${JSON.stringify(context.workouts)}
 - Today's logged meals (already eaten, lock them):
   ${JSON.stringify(context.meals)}
-`;
+${context.dayProfile ? `
+User's day directive (soft global constraint — bias the whole schedule to respect this):
+  "${context.dayProfile}"
+` : ''}`;
 
     const result = await model.generateContent([
       { text: SYSTEM_PROMPT },

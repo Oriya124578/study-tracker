@@ -43,8 +43,14 @@ import {
   subscribeSchedule as fsSubscribeSchedule,
   setSchedule as fsSetSchedule,
   deleteSchedule as fsDeleteSchedule,
+  mergeDailyAnalytics,
+  increment,
+  subscribeRecurringTasks as fsSubscribeRecurringTasks,
+  setRecurringTask as fsSetRecurringTask,
+  deleteRecurringTask as fsDeleteRecurringTask,
   newId,
 } from '../lib/firestoreRepo';
+import { recurringInstancesForDate } from '../lib/recurrence';
 import {
   dateKey,
   subscribeMealsForDay,
@@ -55,6 +61,7 @@ import {
   subscribeCoachSessionsForDay,
 } from '../lib/caloriRepo';
 import { generateDailySchedule } from '../lib/gemini';
+import { chooseEngine, timeToMin } from '../lib/scheduleEngine';
 import { format, parseISO, isValid } from 'date-fns';
 
 // ---------- Notification settings (Phase 5) --------------------------------
@@ -308,6 +315,11 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, noteCategories: noteCategoriesDocs } }));
     });
 
+    // Phase 6d: recurring task rules.
+    const unsubRecurringTasks = fsSubscribeRecurringTasks(uid, (recurringTasks) => {
+      set((state) => ({ data: { ...state.data, recurringTasks } }));
+    });
+
     // ── Calori bridge (READ-ONLY) ──
     // Recent history is date-range independent; subscribe once here.
     const unsubRecentCalori = subscribeRecentDailyHistory(uid, (recentHistory) => {
@@ -350,6 +362,7 @@ export const useStore = create((set, get) => ({
         unsubCaloriProfile,
         unsubTaskLists,
         unsubNoteCategories,
+        unsubRecurringTasks,
       ],
     });
 
@@ -459,6 +472,17 @@ export const useStore = create((set, get) => ({
         }).catch(console.error);
       }
     }
+    // Phase 6e: capture planned study minutes (authoritative — re-plans
+    // overwrite, since a fresh save represents the latest plan).
+    const planned = (blocks || []).reduce((sum, b) => {
+      if (b.type !== 'study') return sum;
+      const dur = b.duration ||
+        (b.startTime && b.endTime ? timeToMin(b.endTime) - timeToMin(b.startTime) : 0);
+      return sum + (dur > 0 ? dur : 0);
+    }, 0);
+    mergeDailyAnalytics(uid, dateStr, {
+      plannedStudyMinutes: planned,
+    }).catch(console.error);
   },
 
   // Patch a single block in the schedule doc (used by lock toggle, drag, accordion).
@@ -1347,12 +1371,24 @@ export const useStore = create((set, get) => ({
       }).catch(console.error);
     }
 
+    // Phase 6e: accumulate actual study minutes + completed-block counter.
+    mergeDailyAnalytics(uid, dateKey(), {
+      actualStudyMinutes: increment(Math.round(focusTracking.elapsed / 60)),
+      completedBlocks: status === 'completed' ? increment(1) : increment(0),
+    }).catch(console.error);
+
     get().resetFocusTracking();
   },
 
   interruptFocusTracking: async (dateStr, shabbatTimes, gpsLocation) => {
     const { uid, focusTracking, data } = get();
     if (!uid || !focusTracking.activeBlockId) return;
+
+    // Phase 6e: capture the interruption event (count + elapsed minutes).
+    mergeDailyAnalytics(uid, dateStr, {
+      interruptions: increment(1),
+      interruptedMinutes: increment(Math.round(focusTracking.elapsed / 60)),
+    }).catch(console.error);
 
     const blockId = focusTracking.activeBlockId;
 
@@ -1380,6 +1416,34 @@ export const useStore = create((set, get) => ({
         updatedAt: new Date().toISOString(),
       }).catch(console.error);
 
+      // Phase 6a: try the deterministic accordion first. Only escalate to a
+      // full AI re-plan if blocks overflow into the tray (no room left today).
+      const scheduleDoc = data?.schedule;
+      if (scheduleDoc && Array.isArray(scheduleDoc.blocks) && scheduleDoc.blocks.length > 0) {
+        try {
+          const bounds = {
+            wakeMin: timeToMin(data?.profile?.wakeTime || '07:00'),
+            sleepMin: timeToMin(data?.profile?.sleepTime || '23:00'),
+            shabbat: shabbatTimes && shabbatTimes.start && shabbatTimes.end ? {
+              blockStartMin: timeToMin(shabbatTimes.start.substring(11, 16)),
+              blockEndMin: timeToMin(shabbatTimes.end.substring(11, 16)),
+            } : null,
+          };
+          const decision = chooseEngine(
+            { kind: 'REMOVE', blockId },
+            scheduleDoc.blocks,
+            bounds
+          );
+          if (decision.engine === 'DETERMINISTIC') {
+            await get().saveSchedule(dateStr, decision.result.blocks, scheduleDoc.coachNote || '');
+            return; // accordion handled it — no AI needed
+          }
+          // ESCALATE_AI: fall through to the AI regeneration below.
+        } catch (err) {
+          console.error('[Focus Tracker] Accordion failed, falling back to AI:', err);
+        }
+      }
+
       // Run automatic AI rescheduling in background
       try {
         const fixedEvents = [];
@@ -1393,6 +1457,17 @@ export const useStore = create((set, get) => ({
               location: ev.location || '',
             });
           }
+        });
+        // Phase 6d: include today's recurring task instances as locked blocks
+        // (only those with a fixed time and not already completed today).
+        recurringInstancesForDate(data?.recurringTasks || [], dateStr).forEach((inst) => {
+          fixedEvents.push({
+            id: inst.id,
+            title: inst.title,
+            start: inst.startTime,
+            end: inst.endTime,
+            location: '',
+          });
         });
 
         const meals = [];
@@ -1470,5 +1545,71 @@ export const useStore = create((set, get) => ({
         console.error('[Focus Tracker] Interruption rescheduling failed:', err);
       }
     }
+  },
+
+  // ---------- Phase 6d: Recurring tasks ---------------------------------
+
+  addRecurringTask: async (input) => {
+    const { uid } = get();
+    if (!uid) return null;
+    const id = newId(uid, 'recurringTask');
+    const now = new Date().toISOString();
+    const rule = {
+      title: input.title || '',
+      notes: input.notes || '',
+      priority: input.priority || 'med',
+      color: input.color || null,
+      freq: input.freq || 'daily',
+      interval: Math.max(1, Number(input.interval) || 1),
+      byWeekday: Array.isArray(input.byWeekday) ? input.byWeekday : null,
+      byMonthday: Array.isArray(input.byMonthday) ? input.byMonthday : null,
+      startDate: input.startDate || new Date().toISOString().slice(0, 10),
+      endDate: input.endDate || null,
+      time: input.time || null,
+      durationMinutes: Math.max(1, Number(input.durationMinutes) || 30),
+      completions: {},
+      skips: {},
+      active: input.active !== false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await fsSetRecurringTask(uid, id, rule).catch(console.error);
+    return id;
+  },
+
+  updateRecurringTask: async (id, patch) => {
+    const { uid } = get();
+    if (!uid) return;
+    await fsSetRecurringTask(uid, id, {
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    }).catch(console.error);
+  },
+
+  deleteRecurringTask: async (id) => {
+    const { uid } = get();
+    if (!uid) return;
+    await fsDeleteRecurringTask(uid, id).catch(console.error);
+  },
+
+  // Mark a specific date as completed for a recurring rule (dot-path merge
+  // write so we only touch the single map entry).
+  completeRecurringInstance: async (id, dateStr) => {
+    const { uid } = get();
+    if (!uid || !id || !dateStr) return;
+    await fsSetRecurringTask(uid, id, {
+      [`completions.${dateStr}`]: { done: true, doneAt: new Date().toISOString() },
+      updatedAt: new Date().toISOString(),
+    }).catch(console.error);
+  },
+
+  // Mark a specific date as skipped (won't fire that day).
+  skipRecurringInstance: async (id, dateStr) => {
+    const { uid } = get();
+    if (!uid || !id || !dateStr) return;
+    await fsSetRecurringTask(uid, id, {
+      [`skips.${dateStr}`]: true,
+      updatedAt: new Date().toISOString(),
+    }).catch(console.error);
   },
 }));

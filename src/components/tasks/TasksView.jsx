@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Circle, CheckCircle2, ChevronDown, Trash2, X, Star, Edit3,
+  Plus, Circle, CheckCircle2, ChevronDown, Trash2, X, Star, Edit3, Repeat,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -327,6 +327,256 @@ const TaskRow = ({ task }) => {
   );
 };
 
+// ── Recurring Tasks Section (Phase 6d) ───────────────────────────────────────
+
+const WEEKDAY_LABELS_HE = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+const WEEKDAY_LABELS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const freqSummary = (rule, t, lang) => {
+  const labels = lang === 'he' ? WEEKDAY_LABELS_HE : WEEKDAY_LABELS_EN;
+  if (rule.freq === 'daily') {
+    const n = rule.interval || 1;
+    if (n === 1) return t('freqDaily');
+    return t('everyXDays').replace('{n}', n);
+  }
+  if (rule.freq === 'weekly') {
+    if (Array.isArray(rule.byWeekday) && rule.byWeekday.length > 0) {
+      const days = rule.byWeekday.slice().sort().map((d) => labels[d]).join(', ');
+      return `${t('freqWeekly')} · ${days}`;
+    }
+    return t('freqWeekly');
+  }
+  if (rule.freq === 'monthly') return t('freqMonthly');
+  return rule.freq || '';
+};
+
+const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const [title, setTitle] = useState(initial?.title || '');
+  const [freq, setFreq] = useState(initial?.freq || 'daily');
+  // Interval is fixed to the initial value for now (UI keeps it minimal).
+  const interval = initial?.interval || 1;
+  const [byWeekday, setByWeekday] = useState(initial?.byWeekday || []);
+  const [time, setTime] = useState(initial?.time || '');
+  const [durationMinutes, setDuration] = useState(initial?.durationMinutes || 30);
+  const labels = lang === 'he' ? WEEKDAY_LABELS_HE : WEEKDAY_LABELS_EN;
+
+  const handleSave = () => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    onSave({
+      title: trimmed,
+      freq,
+      interval: Math.max(1, Number(interval) || 1),
+      byWeekday: freq === 'weekly' ? byWeekday : null,
+      byMonthday: null,
+      time: time || null,
+      durationMinutes: Math.max(1, Number(durationMinutes) || 30),
+      startDate: initial?.startDate || today,
+      active: true,
+    });
+  };
+
+  const toggleWeekday = (d) => {
+    setByWeekday((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder={t('addTaskPlaceholder')}
+        className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-muted/30 text-foreground outline-none focus:border-primary"
+        autoFocus
+      />
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-muted-foreground font-semibold">{t('recurring')}:</span>
+        {[
+          { v: 'daily',   l: t('freqDaily') },
+          { v: 'weekly',  l: t('freqWeekly') },
+          { v: 'monthly', l: t('freqMonthly') },
+        ].map((opt) => (
+          <button
+            key={opt.v}
+            onClick={() => setFreq(opt.v)}
+            className={cn(
+              'px-2.5 py-1 rounded-xl font-bold text-[11px] border transition',
+              freq === opt.v ? 'bg-primary text-primary-foreground border-transparent' : 'bg-muted text-muted-foreground border-border'
+            )}
+          >
+            {opt.l}
+          </button>
+        ))}
+      </div>
+
+      {freq === 'weekly' && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {labels.map((lab, d) => (
+            <button
+              key={d}
+              onClick={() => toggleWeekday(d)}
+              className={cn(
+                'w-8 h-8 rounded-full text-xs font-bold border transition',
+                byWeekday.includes(d) ? 'bg-primary text-primary-foreground border-transparent' : 'bg-muted text-muted-foreground border-border'
+              )}
+              aria-pressed={byWeekday.includes(d)}
+              aria-label={lab}
+            >
+              {lab}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 text-xs">
+        <label className="flex items-center gap-2 flex-1">
+          <span className="text-muted-foreground">⏰</span>
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="flex-1 px-2 py-1 border border-border rounded-lg bg-muted/30 text-foreground outline-none"
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="number"
+            min="5"
+            step="5"
+            value={durationMinutes}
+            onChange={(e) => setDuration(e.target.value)}
+            className="w-16 px-2 py-1 border border-border rounded-lg bg-muted/30 text-foreground outline-none"
+          />
+          <span className="text-muted-foreground">min</span>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 pt-1">
+        <button
+          onClick={onCancel}
+          className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted rounded-lg"
+        >
+          {t('cancel')}
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-3 py-1.5 text-xs font-bold bg-primary text-primary-foreground rounded-lg active:scale-95"
+        >
+          {t('save')}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const RecurringTasksSection = ({ t, lang, isRTL }) => {
+  const data = useStore((s) => s.data);
+  const addRecurringTask = useStore((s) => s.addRecurringTask);
+  const updateRecurringTask = useStore((s) => s.updateRecurringTask);
+  const deleteRecurringTask = useStore((s) => s.deleteRecurringTask);
+  const [open, setOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const rules = data?.recurringTasks || [];
+
+  const handleSave = async (payload) => {
+    if (editing) {
+      await updateRecurringTask(editing.id, payload);
+    } else {
+      await addRecurringTask(payload);
+    }
+    setShowForm(false);
+    setEditing(null);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
+        dir={isRTL ? 'rtl' : 'ltr'}
+        aria-expanded={open}
+      >
+        <motion.div animate={{ rotate: open ? 0 : (isRTL ? 90 : -90) }} transition={{ duration: 0.18 }}>
+          <ChevronDown className="w-4 h-4" />
+        </motion.div>
+        <Repeat className="w-4 h-4 text-primary" />
+        <span className="flex-1 text-start">🚩 {t('recurringTasks')} ({rules.length})</span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 py-3 space-y-2 border-t border-border/40">
+              {rules.length === 0 && !showForm && (
+                <div className="text-center text-muted-foreground text-xs py-4">
+                  {t('noRecurring')}
+                </div>
+              )}
+
+              {rules.map((rule) => (
+                <div
+                  key={rule.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/40"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-foreground truncate">{rule.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {freqSummary(rule, t, lang)}
+                      {rule.time ? ` · ⏰ ${rule.time}` : ''}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setEditing(rule); setShowForm(true); }}
+                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                    aria-label={t('edit')}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(t('delete') + '?')) deleteRecurringTask(rule.id);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                    aria-label={t('delete')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              {showForm ? (
+                <RecurringForm
+                  initial={editing}
+                  onSave={handleSave}
+                  onCancel={() => { setShowForm(false); setEditing(null); }}
+                  t={t}
+                  lang={lang}
+                />
+              ) : (
+                <button
+                  onClick={() => { setEditing(null); setShowForm(true); }}
+                  className="w-full px-3 py-2 text-xs font-bold text-primary border border-dashed border-primary/40 rounded-xl hover:bg-primary/5 transition"
+                >
+                  {t('addRecurring')}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 // ── Main view ────────────────────────────────────────────────────────────────
 
 export const TasksView = () => {
@@ -455,6 +705,9 @@ export const TasksView = () => {
           </button>
         )}
       </div>
+
+      {/* ── Recurring tasks (Phase 6d) ── */}
+      <RecurringTasksSection t={t} lang={language} isRTL={isRTL} />
 
       {/* ── Pending tasks ── */}
       {pendingTasks.length === 0 && completedTasks.length === 0 ? (
