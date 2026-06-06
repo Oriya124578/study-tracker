@@ -22,11 +22,16 @@ const parseToLocalTime = (timestamp) => {
   return timestamp.substring(11, 16);
 };
 
-/** Compute end "HH:MM" given start "HH:MM" + duration in minutes. */
+/** Compute end "HH:MM" given start "HH:MM" + duration in minutes.
+ *  FIX: clamps to 23:59 instead of wrapping past midnight. The accordion has
+ *  no concept of multi-day blocks; a wrap would silently swap to a 23-hour
+ *  block in validateAndRepair. Better to truncate visibly. */
 const addMinutes = (hhmm, mins) => {
   const [h, m] = hhmm.split(':').map(Number);
   const total = h * 60 + m + mins;
-  const eh = String(Math.floor(total / 60) % 24).padStart(2, '0');
+  if (total >= 24 * 60) return '23:59';
+  if (total < 0) return '00:00';
+  const eh = String(Math.floor(total / 60)).padStart(2, '0');
   const em = String(total % 60).padStart(2, '0');
   return `${eh}:${em}`;
 };
@@ -35,6 +40,31 @@ const isBreakish = (b) =>
   b.type === 'leisure' ||
   (typeof b.title === 'string' &&
     (b.title.includes('הפסקה') || b.title.toLowerCase().includes('break')));
+
+/** Normalize a block to the canonical shape regardless of which path produced it.
+ *  Ensures downstream dispatch (source/refId/isCompleted/isPointEvent/duration)
+ *  doesn't depend on whether a scheduleDoc was present. */
+const normalizeBlock = (b) => {
+  const out = {
+    id: b.id,
+    source: b.source || 'schedule',
+    refId: b.refId ?? null,
+    type: b.type,
+    title: b.title,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    isLocked: !!b.isLocked,
+    isProposed: !!b.isProposed,
+    isCompleted: !!b.isCompleted,
+    notes: b.notes || '',
+  };
+  if (b.duration != null) out.duration = b.duration;
+  if (b.status != null) out.status = b.status;
+  if (b.isPointEvent || (b.type === 'meal' && b.startTime === b.endTime)) {
+    out.isPointEvent = true;
+  }
+  return out;
+};
 
 /**
  * Build the day's timeline.
@@ -110,7 +140,10 @@ export const buildTimeline = ({
           b.title = w.name || b.title;
         } else continue;
       }
-      out.push(b);
+      // FIX: drop blocks lacking a startTime (untrusted AI/Firestore source)
+      // before sorting — prevents a TypeError on localeCompare.
+      if (typeof b.startTime !== 'string' || typeof b.endTime !== 'string') continue;
+      out.push(normalizeBlock(b));
     }
     return out.sort((a, b) => a.startTime.localeCompare(b.startTime));
   }

@@ -108,6 +108,11 @@ Input data:
   ${JSON.stringify(context.workouts)}
 - Today's logged meals (already eaten, lock them):
   ${JSON.stringify(context.meals)}
+${context.dailyAnalytics ? `
+User's recent scheduling analytics (last 3 days):
+  ${JSON.stringify(context.dailyAnalytics)}
+Use this data to personalize study block durations and frequency. For example, if actualStudyDuration < plannedStudyDuration, suggest shorter blocks. If interruptionCount is high, insert more spacing between blocks.
+` : ''}
 ${context.dayProfile ? `
 User's day directive (soft global constraint — bias the whole schedule to respect this):
   "${context.dayProfile}"

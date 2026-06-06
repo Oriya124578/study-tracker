@@ -45,6 +45,7 @@ import {
   deleteSchedule as fsDeleteSchedule,
   mergeDailyAnalytics,
   increment,
+  subscribeRecentDailyAnalytics,
   subscribeRecurringTasks as fsSubscribeRecurringTasks,
   setRecurringTask as fsSetRecurringTask,
   deleteRecurringTask as fsDeleteRecurringTask,
@@ -233,6 +234,9 @@ export const useStore = create((set, get) => ({
     wasInterrupted: false,
   },
 
+  // Google Calendar Integration
+  googleCalendarToken: null,
+
   // ---------- Subscriptions lifecycle -----------------------------------
 
   initFromAuth: (uid) => {
@@ -320,6 +324,11 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, recurringTasks } }));
     });
 
+    const unsubRecentDailyAnalytics = subscribeRecentDailyAnalytics(uid, (recentDailyAnalytics) => {
+      set((state) => ({ data: { ...state.data, recentDailyAnalytics } }));
+    }, 3); // Only need last 3 days for AI
+
+
     // ── Calori bridge (READ-ONLY) ──
     // Recent history is date-range independent; subscribe once here.
     const unsubRecentCalori = subscribeRecentDailyHistory(uid, (recentHistory) => {
@@ -363,6 +372,7 @@ export const useStore = create((set, get) => ({
         unsubTaskLists,
         unsubNoteCategories,
         unsubRecurringTasks,
+        unsubRecentDailyAnalytics,
       ],
     });
 
@@ -521,6 +531,7 @@ export const useStore = create((set, get) => ({
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   setIsUploading: (status) => set({ isUploading: status }),
+  setGoogleCalendarToken: (token) => set({ googleCalendarToken: token }),
   setTheme: (theme) => {
     try {
       localStorage.setItem('theme', theme);

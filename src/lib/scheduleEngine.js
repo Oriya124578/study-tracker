@@ -423,15 +423,24 @@ export const validateAndRepair = (blocksIn, bounds, originalBlocks = []) => {
   }
 
   // 6) Pair-wise overlap pass on the repaired list.
+  // FIX: maintain a "live" anchor set that grows as blocks are placed, so a
+  // later block's slide considers ALL previously placed blocks (locked OR not),
+  // not just its immediate predecessor. This closes the residual-overlap hole
+  // when ≥3 non-locked blocks mutually overlap.
   repaired.sort(byStartAsc);
   const finalBlocks = [];
+  const liveAnchors = [...anchors];
+  // Track the running cursor = max end of any placed block, so a non-locked
+  // slide can't accidentally land on top of an earlier sibling.
+  let runningCursor = -Infinity;
   for (const b of repaired) {
     const s = timeToMin(b.startTime);
     const e = timeToMin(b.endTime);
     const prev = finalBlocks[finalBlocks.length - 1];
-    if (prev && timeToMin(prev.endTime) > s) {
-      // Overlap: if both locked → keep earlier, tray the later
-      const prevLocked = isBlockLocked(prev);
+    const overlapsPrev = prev && timeToMin(prev.endTime) > s;
+    const overlapsRunning = s < runningCursor;
+    if (overlapsPrev || overlapsRunning) {
+      const prevLocked = prev && isBlockLocked(prev);
       const curLocked = isBlockLocked(b);
       if (prevLocked && curLocked) {
         tray.push({ ...b, trayReason: 'double_lock' });
@@ -439,24 +448,32 @@ export const validateAndRepair = (blocksIn, bounds, originalBlocks = []) => {
         continue;
       }
       if (curLocked) {
-        // Locked wins: tray the previous non-locked
+        // Locked wins: tray the previous non-locked, recompute runningCursor.
         tray.push({ ...finalBlocks.pop(), trayReason: 'displaced_by_lock' });
         violations.push({ kind: 'displaced_by_lock', id: prev.id });
         finalBlocks.push(b);
+        liveAnchors.push({ start: s, end: e });
+        runningCursor = Math.max(...finalBlocks.map((x) => timeToMin(x.endTime)));
         continue;
       }
-      // Non-locked current: slide it after prev
+      // Non-locked current: slide it past EVERY already-placed block.
       const dur = e - s;
-      const placed = nextLegalStart(timeToMin(prev.endTime), dur, anchors, bounds);
+      const fromCursor = Math.max(runningCursor, prev ? timeToMin(prev.endTime) : wake);
+      const placed = nextLegalStart(fromCursor, dur, liveAnchors, bounds);
       if (placed === NO_FIT) {
         tray.push({ ...b, trayReason: 'overflow' });
         violations.push({ kind: 'overflow', id: b.id });
         continue;
       }
-      finalBlocks.push(withTimes(b, placed, dur));
+      const moved = withTimes(b, placed, dur);
+      finalBlocks.push(moved);
+      liveAnchors.push({ start: placed, end: placed + dur });
+      runningCursor = Math.max(runningCursor, placed + dur);
       repairs.push({ kind: 'slid', id: b.id });
     } else {
       finalBlocks.push(b);
+      liveAnchors.push({ start: s, end: e });
+      runningCursor = Math.max(runningCursor, e);
     }
   }
 

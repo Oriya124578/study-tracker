@@ -3,7 +3,7 @@ import {
   Bot, Calendar as CalendarIcon, Clock, Sparkles, Trash2, Save,
   AlertTriangle, Plus, Check, MapPin,
   Coffee, Dumbbell, Utensils, ChevronLeft, ChevronRight, X, RefreshCw,
-  Lock, Unlock, Moon, Sun
+  Lock, Unlock, Moon, Sun, MoreVertical
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -20,6 +20,10 @@ import { toast } from '../../store/useToast';
 import { CalendarView } from '../calendar/CalendarView';
 import { CoachChatDrawer } from './CoachChatDrawer';
 import { MorningCoachOverlay } from './MorningCoachOverlay';
+import { BlockActionSheet } from './BlockActionSheet';
+import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
+import { DroppableHour, DraggableBlock, DraggableSidebarTask } from './DndComponents';
+import { initGoogleCalendarAuth, connectGoogleCalendar, fetchGoogleEvents } from '../../lib/googleCalendar';
 
 const parseToLocalTime = (timestamp) => {
   if (!timestamp) return '00:00';
@@ -40,11 +44,17 @@ export const CommandCenterView = () => {
     updatePersonalTask,
     updateEvent,
     setProfile,
+    googleCalendarToken,
+    setGoogleCalendarToken
   } = useStore();
 
   const { t } = useTranslation();
   const isRTL = language === 'he';
   const locale = isRTL ? he : undefined;
+
+  useEffect(() => {
+    initGoogleCalendarAuth().catch(console.error);
+  }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const dateStr = useMemo(() => {
@@ -64,8 +74,26 @@ export const CommandCenterView = () => {
   const [timePickerModal, setTimePickerModal] = useState(null); // { taskId, title, hourStr } for manual slot assign
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showMorningCoach, setShowMorningCoach] = useState(false);
+  const [activeActionBlock, setActiveActionBlock] = useState(null);
+  const [activeDragItem, setActiveDragItem] = useState(null);
   const hasAttemptedAutoPlan = useRef(false);
   const hasEvaluatedMorningCoach = useRef(false);
+
+  // dnd-kit sensors (iOS style long press ~500ms)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 500,
+        tolerance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 500,
+        tolerance: 5,
+      },
+    })
+  );
 
   // Weather State
   const [weather, setWeather] = useState({ temp: null, min: null, max: null, city: null, loading: true, error: false, isNight: false });
@@ -342,6 +370,7 @@ export const CommandCenterView = () => {
         tasks: unscheduledTasks,
         workouts: plannedWorkouts,
         meals,
+        dailyAnalytics: data?.recentDailyAnalytics || [],
       };
 
       const result = await generateDailySchedule(context);
@@ -497,6 +526,43 @@ export const CommandCenterView = () => {
     }
   };
 
+  // Google Calendar Sync
+  const handleGoogleCalendarSync = async () => {
+    setLoading(true);
+    try {
+      let token = googleCalendarToken;
+      if (!token) {
+        token = await connectGoogleCalendar();
+        setGoogleCalendarToken(token);
+      }
+      
+      const events = await fetchGoogleEvents(dateStr, token);
+      
+      if (events.length === 0) {
+        toast.success('לא נמצאו אירועים חדשים ביומן Google');
+        return;
+      }
+      
+      // Inject events into draft (if drafting) or merge and set as draft
+      const currentBlocks = draftSchedule?.blocks?.length > 0 ? draftSchedule.blocks : [...timelineBlocks];
+      const newBlocks = [...currentBlocks, ...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      setDraftSchedule({ 
+        blocks: newBlocks, 
+        coachNote: draftSchedule?.coachNote || 'סונכרנו אירועים מ-Google Calendar. לחץ על שמור כדי לעדכן את הלוז.'
+      });
+      
+      toast.success(`יובאו ${events.length} אירועים מיומן Google`);
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה בסנכרון עם Google Calendar');
+      // If auth failed, clear token
+      if (err?.error) setGoogleCalendarToken(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Clear day schedule
   const handleClearSchedule = async () => {
     if (window.confirm(t('ccConfirmClearSchedule'))) {
@@ -526,34 +592,29 @@ export const CommandCenterView = () => {
     toast.success(t('ccTaskScheduled'));
   };
 
-  // Drag and Drop implementation
-  const handleDragStart = (e, task) => {
-    e.dataTransfer.setData('text/plain', task.id);
-    e.dataTransfer.effectAllowed = 'move';
+  // Drag and Drop handlers for dnd-kit
+  const handleDragStart = (e) => {
+    setActiveDragItem(e.active.data.current);
   };
 
-  const handleTimelineBlockDragStart = (e, block) => {
-    e.dataTransfer.setData('sourceBlockId', block.id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+  const handleDragEnd = (e) => {
+    const { active, over } = e;
+    setActiveDragItem(null);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+    if (!over) return; // Dropped outside any valid target
 
-  const handleDrop = (e, hourStr) => {
-    e.preventDefault();
+    const hourStr = over.id; // Droppable ID is the hour
     if (isTimeDuringShabbat(hourStr)) {
       toast.error(t('ccCannotScheduleShabbat', 'לא ניתן לשבץ משימות במהלך השבת'));
       return;
     }
-    const taskId = e.dataTransfer.getData('text/plain');
-    const sourceBlockId = e.dataTransfer.getData('sourceBlockId');
 
-    if (sourceBlockId) {
-      // Dragged an existing block inside the timeline
+    const draggedData = active.data.current;
+
+    if (draggedData?.isTimelineBlock) {
+      // Re-arranging an existing block inside the timeline
+      const sourceBlockId = draggedData.id;
       if (sourceBlockId.startsWith('draft-')) {
-        // Dragged a draft block
         const updatedBlocks = (draftSchedule?.blocks || []).map(b => {
           if (b.id === sourceBlockId) {
             const duration = b.duration || 60;
@@ -570,21 +631,48 @@ export const CommandCenterView = () => {
           return b;
         }).sort((a, b) => a.startTime.localeCompare(b.startTime));
         setDraftSchedule({ ...draftSchedule, blocks: updatedBlocks });
-        toast.success(t('ccTaskScheduledAtTime').replace('{time}', hourStr));
+        toast.success(t('ccTaskScheduledAtTime', 'שובץ בשעה {time}').replace('{time}', hourStr));
       } else if (sourceBlockId.startsWith('task-')) {
-        // Dragged a scheduled task block
         const refId = sourceBlockId.replace('task-', '');
         const task = data?.personalTasks?.find(t => t.id === refId);
         const duration = task?.scheduledDuration || 60;
         scheduleTask(refId, dateStr, hourStr, duration);
-        toast.success(t('ccTaskScheduledAtTime').replace('{time}', hourStr));
+        toast.success(t('ccTaskScheduledAtTime', 'שובץ בשעה {time}').replace('{time}', hourStr));
       }
-    } else if (taskId) {
-      // Dragged a task from the sidebar tray
+    } else if (draggedData?.isSidebarTask) {
+      // Dropped a new task from the sidebar
+      const taskId = draggedData.id;
       const task = data?.personalTasks?.find(t => t.id === taskId);
       const duration = task?.scheduledDuration || data?.profile?.studyBlockDuration || 90;
       scheduleTask(taskId, dateStr, hourStr, duration);
-      toast.success(t('ccTaskScheduledAtTime').replace('{time}', hourStr));
+      toast.success(t('ccTaskScheduledAtTime', 'שובץ בשעה {time}').replace('{time}', hourStr));
+    }
+  };
+
+  const handleDragCancel = () => {
+    setActiveDragItem(null);
+  };
+
+  // Block Action Sheet
+  const handleBlockAction = (block, action) => {
+    if (action === 'interrupted') {
+      handleTuneSchedule('הייתה לי הפרעה במשימה הזו, תכנן מחדש את שאר היום');
+    } else if (action === 'postpone') {
+      if (block.refId) {
+        // Find task and change due date to tomorrow, then unschedule
+        const tomorrow = format(addDays(currentDate, 1), 'yyyy-MM-dd');
+        updatePersonalTask(block.refId, { dueDate: tomorrow });
+        unscheduleTask(block.refId);
+        toast.success('המשימה נדחתה למחר');
+      }
+    } else if (action === 'swap') {
+      // Just unschedule the current one and open the manual time picker for this hour?
+      // Actually it says "open modal to pick another task". We can reuse timePickerModal logic in a reverse way
+      // But simpler: just unschedule and let them pick from sidebar!
+      if (block.refId) {
+        unscheduleTask(block.refId);
+        setTimePickerModal({ hourStr: block.startTime }); // Opens task picker for that hour!
+      }
     }
   };
 
@@ -662,15 +750,17 @@ export const CommandCenterView = () => {
 
   const blockIcons = {
     sleep: Clock,
+      sleep: Clock,
     study: CalendarIcon,
     event: CalendarIcon,
     meal: Utensils,
     workout: Dumbbell,
     travel: MapPin,
-    leisure: Coffee,
+    leisure: Clock,
   };
 
   return (
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
     <div className="max-w-6xl mx-auto px-4 py-5 sm:px-6 space-y-6 animate-in fade-in duration-300 pb-28" dir={isRTL ? 'rtl' : 'ltr'}>
       
       {/* Date Header Navigator */}
@@ -819,6 +909,14 @@ export const CommandCenterView = () => {
                 ) : (
                   <>
                     <button
+                      onClick={handleGoogleCalendarSync}
+                      disabled={loading}
+                      className="px-3 py-1.5 rounded-2xl bg-white text-slate-700 hover:bg-slate-50 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm border border-slate-200"
+                    >
+                      <CalendarIcon className="w-3.5 h-3.5 text-blue-500" />
+                      Google Calendar
+                    </button>
+                    <button
                       onClick={handleAutoPlan}
                       disabled={loading}
                       className="px-3 py-1.5 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm"
@@ -852,8 +950,6 @@ export const CommandCenterView = () => {
                   return (
                     <div 
                       key={hour}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, hour)}
                       className="flex gap-4 p-3 sm:p-4 items-stretch min-h-[4.5rem] relative hover:bg-muted/10 transition-colors"
                     >
                       {/* Hour Indicator */}
@@ -862,32 +958,36 @@ export const CommandCenterView = () => {
                       </div>
 
                       {/* Content area */}
-                      <div className="flex-1 flex flex-col gap-2.5 justify-center">
-                        {hourBlocks.length > 0 ? (
-                          hourBlocks.map((block) => {
-                            const Icon = blockIcons[block.type] || CalendarIcon;
-                            return (
-                              <div
-                                key={block.id}
-                                draggable={!block.isLocked}
-                                onDragStart={(e) => handleTimelineBlockDragStart(e, block)}
-                                className={cn(
-                                  'p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
-                                  blockColors[block.type] || 'border-border bg-card',
-                                  !block.isLocked && 'cursor-grab active:cursor-grabbing hover:shadow-md'
-                                )}
-                              >
-                                <div className="flex gap-3 items-center min-w-0">
-                                  <div className="w-8 h-8 rounded-xl bg-background/50 flex items-center justify-center shrink-0 border border-border/20">
-                                    <Icon className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0 text-start">
-                                    <h4 className="font-bold text-sm truncate text-foreground">{block.title}</h4>
-                                    {block.notes && <p className="text-xs opacity-75 mt-0.5 truncate">{block.notes}</p>}
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                      <DroppableHour id={hour} isCovered={isCovered}>
+                        <div className="flex-1 flex flex-col gap-2.5 justify-center h-full min-h-[3rem]">
+                          {hourBlocks.length > 0 ? (
+                            hourBlocks.map((block) => {
+                              const Icon = blockIcons[block.type] || CalendarIcon;
+                              return (
+                                <DraggableBlock 
+                                  key={block.id} 
+                                  id={block.id} 
+                                  isLocked={block.isLocked} 
+                                  data={{ ...block, isTimelineBlock: true }}
+                                >
+                                  <div
+                                    className={cn(
+                                      'p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
+                                      blockColors[block.type] || 'border-border bg-card',
+                                      block.isLocked && 'bg-[url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0JyBoZWlnaHQ9JzQnPgo8cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBmaWxsPScjZmZmJyBmaWxsLW9wYWNpdHk9JzAnLz4KPHBhdGggZD0nTS0xLDFMMSwtMU0zLDVMNSwzJyBzdHJva2U9JyMwMDAnIHN0cm9rZS1vcGFjaXR5PScwLjA1JyBzdHJva2Utd2lkdGg9JzEnLz4KPC9zdmc+")] opacity-80 border-dashed hover:shadow-none'
+                                    )}
+                                  >
+                                    <div className="flex gap-3 items-center min-w-0 pointer-events-none">
+                                      <div className="w-8 h-8 rounded-xl bg-background/50 flex items-center justify-center shrink-0 border border-border/20">
+                                        <Icon className="w-4 h-4" />
+                                      </div>
+                                      <div className="min-w-0 text-start">
+                                        <h4 className="font-bold text-sm truncate text-foreground">{block.title}</h4>
+                                        {block.notes && <p className="text-xs opacity-75 mt-0.5 truncate">{block.notes}</p>}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                                   {block.isProposed && (
                                     <span className="text-[10px] font-bold bg-primary/10 text-primary border border-primary/10 px-2 py-0.5 rounded-full shrink-0">
                                       {t('ccAiProposal')}
@@ -910,39 +1010,17 @@ export const CommandCenterView = () => {
 
                                   <div className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
                                     <Clock className="w-3.5 h-3.5 opacity-60" />
-                                    {/* Meals are point-in-time, workouts/events show range */}
                                     <span>{block.type === 'meal' || block.startTime === block.endTime
                                       ? block.startTime
                                       : `${block.startTime} - ${block.endTime}`}</span>
                                   </div>
                                   
-                                  {/* Complete task button if block is a task */}
-                                  {!block.isLocked && block.refId && block.id.startsWith('task-') && (
-                                    <button
-                                      onClick={() => useStore.getState().togglePersonalTask(block.refId)}
-                                      className={cn(
-                                        'w-6 h-6 rounded-full border flex items-center justify-center active:scale-90 transition-all cursor-pointer',
-                                        block.isCompleted
-                                          ? 'bg-[#059669] border-[#059669] text-white'
-                                          : 'border-slate-300 dark:border-slate-700 hover:border-[#059669]'
-                                      )}
-                                    >
-                                      {block.isCompleted && <Check className="w-4 h-4 stroke-[3]" />}
-                                    </button>
-                                  )}
-                                  
-                                  {/* Unschedule button */}
-                                  {!block.isLocked && block.refId && block.id.startsWith('task-') && (
-                                    <button
-                                      onClick={() => unscheduleTask(block.refId)}
-                                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-secondary rounded-lg transition-colors cursor-pointer"
-                                      title={t('ccRemoveFromSchedule')}
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  )}
+                                  <button onClick={() => setActiveActionBlock(block)} className="p-1 hover:bg-secondary rounded-lg transition-colors">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
                                 </div>
                               </div>
+                            </DraggableBlock>
                             );
                           })
                         ) : (
@@ -950,7 +1028,7 @@ export const CommandCenterView = () => {
                             onClick={() => {
                               setTimePickerModal({ hourStr: hour });
                             }}
-                            className="group h-full flex items-center justify-between text-xs text-muted-foreground/35 hover:text-primary hover:bg-primary/5 border border-dashed border-transparent hover:border-primary/20 rounded-xl px-4 py-2.5 transition-all cursor-pointer select-none"
+                            className="group h-full flex items-center justify-between text-xs text-muted-foreground/35 hover:text-primary hover:bg-primary/5 border border-dashed border-transparent hover:border-primary/20 rounded-xl px-4 py-2.5 transition-all cursor-pointer select-none min-h-[40px]"
                           >
                             <span className="font-semibold text-[11px] opacity-0 group-hover:opacity-100 transition-opacity">
                               + שבץ משימה ידנית לשעה זו
@@ -961,7 +1039,8 @@ export const CommandCenterView = () => {
                             </span>
                           </div>
                         )}
-                      </div>
+                        </div>
+                      </DroppableHour>
                     </div>
                   );
                 })}
@@ -1055,30 +1134,29 @@ export const CommandCenterView = () => {
             <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
               {sidebarTasks.length > 0 ? (
                 sidebarTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, task)}
-                    className="p-3 border border-border rounded-2xl bg-muted/20 hover:bg-muted/40 transition-colors flex items-center justify-between gap-3 cursor-grab active:cursor-grabbing group"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 text-start">
-                      <span className={cn(
-                        'w-2 h-2 rounded-full shrink-0',
-                        task.priority === 'high' ? 'bg-red-500' : task.priority === 'med' ? 'bg-amber-500' : 'bg-slate-400'
-                      )} />
-                      <p className="text-xs font-semibold truncate text-foreground">{task.title}</p>
-                    </div>
+                  <DraggableSidebarTask key={task.id} id={task.id} data={{ ...task, isSidebarTask: true }}>
+                    <div
+                      className="p-3 border border-border rounded-2xl bg-muted/20 hover:bg-muted/40 transition-colors flex items-center justify-between gap-3 group pointer-events-auto"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 text-start pointer-events-none">
+                        <span className={cn(
+                          'w-2 h-2 rounded-full shrink-0',
+                          task.priority === 'high' ? 'bg-red-500' : task.priority === 'med' ? 'bg-amber-500' : 'bg-slate-400'
+                        )} />
+                        <p className="text-xs font-semibold truncate text-foreground">{task.title}</p>
+                      </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setTimePickerModal({ taskId: task.id, title: task.title })}
-                        className="p-1 rounded bg-background border hover:border-primary text-primary transition-all active:scale-90"
-                        title={t('ccManualSchedule')}
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setTimePickerModal({ taskId: task.id, title: task.title })}
+                          className="p-1 rounded bg-background border hover:border-primary text-primary transition-all active:scale-90"
+                          title={t('ccManualSchedule')}
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </DraggableSidebarTask>
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground text-xs">
@@ -1212,6 +1290,45 @@ export const CommandCenterView = () => {
         onReplan={handleTuneSchedule}
       />
 
+      {/* Drag Overlay for dnd-kit */}
+      <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+        {activeDragItem ? (
+          activeDragItem.isSidebarTask ? (
+            <div className="p-3 border-2 border-primary rounded-2xl bg-card shadow-2xl flex items-center justify-between gap-3 w-64 rotate-2 scale-105 opacity-90" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="flex items-center gap-2 min-w-0 text-start">
+                <span className={cn(
+                  'w-2 h-2 rounded-full shrink-0',
+                  activeDragItem.priority === 'high' ? 'bg-red-500' : activeDragItem.priority === 'med' ? 'bg-amber-500' : 'bg-slate-400'
+                )} />
+                <p className="text-xs font-semibold truncate text-foreground">{activeDragItem.title}</p>
+              </div>
+            </div>
+          ) : activeDragItem.isTimelineBlock ? (
+            <div className={cn(
+              "p-4 rounded-2xl border-2 border-primary bg-card shadow-2xl flex flex-col sm:flex-row sm:items-center gap-3 w-72 sm:w-80 rotate-2 scale-105 opacity-95",
+              blockColors[activeDragItem.type]
+            )} dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="flex gap-3 items-center min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-background/50 flex items-center justify-center shrink-0 border border-border/20">
+                  <CalendarIcon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 text-start">
+                  <h4 className="font-bold text-sm truncate text-foreground">{activeDragItem.title}</h4>
+                </div>
+              </div>
+            </div>
+          ) : null
+        ) : null}
+      </DragOverlay>
+
+      {/* Action Sheet */}
+      <BlockActionSheet 
+        isOpen={!!activeActionBlock}
+        block={activeActionBlock}
+        onClose={() => setActiveActionBlock(null)}
+        onAction={(action) => handleBlockAction(activeActionBlock, action)}
+      />
+
       {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-background/50 backdrop-blur-md z-[110] flex flex-col items-center justify-center gap-3">
@@ -1219,6 +1336,8 @@ export const CommandCenterView = () => {
           <p className="text-sm font-black text-foreground">{t('ccAiCalculating')}</p>
         </div>
       )}
+
     </div>
+    </DndContext>
   );
 };
