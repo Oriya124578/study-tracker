@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — Data</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#6A5A4A;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-tile{background:#fff;border-radius:14px;padding:14px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);}
+.s-ico{font-size:18px;margin-bottom:6px;}
+.s-val{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:24px;color:#2A1A0A;letter-spacing:-.03em;line-height:1;}
+.s-lbl{font-size:10px;color:#8A7A6A;font-weight:600;margin-top:3px;}
+
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-ico.g{background:#F0FDF4;color:#065F46;}
+.r-ico.b{background:#EFF6FF;color:#1E40AF;}
+.r-ico.r{background:#FEF2F2;color:#991B1B;}
+.r-ico.gr{background:#F5F0E8;color:#6A5A4A;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#059669;flex-shrink:0;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+.danger{padding:14px 16px;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#DC2626;background:#fff;border-radius:14px;border:1px solid rgba(220,38,38,.15);}
+.warn{padding:11px 14px;font-size:11px;color:#92400E;background:#FFFBEB;border:1px solid rgba(217,119,6,.18);border-radius:12px;line-height:1.5;}
+.warn em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#78350F;font-size:13px;display:block;margin-bottom:2px;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11g · Data</div>
+<div class="ttl">נתונים — <em>ייצוא וגיבוי</em></div>
+<div class="dsc">4 stats + ייצוא JSON · גיבוי ענן · מחיקה מקומית · מחיקת חשבון</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>נתונים וגיבוי</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="stats-grid">
+        <div class="stat-tile"><div class="s-ico">🎓</div><div class="s-val">5</div><div class="s-lbl">קורסים</div></div>
+        <div class="stat-tile"><div class="s-ico">✓</div><div class="s-val">192</div><div class="s-lbl">משימות</div></div>
+        <div class="stat-tile"><div class="s-ico">📒</div><div class="s-val">13</div><div class="s-lbl">פתקים</div></div>
+        <div class="stat-tile"><div class="s-ico">📅</div><div class="s-val">42</div><div class="s-lbl">אירועים</div></div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>ייצוא</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico g">📤</div>
+            <div class="r-body"><div class="r-ttl">ייצוא JSON</div><div class="r-sub">כל הנתונים שלך · ~2.3MB</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">📊</div>
+            <div class="r-body"><div class="r-ttl">ייצוא CSV (משימות)</div><div class="r-sub">להמשך עבודה ב-Excel/Sheets</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>גיבוי ענן</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico g">☁️</div>
+            <div class="r-body"><div class="r-ttl">גיבוי אוטומטי</div><div class="r-sub">Firebase · כל הזמן</div></div>
+            <div class="r-val">פעיל</div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">⏳</div>
+            <div class="r-body"><div class="r-ttl">היסטוריית גרסאות</div><div class="r-sub">שחזור עד 30 יום אחורה</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn"><em>⚠️ פעולות מסוכנות</em>הפעולות הבאות הן בלתי-הפיכות. שקול לבצע ייצוא JSON לפני.</div>
+
+      <div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico r">🗑</div>
+            <div class="r-body"><div class="r-ttl" style="color:#DC2626">מחק את כל המשימות</div><div class="r-sub">192 משימות יימחקו לצמיתות</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico r">🗑</div>
+            <div class="r-body"><div class="r-ttl" style="color:#DC2626">מחק את כל הפתקים</div><div class="r-sub">13 פתקים יימחקו לצמיתות</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="danger"><em>מחק חשבון לחלוטין</em></div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Add Note</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.bg-dim{position:absolute;inset:0;background:rgba(42,26,10,.55);backdrop-filter:blur(3px);z-index:5;}
+
+.sheet{position:absolute;bottom:0;left:0;right:0;height:88%;background:#FAF7F2;border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(40,20,0,.2);z-index:10;overflow:hidden;}
+.s-handle{width:42px;height:5px;background:rgba(180,140,80,.35);border-radius:3px;margin:10px auto 4px;}
+
+.s-header{padding:12px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(180,140,80,.12);}
+.s-cancel{font-size:13px;color:#8A7A6A;font-weight:600;}
+.s-title{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.s-title em{font-style:italic;color:#D97706;}
+.s-save{background:#D97706;color:#fff;font-size:13px;font-weight:700;padding:7px 14px;border-radius:10px;box-shadow:0 4px 12px rgba(217,119,6,.25);}
+
+.s-tabs{display:flex;background:#F5F0E8;margin:14px 20px 0;border-radius:12px;padding:3px;}
+.s-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:#8A7A6A;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.s-tab.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.s-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;height:calc(100% - 130px);scrollbar-width:none;}
+.s-body::-webkit-scrollbar{display:none;}
+
+/* Note preview */
+.preview{border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(40,20,0,.05);}
+.preview.y{background:#FEF3C7;border:1px solid rgba(217,119,6,.15);}
+.preview.p{background:#F5F3FF;border:1px solid rgba(124,58,237,.15);}
+.preview.g{background:#D1FAE5;border:1px solid rgba(5,150,105,.15);}
+.preview.b{background:#DBEAFE;border:1px solid rgba(37,99,235,.15);}
+.preview.r{background:#FEE2E2;border:1px solid rgba(220,38,38,.15);}
+.preview.gr{background:#fff;border:1px solid rgba(180,140,80,.15);}
+
+.title-input{background:transparent;border:none;border-bottom:1.5px solid rgba(0,0,0,.15);padding:0 0 6px;font-family:'Instrument Serif',serif;font-size:20px;color:#2A1A0A;font-style:italic;width:100%;outline:none;margin-bottom:10px;}
+.preview.y .title-input{color:#92400E;border-color:rgba(146,64,14,.25);}
+.preview.p .title-input{color:#5B21B6;border-color:rgba(91,33,182,.25);}
+.preview.g .title-input{color:#065F46;border-color:rgba(6,95,70,.25);}
+
+.body-input{background:transparent;border:none;padding:0;font-family:'Inter',sans-serif;font-size:14px;color:#2A1A0A;width:100%;min-height:80px;outline:none;line-height:1.5;resize:none;}
+
+/* COLORS */
+.color-row{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:14px;display:flex;align-items:center;gap:11px;}
+.color-l{font-size:11px;color:#8A7A6A;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-right:auto;}
+.colors{display:flex;gap:8px;}
+.c-dot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.c-dot.y{background:#FEF3C7;border-color:#FCD34D;}
+.c-dot.p{background:#F5F3FF;border-color:#C4B5FD;}
+.c-dot.g{background:#D1FAE5;border-color:#6EE7B7;}
+.c-dot.b{background:#DBEAFE;border-color:#93C5FD;}
+.c-dot.r{background:#FEE2E2;border-color:#FCA5A5;}
+.c-dot.gr{background:#fff;border-color:rgba(180,140,80,.3);}
+.c-dot.active{box-shadow:0 0 0 3px #D97706;}
+
+/* PIN + CATEGORY */
+.flags-row{display:flex;gap:8px;}
+.flag{flex:1;background:#fff;border:1.5px solid rgba(180,140,80,.15);border-radius:12px;padding:11px;text-align:center;}
+.flag.active{border-color:#D97706;background:#FFFBEB;}
+.flag-ic{font-size:17px;}
+.flag-l{font-size:11px;font-weight:600;color:#8A7A6A;margin-top:3px;}
+.flag.active .flag-l{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#B45309;}
+
+/* Category */
+.cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat-c{flex-shrink:0;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#fff;border:1px solid rgba(180,140,80,.15);color:#8A7A6A;}
+.cat-c.active{background:#D97706;border-color:#D97706;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:5px 14px;}
+.cat-c.add{background:transparent;border-style:dashed;}
+
+.section-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:4px 4px 0;}
+.section-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+</style>
+</head>
+<body>
+<div class="lbl">Sheet 3c · Add Note</div>
+<div class="ttl">פתק <em>חדש</em> — צבעוני</div>
+<div class="dsc">תצוגה מקדימה בצבע · 6 צבעים · pinned · קטגוריה user-defined</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="bg-dim"></div>
+
+  <div class="sheet">
+    <div class="s-handle"></div>
+    <div class="s-header">
+      <div class="s-cancel">ביטול</div>
+      <div class="s-title">פתק <em>חדש</em></div>
+      <div class="s-save">שמור</div>
+    </div>
+
+    <div class="s-tabs">
+      <div class="s-tab">📅 אירוע</div>
+      <div class="s-tab">✓ משימה</div>
+      <div class="s-tab active">📒 פתק</div>
+    </div>
+
+    <div class="s-body">
+
+      <!-- Note preview in color -->
+      <div class="preview y">
+        <input class="title-input" value="משוואה חשובה לאינפי" />
+        <textarea class="body-input">∫(1/x)dx = ln|x| + C · להוסיף לדף נוסחאות לפני המבחן.</textarea>
+      </div>
+
+      <!-- Colors -->
+      <div class="color-row">
+        <div class="color-l">צבע</div>
+        <div class="colors">
+          <div class="c-dot y active"></div>
+          <div class="c-dot p"></div>
+          <div class="c-dot g"></div>
+          <div class="c-dot b"></div>
+          <div class="c-dot r"></div>
+          <div class="c-dot gr"></div>
+        </div>
+      </div>
+
+      <!-- Pin -->
+      <div class="flags-row">
+        <div class="flag active">
+          <div class="flag-ic">📌</div>
+          <div class="flag-l">מוצמד</div>
+        </div>
+        <div class="flag">
+          <div class="flag-ic">🔒</div>
+          <div class="flag-l">פרטי</div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="section-lbl"><em>קטגוריה</em></div>
+      <div class="cats">
+        <div class="cat-c active">חשובים</div>
+        <div class="cat-c">סיסמאות</div>
+        <div class="cat-c">רעיונות</div>
+        <div class="cat-c">תזכורות</div>
+        <div class="cat-c add">+ הוסף</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

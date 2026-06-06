@@ -228,5 +228,8 @@ export const buildTimeline = ({
   }
 
   const filtered = filterLeisure ? blocks.filter((b) => !isBreakish(b)) : blocks;
-  return filtered.sort((a, b) => a.startTime.localeCompare(b.startTime));
+  // Normalize so the doc and fallback paths produce IDENTICAL shapes.
+  return filtered
+    .map(normalizeBlock)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
 };

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — Studies</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#DC2626;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.sem-card{background:#fff;border-radius:18px;padding:18px 20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 16px rgba(40,20,0,.06);position:relative;overflow:hidden;}
+.sem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#DC2626,#EF4444);}
+.sem-eyb{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
+.sem-ttl{font-family:'Instrument Serif',serif;font-size:26px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;line-height:1;}
+.sem-ttl em{font-style:italic;color:#DC2626;}
+.sem-meta{font-size:12px;color:#8A7A6A;margin-top:6px;}
+.sem-meta em{font-family:'Instrument Serif',serif;font-style:italic;color:#2A1A0A;font-size:14px;}
+
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;display:flex;justify-content:space-between;align-items:baseline;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group-lbl .add{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#059669;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-ico.g{background:#F0FDF4;color:#065F46;}
+.r-ico.b{background:#EFF6FF;color:#1E40AF;}
+.r-ico.a{background:#FFFBEB;color:#B45309;}
+.r-ico.r{background:#FEF2F2;color:#991B1B;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:14px;color:#059669;flex-shrink:0;letter-spacing:-.02em;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+.r-color{width:5px;height:30px;border-radius:3px;flex-shrink:0;}
+.r-color.g{background:#059669;}
+.r-color.b{background:#2563EB;}
+.r-color.a{background:#D97706;}
+.r-color.p{background:#7C3AED;}
+.r-color.r{background:#DC2626;}
+
+.toggle{width:48px;height:28px;border-radius:14px;background:#DC2626;position:relative;flex-shrink:0;}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:22px;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.toggle.off{background:rgba(180,140,80,.2);}
+.toggle.off::after{left:2px;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11b · Studies</div>
+<div class="ttl">לימודים — <em>הגדרות</em></div>
+<div class="dsc">סמסטר פעיל · 5 קורסים עם צבע · AI Links · יעדים אישיים</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>לימודים</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="sem-card">
+        <div class="sem-eyb">סמסטר פעיל</div>
+        <div class="sem-ttl">סמסטר <em>ב׳</em> 2026</div>
+        <div class="sem-meta"><em>5</em> קורסים · התחיל ב-1.3.26 · 14 שבועות</div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>הקורסים שלי</em><span class="add">+ הוסף</span></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-color g"></div>
+            <div class="r-body"><div class="r-ttl">אינפי 2</div><div class="r-sub">שבוע 9/14 · מועד A · 30 ימים</div></div>
+            <div class="r-val">65%</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-color b"></div>
+            <div class="r-body"><div class="r-ttl">אלגברה לינארית 2</div><div class="r-sub">שבוע 6/14</div></div>
+            <div class="r-val">40%</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-color a"></div>
+            <div class="r-body"><div class="r-ttl">תכנות בשפת C</div><div class="r-sub">שבוע 11/14</div></div>
+            <div class="r-val">78%</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-color p"></div>
+            <div class="r-body"><div class="r-ttl">מבני נתונים</div><div class="r-sub">שבוע 5/14</div></div>
+            <div class="r-val">32%</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-color r"></div>
+            <div class="r-body"><div class="r-ttl">לוגיקה ותורת הקבוצות</div><div class="r-sub">שבוע 8/14</div></div>
+            <div class="r-val">55%</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>AI Quick Links</em><span class="add">+ הוסף</span></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico g">🧠</div>
+            <div class="r-body"><div class="r-ttl">NotebookLM</div><div class="r-sub">לכל הקורסים · אישי</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">✦</div>
+            <div class="r-body"><div class="r-ttl">Gemini</div><div class="r-sub">קישור לכל קורס</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>תבניות משימות</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico r">📚</div>
+            <div class="r-body"><div class="r-ttl">הרצאה לשבוע</div><div class="r-sub">נוצר אוטומטית בכל שבוע חדש</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico g">📝</div>
+            <div class="r-body"><div class="r-ttl">תרגול לשבוע</div><div class="r-sub">נוצר אוטומטית</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico a">📋</div>
+            <div class="r-body"><div class="r-ttl">שיעורי בית</div><div class="r-sub">להוסיף ידנית</div></div>
+            <div class="toggle off"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

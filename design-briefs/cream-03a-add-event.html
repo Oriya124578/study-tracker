@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Add Event (Google-style)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.bg-dim{position:absolute;inset:0;background:rgba(42,26,10,.55);backdrop-filter:blur(3px);z-index:5;}
+
+.sheet{position:absolute;bottom:0;left:0;right:0;height:88%;background:#FAF7F2;border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(40,20,0,.2);z-index:10;overflow:hidden;}
+.s-handle{width:42px;height:5px;background:rgba(180,140,80,.35);border-radius:3px;margin:10px auto 4px;}
+
+.s-header{padding:12px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(180,140,80,.12);}
+.s-cancel{font-size:13px;color:#8A7A6A;font-weight:600;}
+.s-title{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.s-title em{font-style:italic;color:#2563EB;}
+.s-save{background:#2563EB;color:#fff;font-size:13px;font-weight:700;padding:7px 14px;border-radius:10px;box-shadow:0 4px 12px rgba(37,99,235,.25);}
+
+.s-tabs{display:flex;background:#F5F0E8;margin:14px 20px 0;border-radius:12px;padding:3px;}
+.s-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:#8A7A6A;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.s-tab.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.s-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;height:calc(100% - 130px);scrollbar-width:none;}
+.s-body::-webkit-scrollbar{display:none;}
+
+.title-input{background:#fff;border:none;border-bottom:2px solid #2563EB;border-radius:0;padding:8px 4px 10px;font-family:'Instrument Serif',serif;font-size:22px;color:#2A1A0A;font-style:italic;width:100%;outline:none;}
+.title-input.empty{color:rgba(138,122,106,.6);}
+
+/* Row group */
+.fld-row{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;}
+.fld-ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#2563EB;flex-shrink:0;}
+.fld-l{font-size:11px;color:#8A7A6A;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.fld-v{font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#2A1A0A;margin-top:1px;}
+.fld-r{margin-right:auto;color:#C7BCAA;font-size:16px;}
+
+/* DATETIME ROW */
+.dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dt-cell{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:11px 14px;}
+.dt-l{font-size:10px;color:#8A7A6A;font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+.dt-v{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:18px;color:#2A1A0A;margin-top:3px;letter-spacing:-.03em;}
+
+/* ALL DAY TOGGLE */
+.allday{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;}
+.toggle{width:44px;height:26px;border-radius:13px;background:rgba(180,140,80,.2);position:relative;flex-shrink:0;margin-right:auto;}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+
+/* COLOR */
+.color-row{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;}
+.colors{display:flex;gap:7px;margin-right:auto;}
+.c-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;}
+.c-dot.b{background:#2563EB;}
+.c-dot.g{background:#059669;}
+.c-dot.r{background:#DC2626;}
+.c-dot.a{background:#D97706;}
+.c-dot.p{background:#7C3AED;}
+.c-dot.active{box-shadow:0 0 0 3px #fff,0 0 0 5px currentColor;}
+
+/* CATEGORY */
+.cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat-c{flex-shrink:0;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#fff;border:1px solid rgba(180,140,80,.15);color:#8A7A6A;}
+.cat-c.active{background:#2563EB;border-color:#2563EB;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:5px 14px;}
+.cat-c.add{background:transparent;border-style:dashed;}
+
+.section-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:8px 4px 4px;}
+.section-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+
+.notes-area{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:12px 14px;min-height:60px;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:rgba(138,122,106,.6);}
+</style>
+</head>
+<body>
+<div class="lbl">Sheet 3a · Add Event</div>
+<div class="ttl">אירוע <em>חדש</em> — Google Calendar style</div>
+<div class="dsc">סגנון Google Calendar · כל היום toggle · חזרה, מיקום, צבע, קטגוריה</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="bg-dim"></div>
+
+  <div class="sheet">
+    <div class="s-handle"></div>
+    <div class="s-header">
+      <div class="s-cancel">ביטול</div>
+      <div class="s-title">אירוע <em>חדש</em></div>
+      <div class="s-save">שמור</div>
+    </div>
+
+    <div class="s-tabs">
+      <div class="s-tab active">📅 אירוע</div>
+      <div class="s-tab">✓ משימה</div>
+      <div class="s-tab">📒 פתק</div>
+    </div>
+
+    <div class="s-body">
+
+      <input class="title-input" value="פגישה עם המרצה — שאלות לתרגיל" />
+
+      <!-- Date + Time grid -->
+      <div class="dt-grid">
+        <div class="dt-cell">
+          <div class="dt-l">תאריך</div>
+          <div class="dt-v">ה׳ · 12.6.26</div>
+        </div>
+        <div class="dt-cell">
+          <div class="dt-l">משעה</div>
+          <div class="dt-v">11:00</div>
+        </div>
+        <div class="dt-cell">
+          <div class="dt-l">עד תאריך</div>
+          <div class="dt-v">ה׳ · 12.6.26</div>
+        </div>
+        <div class="dt-cell">
+          <div class="dt-l">עד שעה</div>
+          <div class="dt-v">12:30</div>
+        </div>
+      </div>
+
+      <!-- All day -->
+      <div class="allday">
+        <div class="fld-ic">🌞</div>
+        <div><div class="fld-l">כל היום</div><div class="fld-v" style="font-size:12px;font-style:normal;color:#8A7A6A;font-family:'Inter',sans-serif">אירועי יום שלם (חופשים, חגים)</div></div>
+        <div class="toggle"></div>
+      </div>
+
+      <!-- Location -->
+      <div class="fld-row">
+        <div class="fld-ic">📍</div>
+        <div><div class="fld-l">מיקום</div><div class="fld-v">משרד 305, בניין 9</div></div>
+        <div class="fld-r">›</div>
+      </div>
+
+      <!-- Recurrence -->
+      <div class="fld-row">
+        <div class="fld-ic">🔁</div>
+        <div><div class="fld-l">חזרה</div><div class="fld-v">לא חוזר</div></div>
+        <div class="fld-r">›</div>
+      </div>
+
+      <!-- Reminder -->
+      <div class="fld-row">
+        <div class="fld-ic">🔔</div>
+        <div><div class="fld-l">תזכורת</div><div class="fld-v">30 דקות לפני</div></div>
+        <div class="fld-r">›</div>
+      </div>
+
+      <!-- Color -->
+      <div class="color-row">
+        <div class="fld-ic">🎨</div>
+        <div class="fld-l">צבע</div>
+        <div class="colors">
+          <div class="c-dot b active" style="color:#2563EB"></div>
+          <div class="c-dot g"></div>
+          <div class="c-dot r"></div>
+          <div class="c-dot a"></div>
+          <div class="c-dot p"></div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="section-lbl"><em>קטגוריה</em></div>
+      <div class="cats">
+        <div class="cat-c active">לימודים</div>
+        <div class="cat-c">עבודה</div>
+        <div class="cat-c">משפחה</div>
+        <div class="cat-c">פנאי</div>
+        <div class="cat-c add">+ הוסף</div>
+      </div>
+
+      <!-- Notes -->
+      <div class="section-lbl"><em>הערות</em></div>
+      <div class="notes-area">הוסף הערות, קישורים או מסמכים מצורפים...</div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

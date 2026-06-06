@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — About</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#059669;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.app-card{background:#fff;border-radius:22px;padding:28px 20px 22px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);text-align:center;position:relative;overflow:hidden;}
+.app-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#065F46,#059669,#10B981);}
+.app-logo{width:84px;height:84px;border-radius:22px;background:linear-gradient(135deg,#065F46,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:36px;margin:0 auto 14px;box-shadow:0 8px 24px rgba(6,95,70,.3);}
+.app-name{font-family:'Instrument Serif',serif;font-size:30px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;line-height:1;}
+.app-name em{font-style:italic;color:#059669;}
+.app-tagline{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:#8A7A6A;margin-top:6px;}
+.app-ver{display:inline-block;margin-top:10px;background:#F0FDF4;border:1px solid rgba(5,150,105,.2);padding:5px 14px;border-radius:999px;font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:13px;color:#065F46;letter-spacing:-.02em;}
+
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;background:#F0FDF4;color:#065F46;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+.credits{text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:rgba(138,122,106,.6);padding:18px 16px;line-height:1.7;}
+.credits em{color:#059669;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11h · About</div>
+<div class="ttl">אודות — <em>הפרויקט</em></div>
+<div class="dsc">לוגו · גרסה · תנאי שימוש · קוד פתוח · קרדיטים</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>אודות</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="app-card">
+        <div class="app-logo">cl</div>
+        <div class="app-name">calori <em>life</em></div>
+        <div class="app-tagline">היום שלך, מאוחד</div>
+        <div class="app-ver">גרסה 2.0 · build 2026.06</div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>משפטי</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico">📜</div>
+            <div class="r-body"><div class="r-ttl">תנאי שימוש</div><div class="r-sub">עודכן 1.6.26</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico">🔐</div>
+            <div class="r-body"><div class="r-ttl">מדיניות פרטיות</div><div class="r-sub">הנתונים שלך, בידיים שלך</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico">📋</div>
+            <div class="r-body"><div class="r-ttl">רישיון קוד פתוח</div><div class="r-sub">MIT · התרומה פתוחה</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>קשר</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico">📧</div>
+            <div class="r-body"><div class="r-ttl">צור קשר</div><div class="r-sub">hello@calori.life</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico">💬</div>
+            <div class="r-body"><div class="r-ttl">משוב</div><div class="r-sub">איך נשפר?</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico">⭐</div>
+            <div class="r-body"><div class="r-ttl">דרג אותנו</div><div class="r-sub">App Store / Play Store</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="credits">
+        עוצב ופותח על-ידי <em>אוריה מרגלית</em><br>
+        אינטגרציה עם <em>Calori</em> · ©2026<br>
+        עברית קודם · iOS-inspired
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

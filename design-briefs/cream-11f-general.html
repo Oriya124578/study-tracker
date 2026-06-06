@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — General</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#D97706;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-ico.a{background:#FFFBEB;color:#B45309;}
+.r-ico.p{background:#F5F3FF;color:#6D28D9;}
+.r-ico.b{background:#EFF6FF;color:#1E40AF;}
+.r-ico.g{background:#F0FDF4;color:#065F46;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#D97706;flex-shrink:0;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+.seg{background:#F5F0E8;border-radius:12px;padding:3px;display:flex;}
+.seg-i{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:#8A7A6A;border-radius:9px;}
+.seg-i.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.theme-row{display:flex;gap:8px;}
+.theme{flex:1;background:#fff;border:1.5px solid rgba(180,140,80,.15);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;}
+.theme.active{border-color:#D97706;background:#FFFBEB;}
+.theme-prev{width:46px;height:46px;border-radius:10px;margin:0 auto 6px;border:1px solid rgba(180,140,80,.15);}
+.theme-prev.light{background:linear-gradient(135deg,#FAF7F2,#fff);}
+.theme-prev.dark{background:linear-gradient(135deg,#1A1410,#2A2218);}
+.theme-prev.auto{background:linear-gradient(135deg,#FAF7F2 50%,#1A1410 50%);}
+.theme-l{font-size:11px;font-weight:600;color:#8A7A6A;}
+.theme.active .theme-l{color:#2A1A0A;font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11f · General</div>
+<div class="ttl">כללי — <em>שפה, נושא, יום ראשון</em></div>
+<div class="dsc">העדפות בסיסיות · ערכת נושא בתצוגה מקדימה · קלט שפה ראשונה</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>כללי</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div>
+        <div class="group-lbl"><em>שפה</em></div>
+        <div class="seg">
+          <div class="seg-i active">עברית</div>
+          <div class="seg-i">English</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>ערכת נושא</em></div>
+        <div class="theme-row">
+          <div class="theme active">
+            <div class="theme-prev light"></div>
+            <div class="theme-l">בהירה</div>
+          </div>
+          <div class="theme">
+            <div class="theme-prev dark"></div>
+            <div class="theme-l">כהה</div>
+          </div>
+          <div class="theme">
+            <div class="theme-prev auto"></div>
+            <div class="theme-l">אוטומטי</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>תחילת שבוע</em></div>
+        <div class="seg">
+          <div class="seg-i active">ראשון</div>
+          <div class="seg-i">שני</div>
+          <div class="seg-i">שבת</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>תצוגה</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico p">🕐</div>
+            <div class="r-body"><div class="r-ttl">פורמט שעה</div><div class="r-sub">24 שעות / AM-PM</div></div>
+            <div class="r-val">24 שעות</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">📅</div>
+            <div class="r-body"><div class="r-ttl">פורמט תאריך</div><div class="r-sub">יום/חודש/שנה</div></div>
+            <div class="r-val">DD/MM/YY</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico g">📆</div>
+            <div class="r-body"><div class="r-ttl">לוח שנה עברי</div><div class="r-sub">הצג גם תאריך עברי</div></div>
+            <div style="width:48px;height:28px;border-radius:14px;background:#059669;position:relative;flex-shrink:0"><div style="content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:22px;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>נגישות</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico a">🔤</div>
+            <div class="r-body"><div class="r-ttl">גודל טקסט</div><div class="r-sub">לפי הגדרות מערכת</div></div>
+            <div class="r-val">רגיל</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico p">🌐</div>
+            <div class="r-body"><div class="r-ttl">צמצום אנימציות</div><div class="r-sub">למשתמשי רגישות לתנועה</div></div>
+            <div style="width:48px;height:28px;border-radius:14px;background:rgba(180,140,80,.2);position:relative;flex-shrink:0"><div style="position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

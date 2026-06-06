@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings (Index)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#059669;}
+.h-spacer{width:36px;flex-shrink:0;}
+
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+/* PROFILE HERO */
+.p-card{background:#fff;border-radius:22px;padding:18px 20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;}
+.p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#065F46,#059669,#047857);}
+.p-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#065F46,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;flex-shrink:0;box-shadow:0 4px 14px rgba(6,95,70,.25);}
+.p-info{flex:1;}
+.p-name{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;line-height:1.1;}
+.p-name em{font-style:italic;color:#059669;}
+.p-email{font-size:12px;color:#8A7A6A;margin-top:3px;}
+.p-photo{font-size:11px;color:#059669;margin-top:5px;font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;}
+.p-edit{background:#F0FDF4;border:1px solid rgba(5,150,105,.2);color:#065F46;font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;flex-shrink:0;}
+
+/* GROUPS */
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;display:flex;align-items:center;justify-content:space-between;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.r-ico.g{background:#F0FDF4;color:#065F46;}
+.r-ico.b{background:#EFF6FF;color:#1E40AF;}
+.r-ico.p{background:#F5F3FF;color:#6D28D9;}
+.r-ico.a{background:#FFFBEB;color:#B45309;}
+.r-ico.r{background:#FEF2F2;color:#991B1B;}
+.r-ico.gr{background:#F5F0E8;color:#6A5A4A;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#059669;flex-shrink:0;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+/* DESTRUCT */
+.destruct{padding:14px 16px;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#DC2626;background:#fff;border-radius:16px;border:1px solid rgba(220,38,38,.15);box-shadow:0 1px 4px rgba(40,20,0,.04);}
+
+.version{text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:rgba(138,122,106,.5);padding:14px 0 4px;}
+</style>
+</head>
+<body>
+<div class="lbl">Screen 11 · Settings (Main Index)</div>
+<div class="ttl">הגדרות — <em>הפרופיל שלי</em></div>
+<div class="dsc">דף ראשי כמו WhatsApp · פרופיל hero · 7 קטגוריות נפרדות · כל אחת מובילה למסך נפרד</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid"><div class="h-title">הגדרות</div></div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="p-card">
+        <div class="p-av">א</div>
+        <div class="p-info">
+          <div class="p-name"><em>אוריה</em> מרגלית</div>
+          <div class="p-email">turhv124@gmail.com</div>
+          <div class="p-photo">🥗 תמונה תיובא מ-Calori אוטומטית</div>
+        </div>
+        <div class="p-edit">ערוך</div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>חשבון</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico g">👤</div>
+            <div class="r-body"><div class="r-ttl">פרופיל</div><div class="r-sub">שם, תמונה, אימייל, סיסמה</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">🔔</div>
+            <div class="r-body"><div class="r-ttl">התראות</div><div class="r-sub">יומי, פר-קטגוריה, שקט בלילה</div></div>
+            <div class="r-val">פעיל</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>תכנים</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico r">🎓</div>
+            <div class="r-body"><div class="r-ttl">לימודים</div><div class="r-sub">סמסטר, יעדים, AI Links</div></div>
+            <div class="r-val">5 קורסים</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico p">✨</div>
+            <div class="r-body"><div class="r-ttl">המנהל האישי</div><div class="r-sub">התנהגות AI, תדירות הצעות</div></div>
+            <div class="r-val">פעיל</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico g">🥗</div>
+            <div class="r-body"><div class="r-ttl">קלורי</div><div class="r-sub">סנכרון תזונה ואימונים</div></div>
+            <div class="r-val">מקושר</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>העדפות</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico a">🎨</div>
+            <div class="r-body"><div class="r-ttl">כללי</div><div class="r-sub">שפה, ערכת נושא, תחילת שבוע</div></div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>נתונים</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico gr">💾</div>
+            <div class="r-body"><div class="r-ttl">ייצוא וגיבוי</div><div class="r-sub">קובץ JSON של כל המידע</div></div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico gr">ℹ️</div>
+            <div class="r-body"><div class="r-ttl">אודות</div><div class="r-sub">גרסה, רישיון, פרטיות</div></div>
+            <div class="r-val">v2.0</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="destruct"><em>התנתק</em></div>
+
+      <div class="version">Calori Life · <em>v2.0</em></div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

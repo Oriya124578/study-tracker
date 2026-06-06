@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Add Task (course optional)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.bg-dim{position:absolute;inset:0;background:rgba(42,26,10,.55);backdrop-filter:blur(3px);z-index:5;}
+
+.sheet{position:absolute;bottom:0;left:0;right:0;height:88%;background:#FAF7F2;border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(40,20,0,.2);z-index:10;overflow:hidden;}
+.s-handle{width:42px;height:5px;background:rgba(180,140,80,.35);border-radius:3px;margin:10px auto 4px;}
+
+.s-header{padding:12px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(180,140,80,.12);}
+.s-cancel{font-size:13px;color:#8A7A6A;font-weight:600;}
+.s-title{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.s-title em{font-style:italic;color:#059669;}
+.s-save{background:#059669;color:#fff;font-size:13px;font-weight:700;padding:7px 14px;border-radius:10px;box-shadow:0 4px 12px rgba(5,150,105,.25);}
+
+.s-tabs{display:flex;background:#F5F0E8;margin:14px 20px 0;border-radius:12px;padding:3px;}
+.s-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:#8A7A6A;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.s-tab.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.s-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;height:calc(100% - 130px);scrollbar-width:none;}
+.s-body::-webkit-scrollbar{display:none;}
+
+.title-input{background:#fff;border:none;border-bottom:2px solid #059669;border-radius:0;padding:8px 4px 10px;font-family:'Instrument Serif',serif;font-size:22px;color:#2A1A0A;font-style:italic;width:100%;outline:none;}
+
+/* STAR + RECUR row */
+.flags-row{display:flex;gap:8px;}
+.flag{flex:1;background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:12px;padding:11px;text-align:center;cursor:pointer;}
+.flag.active{border-color:#F59E0B;background:#FFFBEB;}
+.flag.rec.active{border-color:#7C3AED;background:#F5F3FF;}
+.flag-ic{font-size:18px;}
+.flag-l{font-size:11px;font-weight:600;color:#8A7A6A;margin-top:3px;}
+.flag.active .flag-l{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+.flag.active.fav .flag-l{color:#B45309;}
+.flag.active.rec .flag-l{color:#6D28D9;}
+
+/* PRIORITY */
+.prio-row{display:flex;gap:8px;}
+.prio{flex:1;background:#fff;border:1.5px solid rgba(180,140,80,.15);border-radius:12px;padding:12px;text-align:center;cursor:pointer;}
+.prio.active.r{border-color:#DC2626;background:#FEF2F2;}
+.prio.active.a{border-color:#D97706;background:#FFFBEB;}
+.prio.active.g{border-color:#9CA3AF;background:#F9FAFB;}
+.prio-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 5px;}
+.prio.r .prio-dot{background:#DC2626;}
+.prio.a .prio-dot{background:#D97706;}
+.prio.g .prio-dot{background:#9CA3AF;}
+.prio-l{font-size:11px;font-weight:600;color:#8A7A6A;}
+.prio.active .prio-l{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;}
+
+/* DUE */
+.due-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.due-row::-webkit-scrollbar{display:none;}
+.due-c{flex-shrink:0;background:#fff;border:1.5px solid rgba(180,140,80,.15);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600;color:#8A7A6A;}
+.due-c.active{background:#059669;border-color:#059669;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:6px 14px;}
+
+/* OPTIONAL course */
+.opt-row{background:#fff;border:1.5px dashed rgba(180,140,80,.3);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;}
+.opt-ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#8A7A6A;font-size:14px;}
+.opt-l{flex:1;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:#8A7A6A;}
+.opt-action{font-size:11px;font-weight:700;color:#059669;}
+
+/* CATEGORY */
+.cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat-c{flex-shrink:0;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#fff;border:1px solid rgba(180,140,80,.15);color:#8A7A6A;}
+.cat-c.active{background:#059669;border-color:#059669;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:5px 14px;}
+.cat-c.add{background:transparent;border-style:dashed;}
+
+.section-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:8px 4px 4px;}
+.section-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+
+.notes-area{background:#fff;border:1px solid rgba(180,140,80,.15);border-radius:14px;padding:12px 14px;min-height:50px;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:rgba(138,122,106,.6);}
+</style>
+</head>
+<body>
+<div class="lbl">Sheet 3b · Add Task</div>
+<div class="ttl">משימה <em>חדשה</em> — קורס אופציונלי</div>
+<div class="dsc">★ מועדפים · חזרה · עדיפות · קורס אופציונלי (dashed) · קטגוריה user-defined</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="bg-dim"></div>
+
+  <div class="sheet">
+    <div class="s-handle"></div>
+    <div class="s-header">
+      <div class="s-cancel">ביטול</div>
+      <div class="s-title">משימה <em>חדשה</em></div>
+      <div class="s-save">שמור</div>
+    </div>
+
+    <div class="s-tabs">
+      <div class="s-tab">📅 אירוע</div>
+      <div class="s-tab active">✓ משימה</div>
+      <div class="s-tab">📒 פתק</div>
+    </div>
+
+    <div class="s-body">
+
+      <input class="title-input" value="להוציא את הזבל" />
+
+      <!-- Star + Recurring -->
+      <div class="flags-row">
+        <div class="flag fav active">
+          <div class="flag-ic" style="color:#F59E0B">★</div>
+          <div class="flag-l">מועדפת</div>
+        </div>
+        <div class="flag rec active">
+          <div class="flag-ic" style="color:#7C3AED">🔁</div>
+          <div class="flag-l">יומי</div>
+        </div>
+      </div>
+
+      <!-- Priority -->
+      <div class="section-lbl"><em>עדיפות</em></div>
+      <div class="prio-row">
+        <div class="prio g active">
+          <div class="prio-dot"></div>
+          <div class="prio-l">רגילה</div>
+        </div>
+        <div class="prio a">
+          <div class="prio-dot"></div>
+          <div class="prio-l">בינונית</div>
+        </div>
+        <div class="prio r">
+          <div class="prio-dot"></div>
+          <div class="prio-l">דחופה</div>
+        </div>
+      </div>
+
+      <!-- Due -->
+      <div class="section-lbl"><em>מועד</em></div>
+      <div class="due-row">
+        <div class="due-c active">היום</div>
+        <div class="due-c">מחר</div>
+        <div class="due-c">השבוע</div>
+        <div class="due-c">בחר תאריך</div>
+      </div>
+
+      <!-- Optional course -->
+      <div class="section-lbl"><em>קורס</em> · אופציונלי</div>
+      <div class="opt-row">
+        <div class="opt-ic">🎓</div>
+        <div class="opt-l">צרף לקורס</div>
+        <div class="opt-action">+ הוסף</div>
+      </div>
+
+      <!-- Categories -->
+      <div class="section-lbl"><em>קטגוריה</em></div>
+      <div class="cats">
+        <div class="cat-c active">בית</div>
+        <div class="cat-c">לימודים</div>
+        <div class="cat-c">עבודה</div>
+        <div class="cat-c">כסף</div>
+        <div class="cat-c add">+ הוסף</div>
+      </div>
+
+      <!-- Notes -->
+      <div class="section-lbl"><em>הערות</em></div>
+      <div class="notes-area">הוסף הערות או תזכורות נוספות...</div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -210,45 +210,78 @@ If you need to make a judgment call, choose the QUIETER, MORE EDITORIAL option.
 | RTL לא נכון | *"Use logical properties only: margin-inline-start, padding-inline-end, text-start."* |
 | FAB ירוק `#059669` | *"FAB body is #065F46 (forest deep). The brighter #059669 is only the FAB shadow, italic accents, and meal floods."* |
 | Wordmark עם 'life' באותו פונט | *"Wordmark: 'calori' in Inter weight 700 size 15px, ' life' in Instrument Serif italic weight 400 size 17px color #059669."* |
-| BottomNav עם 5 פריטים | *"BottomNav has exactly 4 items: המנהל האישי, בית, לימודים, פוקוס. FAB is floating at bottom-left:20 / bottom:88, NOT centered in nav."* |
+| BottomNav with old icons / Focus tab / Bot icon | *"BottomNav has EXACTLY 4 items in RTL order right→left: ✨ המנהל (Sparkles) · 🏠 בית (Home) · 📅 לוח שנה (Calendar) · 📚 לימודים (Studies). Focus is NOT a primary tab anymore — it's accessed via the FAB menu. The Sparkles icon (not Bot) signals AI-assistant rather than a user profile."* |
+| FAB menu with 3 items (Add/Tasks/Notes) | *"FAB menu has 4 items: + Add new item (opens AddItemSheet with 3 sub-tabs Event/Task/Note), ⏱ Focus (Pomodoro), 📒 Notes, ✓ Tasks. FAB is floating at bottom-left:20 / bottom:88, NOT centered in nav."* |
+| ארגן עם AI כ-Quick Action בבית | *"REMOVED in v2 — the Manager tab (✨ in BottomNav) IS the AI planner, always one tap away. Home Quick Actions are now 4 utility shortcuts only: [+ הוסף פריט primary green] [📒 פתקים] [✓ משימות] [⏱ פומודורו]."* |
+| Calori has its own tab in BottomNav | *"Calori is NOT in BottomNav. The entire Home Hero card (Greeting + Nutrition) is a clickable button → opens CaloriView fullscreen. The hero card shows a CTA at its bottom: 'פתח קלורי · פרטי תזונה ואימונים מלאים ›' in Instrument Serif italic green."* |
 
 ---
 
-## שלב 4 — סדר העבודה המומלץ
+## שלב 4 — סדר העבודה המומלץ (v2)
 
 ```
-01 — Home (SmartDashboard)      ← הכי חשוב, מסך הראייה (BottomNav: בית)
-14 — Focus Hub                   ← מסך ראשי חדש (BottomNav: פוקוס, עוטף Pomodoro)
-04 — Studies Hub                 ← מסך ראשי (BottomNav: לימודים)
-XX — Command Center              ← מסך ראשי (BottomNav: המנהל האישי, מתכנן AI)
+01 — Home (SmartDashboard)       ← הכי חשוב, מסך הראייה (BottomNav: 🏠 בית)
+15 — Personal Manager (AI)       ← מסך חדש קריטי (BottomNav: ✨ המנהל)
+02 — Calendar (5 views)          ← מסך ראשי (BottomNav: 📅 לוח שנה)
+04 — Studies Hub                 ← מסך ראשי (BottomNav: 📚 לימודים)
 13 — Onboarding                  ← מה שמשתמש רואה ראשון
 12 — Auth (login/register)
-07 — Tasks                       ← דפוס משימות (FAB → Tasks)
-08 — Notes                       ← דפוס פתקים צבעוניים (FAB → Notes)
-03 — Add Item Sheet              ← bottom sheet עם 3 tabs (FAB → Add)
-02 — Calendar (5 views)          ← הכי מורכב
-05 — Course Detail
-09 — Calori (read-only)          ← נגיש דרך כרטיס בבית
-10 — Pomodoro Timer              ← רכיב פנימי של Focus Hub
+03 — Add Item Sheet              ← bottom sheet 3 tabs (FAB → + הוסף פריט חדש)
+10 — Pomodoro / Focus            ← מסך טיימר (FAB → ⏱ פוקוס)
+07 — Tasks                       ← דפוס משימות (FAB → ✓ משימות + Home QA)
+08 — Notes                       ← דפוס פתקים צבעוניים (FAB → 📒 פתקים + Home QA)
+05 — Course Detail               ← נגיש מתוך Studies (לחיצה על קורס)
+09 — Calori (read-only)          ← נגיש דרך לחיצה על כל ה-Hero בבית
 11 — Settings                    ← נגיש דרך avatar בheader
 06 — More Hub                    ← legacy (לא בשימוש בBottomNav יותר)
+14 — Focus Hub                   ← legacy (מוזג עם 10-Pomodoro)
 ```
 
-**מיפוי ניווט אמיתי באפליקציה:**
+### 🧭 מיפוי ניווט אמיתי באפליקציה (v2 — canonical)
 
-| איך הגעת? | פותח |
-|---|---|
-| BottomNav · בית | SmartDashboard (Home) |
-| BottomNav · המנהל האישי | CommandCenter (AI planner) |
-| BottomNav · לימודים | StudiesHub |
-| BottomNav · פוקוס | FocusHub (PomodoroTimer inline) |
-| Header avatar | Settings |
-| FAB → Add | AddItemSheet (3-tab bottom sheet) |
-| FAB → Tasks | TasksView |
-| FAB → Notes | NotesView |
-| Home: Nutrition tile | CaloriView |
-| Studies: course card | CourseView |
-| CommandCenter: calendar | CalendarView |
+**BottomNav — 4 טאבים קבועים (RTL: ימין → שמאל):**
+```
+✨ המנהל   |   🏠 בית   |   📅 לוח שנה   |   📚 לימודים
+```
+
+| איך הגעת? | פותח | אייקון |
+|---|---|---|
+| BottomNav · ימין | המנהל האישי (AI Manager) | ✨ |
+| BottomNav · באמצע-ימין | SmartDashboard (Home) | 🏠 |
+| BottomNav · באמצע-שמאל | CalendarView | 📅 |
+| BottomNav · שמאל | StudiesHub | 📚 |
+| Header avatar (start side) | Settings | אות ראשונה / 👤 |
+| **Home Hero card (entire card!)** | **CaloriView fullscreen** | — |
+| Home Quick Action · הוסף פריט (ירוק primary) | AddItemSheet | + |
+| Home Quick Action · פתקים | NotesView | 📒 |
+| Home Quick Action · משימות | TasksView | ✓ |
+| Home Quick Action · פומודורו | Pomodoro screen | ⏱ |
+| Home Timeline · "פתח יומן ›" | CalendarView | — |
+| Studies · course card | CourseView | — |
+| Manager · "התחל פומודורו" suggestion | Pomodoro screen | ⏱ |
+| **FAB (+)** · הוסף פריט חדש | AddItemSheet (3-tab: Event/Task/Note) | + |
+| **FAB (+)** · פוקוס | Pomodoro screen | ⏱ |
+| **FAB (+)** · פתקים | NotesView | 📒 |
+| **FAB (+)** · משימות | TasksView | ✓ |
+
+### 📌 מה שלא בנאב — איך נכנסים אליהם
+
+- **קלורי (09)** — לחיצה על כל ה-Hero card בבית. אין כניסה אחרת.
+- **משימות (07)** — Home QA · "משימות" **או** FAB → "✓ משימות"
+- **פתקים (08)** — Home QA · "פתקים" **או** FAB → "📒 פתקים"
+- **פומודורו (10)** — Home QA · "פומודורו" **או** FAB → "⏱ פוקוס" **או** Manager suggestion
+- **הוסף פריט (03)** — Home QA · "הוסף פריט" (primary green) **או** FAB → "+ הוסף פריט חדש"
+- **Course Detail (05)** — לחיצה על כרטיס קורס ב-Studies
+- **Settings (11)** — לחיצה על האוואטר בכותרת
+- **Auth/Onboarding (12/13)** — חוויית first-time בלבד
+
+### ❌ מה הוסר ב-v2
+
+- ❌ **פוקוס** כטאב ראשי בנאב → עבר ל-FAB
+- ❌ **"ארגן עם AI"** מ-Quick Actions של הבית → ה-Manager tab תופס את תפקידו
+- ❌ **MoreHub (06)** — legacy, לא בשימוש
+- ❌ **Focus Hub (14)** — מוזג עם Pomodoro (10)
+- ❌ **AI Quick Links strip** בבית → עבר ל-Manager (אם רלוונטי)
 
 הסדר הזה בנוי כך שהכרטיסים והכפתורים יציבים לפני שאתה ניגש למסכים שתלויים בהם.
 
@@ -262,13 +295,17 @@ XX — Command Center              ← מסך ראשי (BottomNav: המנהל ה
 - [ ] רדיוס הכרטיסים: 16px (lg) או 20px (xl)?
 - [ ] טיפוגרפיה: Heebo? heading 28/22/18, body 16/14?
 - [ ] item-type colors נכונים לפי הטבלה ב-Master Brief?
-- [ ] FAB ירוק `#059669` במיקום **floating bottom-right** (לא במרכז ה-nav)?
+- [ ] FAB ירוק forest deep `#065F46` במיקום **floating bottom-LEFT (RTL = ימין-תחתון)** (לא במרכז ה-nav)?
 - [ ] FAB עם אייקון `<Plus>` שמסתובב 135° לפתיחה?
-- [ ] FAB נפתח ל-**vertical stack של 3 כפתורים** (Add / Tasks / Notes) עם תוויות טקסט בצד שמאל?
-- [ ] BottomNav עם **4 פריטים** (המנהל האישי / בית / לימודים / **פוקוס**)?
-- [ ] דף בית כ-bento **3 עמודות ב-lg** עם 4 tiles (greeting full-width, calori 2-col, studies 1-col, schedule 2-col), לא 6-עמודות כמו ב-mockup הישן?
-- [ ] Header end side: **wordmark גדול בלבד** "calori life" (text-2xl), בלי ריבוע לוגו?
-- [ ] טקסט "calori" ב-ink + "life" בירוק primary עם font-medium (משקל קל יותר)?
+- [ ] FAB נפתח ל-**vertical stack של 4 כפתורים** (הוסף פריט / פוקוס / פתקים / משימות) עם תוויות טקסט?
+- [ ] BottomNav עם **בדיוק 4 פריטים** RTL ימין→שמאל: **✨ המנהל · 🏠 בית · 📅 לוח שנה · 📚 לימודים**?
+- [ ] האייקון של "המנהל" הוא **✨ Sparkles** (לא 🤖 Bot ולא 👤 Person)?
+- [ ] **פוקוס לא בנאב יותר** — נכנסים דרך FAB?
+- [ ] **קלורי לא בנאב** — לחיצה על כל ה-Hero card בבית פותחת אותה?
+- [ ] **Quick Actions בבית = 4 פריטים בלבד**: [+ הוסף פריט primary] [📒 פתקים] [✓ משימות] [⏱ פומודורו]? בלי "ארגן עם AI"?
+- [ ] דף הבית = **Combo-B layout**: Hero מאוחד (Greeting + Nutrition) + QA pills + Timeline + Mini stats?
+- [ ] Header end side: **wordmark גדול בלבד** "calori life" — "calori" ב-Inter weight 700 size 15px ink, " life" ב-Instrument Serif italic weight 400 size 17px ירוק #059669?
+- [ ] Header start side: **Avatar** (אות ראשונה ב-#065F46 או 👤) → מוביל ל-Settings?
 
 אם משהו לא תואם — תקן בפרומפט revision, אל תקבל "אופי שונה".
 

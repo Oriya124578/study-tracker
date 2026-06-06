@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — Notifications</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#2563EB;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+/* MASTER TOGGLE */
+.master{background:#fff;border-radius:18px;padding:18px 20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 16px rgba(40,20,0,.06);display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+.master::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563EB,#3B82F6);}
+.m-ico{width:48px;height:48px;border-radius:14px;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.m-body{flex:1;}
+.m-ttl{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.m-ttl em{font-style:italic;color:#1E40AF;}
+.m-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+
+/* TOGGLE */
+.toggle{width:48px;height:28px;border-radius:14px;background:#2563EB;position:relative;flex-shrink:0;}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:22px;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.toggle.off{background:rgba(180,140,80,.2);}
+.toggle.off::after{left:2px;}
+
+/* GROUP */
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:12px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-ico.g{background:#F0FDF4;color:#065F46;}
+.r-ico.b{background:#EFF6FF;color:#1E40AF;}
+.r-ico.p{background:#F5F3FF;color:#6D28D9;}
+.r-ico.a{background:#FFFBEB;color:#B45309;}
+.r-ico.r{background:#FEF2F2;color:#991B1B;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#1E40AF;flex-shrink:0;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+/* QUIET HOURS */
+.qh{background:#fff;border-radius:14px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.qh-time{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:18px;color:#7C3AED;letter-spacing:-.02em;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11c · Notifications</div>
+<div class="ttl">התראות — <em>הגדרות</em></div>
+<div class="dsc">Master toggle · פר-קטגוריה · שעות שקט · התראה לפני אירוע</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>התראות</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="master">
+        <div class="m-ico">🔔</div>
+        <div class="m-body">
+          <div class="m-ttl">התראות <em>פעילות</em></div>
+          <div class="m-sub">כפתור ראשי — מבטל הכל</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>פר-קטגוריה</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico r">🎓</div>
+            <div class="r-body"><div class="r-ttl">מבחנים</div><div class="r-sub">3, 7 ו-14 ימים לפני</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico b">📅</div>
+            <div class="r-body"><div class="r-ttl">אירועים ביומן</div><div class="r-sub">30 דק׳ לפני</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico g">✓</div>
+            <div class="r-body"><div class="r-ttl">משימות</div><div class="r-sub">דחופות + מועד אחרון</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico p">✨</div>
+            <div class="r-body"><div class="r-ttl">המנהל מציע</div><div class="r-sub">הצעות AI יומיות</div></div>
+            <div class="toggle off"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico a">⏱</div>
+            <div class="r-body"><div class="r-ttl">פומודורו</div><div class="r-sub">סיום סשן + תזכורת חזרה</div></div>
+            <div class="toggle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>סיכומים יומיים</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico g">🌞</div>
+            <div class="r-body"><div class="r-ttl">סיכום בוקר</div><div class="r-sub">מה צפוי היום</div></div>
+            <div class="r-val">07:00</div>
+            <div class="r-chev">›</div>
+          </div>
+          <div class="row">
+            <div class="r-ico p">🌙</div>
+            <div class="r-body"><div class="r-ttl">סיכום ערב</div><div class="r-sub">מה הושג + מחר</div></div>
+            <div class="r-val">22:00</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>שעות שקט</em></div>
+        <div class="qh">
+          <div class="r-ico p">🌙</div>
+          <div class="r-body"><div class="r-ttl">שקט בלילה</div><div class="r-sub">אין התראות בטווח</div></div>
+          <div class="qh-time">23:00 → 07:00</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

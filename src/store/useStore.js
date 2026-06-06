@@ -62,7 +62,7 @@ import {
   subscribeCoachSessionsForDay,
 } from '../lib/caloriRepo';
 import { generateDailySchedule } from '../lib/gemini';
-import { chooseEngine, timeToMin } from '../lib/scheduleEngine';
+import { chooseEngine, timeToMin, validateAndRepair } from '../lib/scheduleEngine';
 import { format, parseISO, isValid } from 'date-fns';
 
 // ---------- Notification settings (Phase 5) --------------------------------
@@ -1544,13 +1544,34 @@ export const useStore = create((set, get) => ({
 
         const result = await generateDailySchedule(context);
         if (result && result.blocks) {
-          const processedBlocks = result.blocks.map((b) => ({
-            ...b,
-            id: b.id || `draft-${Math.random().toString(36).substring(2, 7)}`,
+          // Phase 6a fix: route AI fallback into cl_schedule (single source of
+          // truth), not the legacy draft pipeline. Normalize AI blocks to the
+          // canonical shape and run validateAndRepair before save.
+          const normalized = result.blocks.map((b) => ({
+            id: b.id || `ai-${Math.random().toString(36).substring(2, 9)}`,
+            source: b.refId
+              ? (b.type === 'study' || b.type === 'personal' ? 'task' : 'event')
+              : 'schedule',
+            refId: b.refId || null,
+            type: b.type,
+            title: b.title || '',
+            startTime: b.startTime,
+            endTime: b.endTime,
+            isLocked: !!b.isLocked,
+            isProposed: true,
+            isCompleted: false,
+            notes: b.notes || '',
           }));
-
-          // Save the draft schedule
-          await get().saveDraftSchedule(dateStr, processedBlocks, result.coachNote);
+          const aiBounds = {
+            wakeMin: timeToMin(data?.profile?.wakeTime || '07:00'),
+            sleepMin: timeToMin(data?.profile?.sleepTime || '23:00'),
+            shabbat: shabbatTimes && shabbatTimes.start && shabbatTimes.end ? {
+              blockStartMin: timeToMin(shabbatTimes.start.substring(11, 16)),
+              blockEndMin: timeToMin(shabbatTimes.end.substring(11, 16)),
+            } : null,
+          };
+          const repaired = validateAndRepair(normalized, aiBounds);
+          await get().saveSchedule(dateStr, repaired.blocks, result.coachNote || '');
         }
       } catch (err) {
         console.error('[Focus Tracker] Interruption rescheduling failed:', err);

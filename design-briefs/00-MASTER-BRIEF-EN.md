@@ -222,8 +222,123 @@ h1 em, h2 em, h3 em, .hero em {
 - **Mobile (default):** 390×844 viewport, 16px gutters, 8‑col grid, content max‑width 358.
 - **Tablet:** 768 wide, 24px gutters, 12‑col.
 - **Desktop:** 1280 wide, 32px gutters, 12‑col, content max‑width 1120.
-- **BottomNav height:** 64 + safe‑area bottom inset.
+- **BottomNav height:** 72 + safe‑area bottom inset (v2 standardized).
 - **Top safe area:** 12 + safe‑area top inset.
+
+---
+
+## 3.5 Navigation Architecture (v2 — CANONICAL, MUST FOLLOW)
+
+> This section is the single source of truth for navigation. Every screen design must match this.
+
+### 3.5.1 BottomNav — exactly 4 primary tabs
+
+RTL order (right → left):
+
+| Position | Icon | Hebrew label | English ref | Active color |
+|---|---|---|---|---|
+| 1 (rightmost) | ✨ | המנהל | Personal Manager (AI) | `#7C3AED` purple |
+| 2 | 🏠 | בית | Home / SmartDashboard | `#059669` green |
+| 3 | 📅 | לוח שנה | Calendar (5 views) | `#059669` green |
+| 4 (leftmost) | 📚 | לימודים | Studies Hub | `#059669` green |
+
+**Style:** Height 72px. Background `rgba(250,247,242,.96)` + backdrop-blur(20px). Top hairline `1px solid rgba(180,140,80,.12)`. Each tab: icon 20px + label 10px font-weight 600. Inactive: opacity 0.25, color `rgba(42,26,10,.3)`. Active: opacity 1, label color per table above.
+
+**Rule:** Pomodoro/Focus is NOT a primary tab. Calori is NOT a primary tab. Tasks/Notes are NOT primary tabs. The 4 tabs are fixed.
+
+### 3.5.2 FAB (Floating Action Button)
+
+**Position:** `position: fixed; bottom: 88px; left: 20px;` (RTL = right side visually). 52×52 circle. Background `#065F46` (forest deep). White `+` icon weight 200, size 26px. Shadow `0 6px 20px rgba(6,95,70,.35)`.
+
+**Open state:** Tap → vertical stack of 4 action buttons slides up above the FAB, each 48×48 with a text label pill to its left. Plus icon rotates 135° to form an X. A blurred backdrop appears.
+
+**4 FAB actions (top → bottom of stack):**
+
+| Action | Opens | Icon | Label |
+|---|---|---|---|
+| 1 | AddItemSheet (3 sub-tabs: Event / Task / Note) | + green | "הוסף פריט חדש" |
+| 2 | Pomodoro screen | ⏱ purple | "פוקוס" |
+| 3 | NotesView | 📒 amber | "פתקים" |
+| 4 | TasksView | ✓ blue | "משימות" |
+
+**Rule:** No long-press gesture. Tap only opens the menu. Standard, discoverable.
+
+### 3.5.3 Header
+
+- **Start side (RTL right):** Avatar 34×34 circle, background `#065F46`, initial letter (or `<User>` icon if no name) in white Inter weight 700 size 13px. **Tap → opens Settings (modal/sheet).**
+- **Center:** Page title in Instrument Serif weight 400 size 17-22px (varies per screen). e.g. "בית", "לוח שנה", "המנהל האישי".
+- **End side (RTL left):** "calori life" wordmark — "calori" Inter weight 700 size 15px `#2A1A0A`, " life" Instrument Serif italic weight 400 size 17px `#059669`. No logo card.
+
+### 3.5.4 Home Quick Actions strip — EXACTLY 4 pills
+
+```
+[+ הוסף פריט · green primary]  [📒 פתקים]  [✓ משימות]  [⏱ פומודורו]
+```
+
+- Pill 1 (Primary): `background: #059669; color: #fff; box-shadow: 0 4px 16px rgba(5,150,105,.28);` icon `+` in white-translucent 20% bg circle. Label "הוסף פריט". → Opens AddItemSheet.
+- Pills 2-4 (Secondary): `background: #fff; border: 1px solid rgba(180,140,80,.18); color: #2A1A0A;` icon in colored chip (amber/blue/purple). → Opens NotesView / TasksView / Pomodoro respectively.
+
+**Rule:** ❌ NO "ארגן עם AI" pill anymore. The ✨ Manager tab in BottomNav replaces it.
+
+### 3.5.5 Home Hero card — entire card is tappable → Calori
+
+The merged Greeting + Nutrition hero card (Combo-B layout) IS a single button:
+
+```
+┌─────────────────────────────────────────────┐
+│ [Eyebrow date]              [30 days badge] │
+│ ערב טוב, אוריה 👋                            │
+│ ● הלוז הושלם להיום                          │
+│ ─────────────────────────────────────────── │
+│ 398    +0    86.5kg          ⭕ Ring 20%   │
+│ קק"ל   burn  weight                          │
+│ [45g][36g][8g]                              │
+│ ─────────────────────────────────────────── │
+│ פתח קלורי · פרטי תזונה ואימונים מלאים ›    │  ← CTA, Instrument italic green
+└─────────────────────────────────────────────┘
+       ↓ tap anywhere on the card ↓
+              opens CaloriView
+```
+
+- The "פתח קלורי" CTA line at the bottom (Instrument Serif italic 13px `#059669` + chevron `›`) is the visual affordance.
+- Accessibility: `<button aria-label="פתח את קלורי — צפה בפרטי תזונה ואימונים">`.
+
+### 3.5.6 Screen access mapping (canonical)
+
+| # | Screen | Primary access | Secondary access |
+|---|---|---|---|
+| 01 | Home | BottomNav · 🏠 | — |
+| 02 | Calendar | BottomNav · 📅 | Home Timeline · "פתח יומן ›" |
+| 03 | AddItemSheet | FAB → "+ הוסף פריט חדש" | Home QA · "הוסף פריט" (primary green) |
+| 04 | Studies Hub | BottomNav · 📚 | — |
+| 05 | Course Detail | Studies · tap course card | — |
+| 06 | More Hub | LEGACY — NOT IN USE | — |
+| 07 | Tasks | FAB → "✓ משימות" | Home QA · "משימות" |
+| 08 | Notes | FAB → "📒 פתקים" | Home QA · "פתקים" |
+| 09 | Calori | **Tap entire Home Hero card** | — |
+| 10 | Pomodoro | FAB → "⏱ פוקוס" | Home QA · "פומודורו" · Manager suggestion |
+| 11 | Settings | Header avatar tap | — |
+| 12 | Auth | First-time only | — |
+| 13 | Onboarding | First-time only | — |
+| 14 | Focus Hub | MERGED into Pomodoro (10) | — |
+| 15 | Personal Manager (AI) | BottomNav · ✨ | — |
+
+### 3.5.7 Mini Pomodoro bar (when active)
+
+When a Pomodoro session is running and the user is on any screen other than 10-Pomodoro: a 36px sticky mini-bar appears just ABOVE the BottomNav.
+
+- Background: `#7C3AED` purple
+- Content: `⏱ פומודורו פעיל · אינפי 2 · 14:23 ›` (course name italic, time in Fraunces 600 italic)
+- Tap → returns to Pomodoro screen.
+
+### 3.5.8 Badges
+
+Sparse and meaningful only. Default OFF; appear only when:
+- 📅 Calendar — solid dot (no count) when next event is within 30 minutes
+- ✨ Manager — solid dot when an AI suggestion is urgent (not for routine suggestions)
+- 📚 Studies — count badge when an exam is within 7 days
+
+Badge style: 8px dot or 16px round-rect with count. Color matches tab's active color (purple for Manager, green for others). Dismisses on tap-through (visiting the tab clears it for 24h).
 
 ---
 
@@ -253,7 +368,7 @@ h1 em, h2 em, h3 em, .hero em {
 - **CourseCard** — color stripe (4px, right side in RTL) · name · week N/M · progress bar.
 - **CaloriSummaryCard** — hero calories `text-34 bold` · macro pills row · score badge top‑right.
 - **AddItemSheet** — full bottom sheet, 3 tabs (Event/Task/Note), shared header + footer.
-- **BottomNav** — 5 slots, center FAB 56×56 raised −8 above bar with shadow.
+- **BottomNav** — **4 slots only** (RTL right→left): **✨ המנהל · 🏠 בית · 📅 לוח שנה · 📚 לימודים**. Height 72, padding 8 + safe-area bottom. Background `rgba(250,247,242,.96)` + backdrop-blur(20px) + top hairline `rgba(180,140,80,.12)`. Active item: full opacity icon + colored label (green `#059669` for Home/Studies/Calendar, purple `#7C3AED` for Manager, and `#7C3AED` for Pomodoro mini-bar). Inactive: opacity 0.25. **The FAB is NOT centered in the nav** — it floats at bottom-left:20, bottom:88 (52×52 circle, `#065F46` body, `0 6px 20px rgba(6,95,70,.35)` shadow).
 - **DayTimeline** — vertical 06:00→24:00 rail, "now" indicator 1px `danger`.
 
 ---
@@ -262,12 +377,21 @@ h1 em, h2 em, h3 em, .hero em {
 
 Each screen lists: **purpose, layout, primary states, key components, motion notes, a11y, RTL.**
 
-### 5.1 Home — SmartDashboard (Command Center)
-- **Purpose.** Answer "what's next for me now?" in one glance.
-- **Layout.** (1) Smart header — greeting + dynamic subtitle (today task count → nearest exam countdown → "all clear"). (2) Quick‑actions row — Pomodoro · Calori · Tasks pills. (3) AI quick‑links horizontal strip (owner only). (4) My Day timeline. (5) Coming‑up card when today empty.
-- **States.** Loading (3 skeleton rows) · empty (illustration + "all clear") · error toast.
-- **Motion.** Subtitle crossfades on count change. Timeline rows stagger 40ms.
-- **A11y.** `<h1>` greeting; timeline `<ol>`; calori rows say "Meal / Workout" in screen reader.
+### 5.1 Home — SmartDashboard (v2 — Combo-B)
+- **Purpose.** Answer "what's next for me now?" in one glance, AND give one-tap access to the most common actions.
+- **Layout (top → bottom).**
+  1. **Hero card (MERGED greeting + nutrition)** — one white card with 3px green-gradient top accent. Contains: greeting row (date + "ערב טוב, *אוריה*" 27px Instrument Serif + status dot + 30-days-to-exam badge) → 1px hairline → nutrition row (3 stat columns: cal eaten / cal burned / weight · macro pills · double ring on left) → bottom CTA line `"פתח קלורי · פרטי תזונה ואימונים מלאים ›"` in Instrument Serif italic green. **The entire hero card is a single button** → tap opens CaloriView fullscreen.
+  2. **Quick Actions strip** — 4 horizontal pills:
+     - `[+ הוסף פריט]` — green primary `#059669` — opens AddItemSheet
+     - `[📒 פתקים]` — secondary white — opens NotesView
+     - `[✓ משימות]` — secondary white — opens TasksView
+     - `[⏱ פומודורו]` — secondary white — opens Pomodoro screen
+     - ❌ NO "ארגן עם AI" pill anymore — the ✨ Manager tab in BottomNav replaces it.
+  3. **Today timeline** — sectioned by morning/noon/evening with colored dots. Empty slots use Instrument Serif italic placeholder.
+  4. **3-tile mini stats row** — Days to next exam (blue) · Today's pomodoro count (purple) · Open tasks count (ink).
+- **States.** Loading (skeleton hero + 3 timeline rows) · empty timeline (italic dashed) · error toast.
+- **Motion.** Hero entrance 500ms fade + slide-from-bottom. Timeline rows stagger 40ms.
+- **A11y.** `<button>` wraps the whole hero (aria-label "פתח קלורי"). Timeline `<ol>`. Calori rows say "Meal / Workout" in screen reader.
 - **RTL.** All logical props; chevrons mirror.
 
 ### 5.2 Calendar — CalendarView
@@ -454,8 +578,8 @@ LAYOUT (Combo-B hero card is the home signature):
 CHROME:
 - Header: avatar (left) + page title in Instrument Serif (center) + 'calori life' wordmark (right)
   Wordmark: 'calori' Inter bold + ' life' Instrument Serif italic green
-- BottomNav: 4 items — המנהל האישי · בית · לימודים · פוקוס
-- FAB: 52px circle, #065F46 background, fixed bottom-left, shadow 0 6px 20px rgba(6,95,70,.35)
+- BottomNav: 4 items, RTL right→left — **✨ המנהל · 🏠 בית · 📅 לוח שנה · 📚 לימודים** (Sparkles for Manager, Home, Calendar, Studies). Pomodoro/Focus is NOT in nav — it's via FAB.
+- FAB: 52px circle, #065F46 background, fixed bottom-left, shadow 0 6px 20px rgba(6,95,70,.35). Opens 4-item vertical stack: **+ הוסף פריט חדש** (→ AddItemSheet) · **⏱ פוקוס** (→ Pomodoro) · **📒 פתקים** (→ NotesView) · **✓ משימות** (→ TasksView).
 
 Quiet by default. Italic is emphasis. Color is information.
 Editorial-warm-scholarly. Spring motion 180–220ms. 44px touch targets. AA contrast.

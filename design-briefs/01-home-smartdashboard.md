@@ -144,21 +144,43 @@ This is the most important visual element of the entire app. **Greeting + nutrit
 - Inner progress: `stroke: #7C3AED; stroke-width: 9; stroke-linecap: round;` — `dasharray: 163`.
 - Center: Fraunces 15px weight 600 percentage + 9px Inter `"הושלם"` muted.
 
-### Tile 2 — **Quick Actions strip** (horizontal scrollable pills)
+### Tile 2 — **Quick Actions strip** (horizontal scrollable pills) — v2 FINAL
 
 Below the hero card. Spacing `margin-top: 12px`.
 
+**EXACTLY 4 pills, in this order (RTL — first pill is rightmost):**
+
 - Container: `display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;`
 - Each pill: `flex-shrink: 0; border-radius: 14px; padding: 11px 16px; display: flex; align-items: center; gap: 8px;`
-- **Primary pill** — `background: #059669; box-shadow: 0 4px 16px rgba(5,150,105,.28);`
-  - Icon chip 26×26 `background: rgba(255,255,255,.2)` + `✦`
-  - Label: `font-size: 12px; font-weight: 700; color: #FFFFFF;` → `"ארגן עם AI"`
-- **Secondary pills** — `background: #FFFFFF; border: 1px solid rgba(180,140,80,.18); box-shadow: 0 2px 8px rgba(40,20,0,.06);`
-  - Icon chip 26×26 with tinted bg:
-    - `⏱` chip `background: #F3EFFB` → `"פומודורו"`
-    - `＋` chip `background: #EFF4FF` → `"הוסף פריט"`
-    - `🥗` chip `background: #ECFDF5` → `"תזונה"`
-  - Label: `font-size: 12px; font-weight: 700; color: #2A1A0A;`
+
+#### Pill 1 — Primary (green): "הוסף פריט"
+- Style: `background: #059669; box-shadow: 0 4px 16px rgba(5,150,105,.28);`
+- Icon chip 26×26 `background: rgba(255,255,255,.2)` + `＋` glyph
+- Label: `font-size: 12px; font-weight: 700; color: #FFFFFF;` → `"הוסף פריט"`
+- **Action:** opens AddItemSheet (3 sub-tabs: Event / Task / Note).
+
+#### Pill 2 — Secondary: "פתקים"
+- Style: `background: #FFFFFF; border: 1px solid rgba(180,140,80,.18); box-shadow: 0 2px 8px rgba(40,20,0,.06);`
+- Icon chip 26×26: `background: #ECFDF5` + `📒`
+- Label: `font-size: 12px; font-weight: 700; color: #2A1A0A;` → `"פתקים"`
+- **Action:** opens NotesView.
+
+#### Pill 3 — Secondary: "משימות"
+- Style: same as Pill 2
+- Icon chip 26×26: `background: #EFF4FF` + `✓`
+- Label: `"משימות"`
+- **Action:** opens TasksView.
+
+#### Pill 4 — Secondary: "פומודורו"
+- Style: same as Pill 2
+- Icon chip 26×26: `background: #F3EFFB` + `⏱`
+- Label: `"פומודורו"`
+- **Action:** opens Pomodoro screen.
+
+#### ❌ REMOVED in v2
+- ❌ NO "ארגן עם AI" pill. The ✨ Manager tab in BottomNav replaces this functionality.
+- ❌ NO "יומן תזונה" pill. The entire Home Hero card is a tappable button → opens Calori.
+- ❌ NO "Sparkles ✦" icon anywhere in Quick Actions.
 
 ### Tile 3 — **Timeline (היום)**
 
@@ -285,11 +307,16 @@ Hero card:
     Weight:   86.5  / "ק\"ג · יעד 78"
   Ring: 20% green progress, 0% purple
 
-Quick Actions:
-  [Primary] ✦ "ארגן עם AI"
-  [Sec]     ⏱ "פומודורו"
-  [Sec]     ＋ "הוסף פריט"
-  [Sec]     🥗 "תזונה"
+Quick Actions (RTL — first is rightmost; v2 FINAL):
+  [Primary green] ＋ "הוסף פריט"   → AddItemSheet
+  [Secondary]     📒 "פתקים"        → NotesView
+  [Secondary]     ✓ "משימות"        → TasksView
+  [Secondary]     ⏱ "פומודורו"      → Pomodoro
+
+Hero card CTA (at the bottom of the hero, AFTER the macros row):
+  "פתח קלורי · פרטי תזונה ואימונים מלאים  ›"
+  (Instrument Serif italic 13px #059669 with chevron arrow on the left)
+  → Tap anywhere on the hero card opens CaloriView fullscreen.
 
 Timeline:
   Morning:
@@ -341,11 +368,22 @@ LAYOUT — strict order (this is the canonical Combo-B home):
      → 3-column stats row (Fraunces 600 italic 30px green "398" / italic 20px purple "+0"
        / 18px ink "86.5") with thin vertical dividers between, + 88×88 double ring on the right.
 
-2) QUICK ACTIONS strip (horizontal scrollable pills, gap 8px):
-   - 1 primary green pill: #059669 bg + white "✦ ארגן עם AI"
-   - 3 secondary white pills with tinted icon chips: ⏱ פומודורו, ＋ הוסף פריט, 🥗 תזונה.
+2) QUICK ACTIONS strip (horizontal scrollable pills, gap 8px) — EXACTLY 4 pills:
+   - PRIMARY pill (rightmost in RTL): "＋ הוסף פריט" — bg #059669, white text, shadow
+     0 4px 16px rgba(5,150,105,.28). Icon in rgba(255,255,255,.2) chip. → AddItemSheet
+   - SECONDARY pill: "📒 פתקים" — white bg + 1px rgba(180,140,80,.18) border. Amber chip. → NotesView
+   - SECONDARY pill: "✓ משימות" — white bg, blue chip #EFF4FF. → TasksView
+   - SECONDARY pill: "⏱ פומודורו" — white bg, purple chip #F3EFFB. → Pomodoro screen
 
-3) TIMELINE ("היום"):
+   ❌ DO NOT include "ארגן עם AI" — that lives on the ✨ Manager tab in BottomNav.
+   ❌ DO NOT include "תזונה" / "יומן תזונה" — the entire Hero card is a tap target → Calori.
+
+3) HERO CARD CTA (bottom of the hero card, below the macros, separated by a 1px hairline):
+   "פתח קלורי · פרטי תזונה ואימונים מלאים  ›"
+   Instrument Serif italic 13px color #059669, chevron `›` in Inter weight 700 18px on the
+   LEFT (RTL = visual right). The CTA + the whole hero = ONE button → tap opens CaloriView.
+
+4) TIMELINE ("היום"):
    - Section title in Instrument Serif 18px with italic day "היום · <em>רביעי</em>",
      link "יומן ›" in green right side.
    - Uppercase eyebrow segment dividers: "בוקר", "צהריים", "ערב" (with hairline extending right).
@@ -358,16 +396,25 @@ LAYOUT — strict order (this is the canonical Combo-B home):
      · note → #FFFBEB bg + #D97706 border + #92400E text
      · empty slot → dashed warm border + Instrument Serif italic placeholder
 
-4) MINI STATS row (3 white tiles, border-radius 16):
+5) MINI STATS row (3 white tiles, border-radius 16):
    - Big Fraunces 600 number (24px) + Inter 10px label
    - Colors: green 30/ימים לבחינה, purple 0/פומודורו, ink 0/משימות פתוחות
 
-CHROME:
-- Header (sticky, 52px top safe-area): avatar #065F46 (left) + page title "בית"
-  in Instrument Serif 22px (center) + wordmark "calori<em> life</em>" (right,
-  Inter bold + Instrument Serif italic green).
-- BottomNav (4 items): המנהל האישי · בית (active) · לימודים · פוקוס.
-- FAB: 52×52 #065F46 circle, white +, shadow rgba(6,95,70,.35), bottom-left.
+CHROME (v2 — UNIFIED ACROSS ALL SCREENS):
+- Header (sticky, 52px top safe-area): avatar #065F46 (start side) → tap opens Settings,
+  page title "בית" in Instrument Serif 22px (center), wordmark "calori<em> life</em>"
+  (end side, Inter bold + Instrument Serif italic green).
+- BottomNav — EXACTLY 4 items, RTL order right→left:
+  ✨ המנהל · 🏠 בית (active here) · 📅 לוח שנה · 📚 לימודים.
+  Inactive: opacity 0.25, color rgba(42,26,10,.3). Active "בית": opacity 1, color #059669.
+  Height 72, background rgba(250,247,242,.96), backdrop-blur 20px, top hairline rgba(180,140,80,.12).
+  ❌ NO "פוקוס" tab in nav (it's via FAB). ❌ NO "קלורי" tab (via Hero card tap).
+- FAB: 52×52 #065F46 circle, white + (rotates 135° on open), shadow rgba(6,95,70,.35),
+  fixed bottom-left:20 / bottom:88. Opens vertical 4-item stack:
+  1. "+ הוסף פריט חדש" → AddItemSheet (3 sub-tabs Event/Task/Note)
+  2. "⏱ פוקוס" → Pomodoro
+  3. "📒 פתקים" → NotesView
+  4. "✓ משימות" → TasksView
 
 Use Hebrew sample data above (אוריה, 398 קק"ל, מבחן באינפי 2 בעוד 30 ימים).
 Mobile 390×844 primary. AA contrast. Spring motion 180-220ms. 44px touch targets.

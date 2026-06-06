@@ -195,6 +195,24 @@ assert(
   );
 }
 
+// REGRESSION: 3+ mutually overlapping non-locked blocks must not leave residual overlap.
+{
+  const r = validateAndRepair(
+    [
+      { id: 'a', type: 'study', title: 'A', startTime: '09:00', endTime: '11:00', isLocked: false },
+      { id: 'b', type: 'study', title: 'B', startTime: '09:30', endTime: '10:00', isLocked: false },
+      { id: 'c', type: 'study', title: 'C', startTime: '10:15', endTime: '10:45', isLocked: false },
+    ],
+    bounds
+  );
+  const placed = r.blocks.sort((x, y) => timeToMin(x.startTime) - timeToMin(y.startTime));
+  let ok = true;
+  for (let i = 1; i < placed.length; i++) {
+    if (timeToMin(placed[i].startTime) < timeToMin(placed[i - 1].endTime)) ok = false;
+  }
+  assert('3-block overlap repaired without residual', ok, placed);
+}
+
 // shabbat: relocate or tray
 {
   const shabbatBounds = {

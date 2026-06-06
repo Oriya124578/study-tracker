@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#059669;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:18px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.av-zone{background:#fff;border-radius:22px;padding:24px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);text-align:center;position:relative;overflow:hidden;}
+.av-zone::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#065F46,#059669);}
+.av-big{width:104px;height:104px;border-radius:50%;background:linear-gradient(135deg,#065F46,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:46px;margin:0 auto 14px;box-shadow:0 6px 20px rgba(6,95,70,.3);position:relative;}
+.av-edit{position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(30%);background:#fff;border:2px solid #fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(40,20,0,.15);color:#059669;}
+.av-info{display:flex;flex-direction:column;gap:10px;align-items:center;}
+.av-row{font-size:13px;color:#8A7A6A;display:flex;align-items:center;gap:6px;}
+.av-row .ic{font-size:13px;}
+.av-calori{background:#F0FDF4;border:1px solid rgba(5,150,105,.2);padding:10px 16px;border-radius:14px;display:flex;align-items:center;gap:10px;margin-top:8px;}
+.av-calori-l{font-size:12px;color:#065F46;text-align:right;}
+.av-calori-l strong{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:14px;display:block;}
+.av-calori-l span{font-size:11px;opacity:.7;}
+.av-calori-action{margin-right:auto;font-size:11px;font-weight:700;color:#065F46;}
+
+/* FIELDS */
+.fld{background:#fff;border-radius:14px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 4px rgba(40,20,0,.04);overflow:hidden;}
+.fld-row{padding:12px 16px;display:flex;align-items:center;border-top:1px solid rgba(180,140,80,.08);}
+.fld-row:first-of-type{border-top:none;}
+.fld-lbl{font-size:11px;font-weight:700;color:#8A7A6A;letter-spacing:.1em;text-transform:uppercase;width:90px;flex-shrink:0;}
+.fld-val{flex:1;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#2A1A0A;}
+.fld-chev{color:#C7BCAA;font-size:16px;}
+
+.danger{padding:14px 16px;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#DC2626;background:#fff;border-radius:14px;border:1px solid rgba(220,38,38,.15);margin-top:6px;}
+.warn{padding:10px 14px;font-size:11px;color:#92400E;background:#FFFBEB;border:1px solid rgba(217,119,6,.18);border-radius:10px;display:flex;gap:7px;align-items:flex-start;}
+.warn em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#78350F;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11a · Profile</div>
+<div class="ttl">פרופיל — <em>פרטים אישיים</em></div>
+<div class="dsc">תמונה אוטומטית מ-Calori · שם, אימייל, סיסמה · מחיקת חשבון</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>פרופיל</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="av-zone">
+        <div class="av-big">א<div class="av-edit">📷</div></div>
+        <div class="av-info">
+          <div class="av-row"><span class="ic">📧</span>turhv124@gmail.com</div>
+          <div class="av-row"><span class="ic">🌐</span>אוניברסיטה פתוחה · שנה א׳</div>
+        </div>
+        <div class="av-calori">
+          <div class="av-calori-l">
+            <strong>תמונה מ-Calori</strong>
+            <span>סנכרון אוטומטי</span>
+          </div>
+          <div class="av-calori-action">משוך עכשיו ›</div>
+        </div>
+      </div>
+
+      <div class="fld">
+        <div class="fld-row">
+          <div class="fld-lbl">שם מלא</div>
+          <div class="fld-val">אוריה מרגלית</div>
+          <div class="fld-chev">›</div>
+        </div>
+        <div class="fld-row">
+          <div class="fld-lbl">שם תצוגה</div>
+          <div class="fld-val">אוריה</div>
+          <div class="fld-chev">›</div>
+        </div>
+        <div class="fld-row">
+          <div class="fld-lbl">אימייל</div>
+          <div class="fld-val">turhv124@gmail.com</div>
+          <div class="fld-chev">›</div>
+        </div>
+        <div class="fld-row">
+          <div class="fld-lbl">סיסמה</div>
+          <div class="fld-val">●●●●●●●●●●</div>
+          <div class="fld-chev">›</div>
+        </div>
+      </div>
+
+      <div class="warn">⚠️ <span><em>מחיקת חשבון תמחק את כל הנתונים שלך לצמיתות.</em> כולל קורסים, משימות, פתקים והתקדמות.</span></div>
+
+      <div class="danger"><em>מחק חשבון</em></div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

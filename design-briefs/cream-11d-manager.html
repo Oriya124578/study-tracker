@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Settings — AI Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:30px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;}
+.h-title em{font-style:italic;color:#7C3AED;}
+.h-spacer{width:36px;flex-shrink:0;}
+.content{padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+
+.hero{background:#fff;border-radius:18px;padding:20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#5B21B6,#7C3AED,#A78BFA);}
+.h-ico{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;box-shadow:0 6px 18px rgba(124,58,237,.3);}
+.h-ttl{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.h-ttl em{font-style:italic;color:#7C3AED;}
+.h-sub{font-size:12px;color:#8A7A6A;margin-top:6px;line-height:1.5;}
+
+.group-lbl{font-size:10px;font-weight:700;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;padding:0 4px 6px;}
+.group-lbl em{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#2A1A0A;text-transform:none;letter-spacing:0;}
+.group{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.row{padding:13px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(180,140,80,.08);}
+.row:first-of-type{border-top:none;}
+.r-ico{width:30px;height:30px;border-radius:9px;background:#F5F3FF;color:#6D28D9;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.r-body{flex:1;min-width:0;}
+.r-ttl{font-size:14px;font-weight:600;color:#2A1A0A;}
+.r-sub{font-size:11px;color:#8A7A6A;margin-top:2px;}
+.r-val{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#7C3AED;flex-shrink:0;}
+.r-chev{color:#C7BCAA;font-size:18px;flex-shrink:0;}
+
+.toggle{width:48px;height:28px;border-radius:14px;background:#7C3AED;position:relative;flex-shrink:0;}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:22px;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.toggle.off{background:rgba(180,140,80,.2);}
+.toggle.off::after{left:2px;}
+
+.freq-seg{background:#F5F0E8;border-radius:12px;padding:3px;display:flex;}
+.freq{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:#8A7A6A;border-radius:9px;}
+.freq.active{background:#7C3AED;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.danger{padding:14px 16px;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:#DC2626;background:#fff;border-radius:14px;border:1px solid rgba(220,38,38,.15);}
+</style>
+</head>
+<body>
+<div class="lbl">Settings · 11d · AI Manager</div>
+<div class="ttl">המנהל האישי — <em>הגדרות AI</em></div>
+<div class="dsc">פעיל/לא · תדירות הצעות · סוגי הצעות · איפוס למידה</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">הגדרות</div>
+        <div class="h-title"><em>המנהל האישי</em></div>
+      </div>
+      <div class="h-spacer"></div>
+    </div>
+    <div class="content">
+
+      <div class="hero">
+        <div class="h-ico">✨</div>
+        <div class="h-ttl">המנהל <em>פעיל</em></div>
+        <div class="h-sub">למד מההרגלים שלך ומציע התאמות יומיות.<br>אפשר לכבות בכל עת.</div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>תדירות הצעות</em></div>
+        <div class="freq-seg">
+          <div class="freq">שקט</div>
+          <div class="freq active">רגיל</div>
+          <div class="freq">פעיל</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>סוגי הצעות</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico">📚</div>
+            <div class="r-body"><div class="r-ttl">תכנון לימודים</div><div class="r-sub">חלוקת מטלות, פומודורו, מועדים</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico">🥗</div>
+            <div class="r-body"><div class="r-ttl">תזונה ואכילה</div><div class="r-sub">תזכורות לארוחות מתוך Calori</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico">🎯</div>
+            <div class="r-body"><div class="r-ttl">פוקוס וריכוז</div><div class="r-sub">הצעת סשני פומודורו לפי קלנדר</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico">📅</div>
+            <div class="r-body"><div class="r-ttl">ניהול זמן</div><div class="r-sub">איתור התנגשויות ביומן</div></div>
+            <div class="toggle off"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-lbl"><em>למידה אישית</em></div>
+        <div class="group">
+          <div class="row">
+            <div class="r-ico">🧠</div>
+            <div class="r-body"><div class="r-ttl">למד מההרגלים שלי</div><div class="r-sub">המנהל יזכור מה אתה מקבל ומה דוחה</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="row">
+            <div class="r-ico">🔄</div>
+            <div class="r-body"><div class="r-ttl">סטטיסטיקת קבלה</div><div class="r-sub">הצעות שאושרו: 12 מתוך 18 (67%)</div></div>
+            <div class="r-val">67%</div>
+            <div class="r-chev">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="danger"><em>אפס למידה</em></div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

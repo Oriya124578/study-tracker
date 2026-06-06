@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Notes (v2 + categories)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:100px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;}
+.wordmark{font-size:19px;font-weight:800;color:#2A1A0A;letter-spacing:-.02em;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:21px;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:10px;}
+
+/* CATEGORIES STRIP */
+.cats-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.cats-row::-webkit-scrollbar{display:none;}
+.cat-c{flex-shrink:0;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#fff;border:1px solid rgba(180,140,80,.15);color:#8A7A6A;display:flex;align-items:center;gap:5px;}
+.cat-c.active{background:#D97706;border-color:#D97706;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:5px 14px;}
+.cat-c .dot{width:6px;height:6px;border-radius:50%;}
+.cat-c .dot.r{background:#DC2626;}
+.cat-c .dot.b{background:#2563EB;}
+.cat-c .dot.p{background:#7C3AED;}
+.cat-c .dot.g{background:#059669;}
+.cat-c.add{background:transparent;border-style:dashed;border-color:rgba(180,140,80,.3);color:#8A7A6A;}
+
+/* SECTION */
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 4px;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.sec-ttl em{font-style:italic;color:#D97706;}
+.sec-cnt{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#8A7A6A;}
+
+/* PINNED */
+.pin{background:#FFFBEB;border:1px solid #FCD34D;border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(217,119,6,.08);position:relative;}
+.pin::before{content:'📌';position:absolute;top:8px;left:10px;font-size:12px;opacity:.6;}
+.pin-ttl{font-family:'Instrument Serif',serif;font-size:15px;font-weight:400;color:#78350F;letter-spacing:-.02em;margin-bottom:4px;padding-right:20px;}
+.pin-body{font-size:12px;color:#92400E;line-height:1.5;}
+.pin-cat{display:inline-block;background:rgba(146,64,14,.12);color:#78350F;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;margin-top:5px;}
+
+/* MASONRY */
+.masonry{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.note{padding:13px 14px;border-radius:14px;position:relative;box-shadow:0 1px 4px rgba(40,20,0,.04);}
+.note.y{background:#FEF3C7;border:1px solid rgba(217,119,6,.15);}
+.note.p{background:#F5F3FF;border:1px solid rgba(124,58,237,.15);}
+.note.g{background:#D1FAE5;border:1px solid rgba(5,150,105,.15);}
+.note.b{background:#DBEAFE;border:1px solid rgba(37,99,235,.15);}
+.note.r{background:#FEE2E2;border:1px solid rgba(220,38,38,.15);}
+.note.gr{background:#fff;border:1px solid rgba(180,140,80,.15);}
+
+.n-ttl{font-family:'Instrument Serif',serif;font-size:15px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;line-height:1.15;margin-bottom:5px;}
+.n-ttl em{font-style:italic;}
+.note.y .n-ttl em{color:#92400E;}
+.note.p .n-ttl em{color:#5B21B6;}
+.note.g .n-ttl em{color:#065F46;}
+.note.b .n-ttl em{color:#1E3A8A;}
+.note.r .n-ttl em{color:#7F1D1D;}
+.note.gr .n-ttl em{color:#059669;}
+
+.n-body{font-size:12px;line-height:1.5;}
+.note.y .n-body{color:#78350F;}
+.note.p .n-body{color:#4C1D95;}
+.note.g .n-body{color:#064E3B;}
+.note.b .n-body{color:#1E40AF;}
+.note.r .n-body{color:#991B1B;}
+.note.gr .n-body{color:#5A4A3A;}
+
+.n-cat{display:inline-block;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;margin-top:6px;}
+.note.y .n-cat{background:rgba(146,64,14,.12);color:#78350F;}
+.note.p .n-cat{background:rgba(91,33,182,.12);color:#5B21B6;}
+.note.g .n-cat{background:rgba(6,95,70,.12);color:#065F46;}
+.note.b .n-cat{background:rgba(30,58,138,.12);color:#1E3A8A;}
+.note.r .n-cat{background:rgba(127,29,29,.12);color:#7F1D1D;}
+.note.gr .n-cat{background:rgba(5,150,105,.12);color:#059669;}
+
+.n-date{font-family:'Instrument Serif',serif;font-style:italic;font-size:11px;margin-top:6px;opacity:.65;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#D97706;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(217,119,6,.4);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Screen 8 · Notes (v2 + categories)</div>
+<div class="ttl">פתקים — <em>הרעיונות שלי</em></div>
+<div class="dsc">amber-thematic · 6 צבעים · pinned · קטגוריות user-defined עם chip על כל פתק</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">פתקים</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="cats-row">
+        <div class="cat-c active">הכל</div>
+        <div class="cat-c"><span class="dot r"></span>חשובים</div>
+        <div class="cat-c"><span class="dot b"></span>סיסמאות</div>
+        <div class="cat-c"><span class="dot p"></span>רעיונות</div>
+        <div class="cat-c"><span class="dot g"></span>תזכורות</div>
+        <div class="cat-c add">+ קטגוריה</div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl"><em>מוצמדים</em></div>
+        <div class="sec-cnt">1 פריט</div>
+      </div>
+
+      <div class="pin">
+        <div class="pin-ttl">משוואה <em>חשובה</em> לאינפי</div>
+        <div class="pin-body">∫(1/x)dx = ln|x| + C · להוסיף לדף נוסחאות לפני המבחן.</div>
+        <span class="pin-cat">חשובים</span>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl">פתקים <em>אחרונים</em></div>
+        <div class="sec-cnt">11 פריטים</div>
+      </div>
+
+      <div class="masonry">
+        <div class="note p">
+          <div class="n-ttl">רעיון ל<em>פרויקט</em></div>
+          <div class="n-body">לבדוק אם אפשר לעשות דשבורד שמראה את כל המבחנים הקרובים בקו זמן ויזואלי.</div>
+          <span class="n-cat">רעיונות</span>
+          <div class="n-date">לפני 2 ימים</div>
+        </div>
+        <div class="note g">
+          <div class="n-ttl">תזכיר ל<em>עצמי</em></div>
+          <div class="n-body">לשתות יותר מים. יעד: 2.5 ליטר ביום.</div>
+          <span class="n-cat">תזכורות</span>
+          <div class="n-date">לפני 3 ימים</div>
+        </div>
+        <div class="note b">
+          <div class="n-ttl">סיסמה ל<em>מודל</em></div>
+          <div class="n-body">●●●●●●●● · נשמר באופן מקומי, לא בשרת.</div>
+          <span class="n-cat">סיסמאות</span>
+          <div class="n-date">לפני 5 ימים</div>
+        </div>
+        <div class="note y">
+          <div class="n-ttl">קישור <em>חשוב</em></div>
+          <div class="n-body">YouTube — סדרת הרצאות 3Blue1Brown על חדו"א.</div>
+          <span class="n-cat">חשובים</span>
+          <div class="n-date">לפני שבוע</div>
+        </div>
+        <div class="note r">
+          <div class="n-ttl">דחוף</div>
+          <div class="n-body">להחזיר ספר לספרייה — קנס 12 ש"ח.</div>
+          <span class="n-cat">תזכורות</span>
+          <div class="n-date">אתמול</div>
+        </div>
+        <div class="note gr">
+          <div class="n-ttl">פגישה <em>עם המרצה</em></div>
+          <div class="n-body">יום ה׳ 11:00 — לשאול על שאלה 4ב בתרגיל.</div>
+          <span class="n-cat">תזכורות</span>
+          <div class="n-date">היום</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>
