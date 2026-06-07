@@ -429,6 +429,8 @@ export const translations = {
     // Navigation & Command Center
     navCommandCenter: 'המנהל האישי',
     navManager: 'המנהל',
+    attachCourseOptional: '+ צרף לקורס (אופציונלי)',
+    removeCourse: 'הסר קורס',
     saveCommandCenterSettings: 'שמור הגדרות מנהל אישי',
 
     // Dashboard Bento tiles
@@ -982,6 +984,8 @@ export const translations = {
     // Navigation & Command Center
     navCommandCenter: 'Personal Manager',
     navManager: 'Manager',
+    attachCourseOptional: '+ Attach to course (optional)',
+    removeCourse: 'Remove course',
     saveCommandCenterSettings: 'Save Personal Manager Settings',
 
     // Dashboard Bento tiles

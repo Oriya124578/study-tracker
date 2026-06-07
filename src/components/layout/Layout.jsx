@@ -11,6 +11,7 @@ import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useNotificationScheduler } from '../../hooks/useNotificationScheduler';
 import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User } from 'lucide-react';
+import { Avatar } from '../ui/Avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
@@ -104,16 +105,19 @@ export const Layout = () => {
           <button
             onClick={() => setActiveCategory('settings')}
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border shadow-sm transition-all hover:scale-105 active:scale-95 duration-200 select-none cursor-pointer shrink-0 overflow-hidden",
-              activeCategory.startsWith('settings')
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
+              "rounded-full transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer shrink-0",
+              activeCategory.startsWith('settings') && "ring-2 ring-primary ring-offset-2 ring-offset-background"
             )}
             title={t('navSettings', 'הגדרות')}
+            aria-label={t('navSettings', 'הגדרות')}
           >
-            {data?.profile?.photoURL ? (
-               <img src={data.profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
-            ) : displayName ? displayName.trim().charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
+            {/* v3 cream: Avatar component with photoURL synced from Calori + italic-initial fallback. */}
+            <Avatar
+              src={data?.profile?.photoURL}
+              initial={displayName ? displayName.trim().charAt(0).toUpperCase() : 'א'}
+              size={32}
+              alt={t('navSettings', 'הגדרות')}
+            />
           </button>
           <h1
             className="font-black text-xl tracking-tight bg-clip-text text-transparent truncate text-start select-none"

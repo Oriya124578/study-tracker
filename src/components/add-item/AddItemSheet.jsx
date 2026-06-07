@@ -350,26 +350,47 @@ export const AddItemSheet = () => {
                   </FormRow>
                 )}
 
-                {/* Course selector */}
+                {/* Course selector — v3: OPTIONAL. Hidden until user clicks "+ צרף לקורס".
+                    Tasks/events can be personal (home, work, money, etc.) — no course required. */}
                 {activeTab !== 'note' && activeCourses.length > 0 && (
-                  <FormRow
-                    icon={<BookOpen className="w-[18px] h-[18px] text-blue-600" />}
-                    iconBg="bg-blue-100 dark:bg-blue-900/30"
-                    label={t('course')}
-                  >
-                    <select
-                      value={courseId}
-                      onChange={(e) => setCourseId(e.target.value)}
-                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
+                  courseId ? (
+                    <FormRow
+                      icon={<BookOpen className="w-[18px] h-[18px] text-blue-600" />}
+                      iconBg="bg-blue-100 dark:bg-blue-900/30"
+                      label={t('course')}
                     >
-                      <option value="">{t('none')}</option>
-                      {activeCourses.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormRow>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={courseId}
+                          onChange={(e) => setCourseId(e.target.value)}
+                          className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
+                        >
+                          {activeCourses.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setCourseId('')}
+                          className="text-muted-foreground hover:text-foreground text-base leading-none px-1"
+                          aria-label={t('removeCourse', 'הסר קורס')}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </FormRow>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setCourseId(activeCourses[0]?.id || '')}
+                      className="w-full text-sm font-serif italic text-emerald-700 dark:text-emerald-400 py-3 px-4 border border-dashed border-emerald-700/30 dark:border-emerald-400/30 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition flex items-center justify-center gap-2"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      {t('attachCourseOptional', '+ צרף לקורס (אופציונלי)')}
+                    </button>
+                  )
                 )}
 
                 {/* Priority (task only) */}
