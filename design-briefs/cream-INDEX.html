@@ -3,28 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Calori Life · Cream Design System · כל המסכים</title>
+<title>Calori Life · Design Gallery v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:linear-gradient(180deg,#DDD5C8 0%,#C8BCA8 100%);
-  min-height:100vh;
-  font-family:'Inter',sans-serif;
-  padding:40px 24px 80px;
-  color:#2A1A0A;
-}
+body{background:linear-gradient(180deg,#DDD5C8 0%,#C8BCA8 100%);min-height:100vh;font-family:'Inter',sans-serif;padding:40px 24px 80px;color:#2A1A0A;}
 
-/* MASTHEAD */
-.masthead{
-  max-width:1400px;margin:0 auto 32px;
-  text-align:center;padding:24px 20px 28px;
-  background:rgba(250,247,242,.65);
-  backdrop-filter:blur(20px);
-  border-radius:24px;
-  border:1px solid rgba(255,255,255,.5);
-  box-shadow:0 8px 32px rgba(40,20,0,.12);
-}
+.masthead{max-width:1400px;margin:0 auto 24px;text-align:center;padding:24px 20px 28px;background:rgba(250,247,242,.65);backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(255,255,255,.5);box-shadow:0 8px 32px rgba(40,20,0,.12);}
 .m-eyb{font-size:11px;font-weight:700;color:#6A5A4A;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px;}
 .m-ttl{font-family:'Instrument Serif',serif;font-size:48px;font-weight:400;color:#2A1A0A;letter-spacing:-.04em;line-height:1;margin-bottom:8px;}
 .m-ttl em{font-style:italic;color:#059669;}
@@ -34,125 +19,80 @@ body{
 .m-stat-v{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:22px;color:#059669;letter-spacing:-.03em;}
 .m-stat-l{font-size:11px;color:#8A7A6A;font-weight:500;}
 
-/* LEGEND */
-.legend{max-width:1400px;margin:0 auto 32px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;}
-.lg-chip{background:rgba(250,247,242,.7);border:1px solid rgba(180,140,80,.18);border-radius:999px;padding:7px 14px;font-size:11px;font-weight:600;color:#5A4A3A;display:flex;align-items:center;gap:6px;}
-.lg-dot{width:8px;height:8px;border-radius:50%;}
+.info-box{max-width:1400px;margin:0 auto 24px;padding:16px 20px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.18);border-radius:14px;font-size:13px;color:#065F46;line-height:1.7;text-align:right;}
+.info-box strong{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:15px;}
 
-/* GRID */
-.grid{
-  max-width:1400px;margin:0 auto;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(390px,1fr));
-  gap:32px;
-  justify-items:center;
-}
+/* SECTION header */
+.sec{max-width:1400px;margin:36px auto 16px;display:flex;align-items:baseline;justify-content:space-between;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:30px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;}
+.sec-ttl em{font-style:italic;color:#059669;}
+.sec-cnt{font-family:'Instrument Serif',serif;font-style:italic;font-size:16px;color:#5A4A3A;}
 
-/* SCREEN CARD */
-.screen{
-  display:flex;flex-direction:column;align-items:center;gap:14px;
-  width:100%;max-width:430px;
-}
-.s-label-row{
-  width:100%;display:flex;align-items:baseline;justify-content:space-between;
-  padding:0 4px;
-}
-.s-num{
-  font-family:'Fraunces',serif;font-weight:600;font-style:italic;
-  font-size:32px;color:#059669;letter-spacing:-.04em;line-height:1;
-}
+.grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:24px;justify-items:center;}
+
+.screen{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:430px;}
+.s-label-row{width:100%;display:flex;align-items:baseline;justify-content:space-between;padding:0 4px;}
+.s-num{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:24px;color:#059669;letter-spacing:-.04em;line-height:1;}
 .s-num.new{color:#7C3AED;}
-.s-name{
-  font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;
-  color:#2A1A0A;letter-spacing:-.02em;text-align:right;flex:1;margin-right:10px;
-}
+.s-num.sub{color:#8A7A6A;font-size:18px;}
+.s-name{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;text-align:right;flex:1;margin-right:8px;}
 .s-name em{font-style:italic;color:#059669;}
 .s-name em.p{color:#7C3AED;}
 .s-name em.a{color:#D97706;}
-.s-tag{
-  font-size:9px;font-weight:700;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;
-  background:rgba(250,247,242,.7);border:1px solid rgba(180,140,80,.18);
-  border-radius:999px;padding:3px 10px;
-}
+.s-name em.b{color:#2563EB;}
+.s-name em.r{color:#DC2626;}
+.s-tag{font-size:9px;font-weight:700;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;background:rgba(250,247,242,.7);border:1px solid rgba(180,140,80,.18);border-radius:999px;padding:3px 8px;}
 .s-tag.new{background:#F5F3FF;border-color:rgba(124,58,237,.2);color:#6D28D9;}
 
-.s-frame{
-  position:relative;
-  width:390px;height:844px;
-  border-radius:48px;
-  overflow:hidden;
-  background:#000;
-  box-shadow:0 30px 70px rgba(40,20,0,.3),0 0 0 6px #2A1A0A,0 0 0 8px rgba(180,140,80,.3);
-  cursor:pointer;
-  transition:transform .25s ease;
-}
+.s-frame{position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#000;box-shadow:0 30px 70px rgba(40,20,0,.3),0 0 0 6px #2A1A0A,0 0 0 8px rgba(180,140,80,.3);cursor:pointer;transition:transform .25s ease;}
 .s-frame:hover{transform:translateY(-4px);}
-.s-frame iframe{
-  width:100%;height:100%;border:0;
-  pointer-events:none; /* prevent inner scrolling, keep frame clickable */
-}
-.s-open-hint{
-  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  background:rgba(42,26,10,.85);color:#fff;
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  padding:6px 12px;border-radius:999px;
-  opacity:0;transition:opacity .2s;
-  pointer-events:none;
-  backdrop-filter:blur(8px);
-}
-.s-frame:hover .s-open-hint{opacity:1;}
+.s-frame iframe{width:100%;height:100%;border:0;pointer-events:none;}
 
-.s-notes{
-  width:100%;background:rgba(250,247,242,.7);
-  border:1px solid rgba(180,140,80,.18);
-  border-radius:14px;
-  padding:10px 14px;
-  font-size:11px;color:#5A4A3A;line-height:1.5;
-}
-.s-notes strong{
-  font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;
-  color:#2A1A0A;font-size:13px;
-}
+.s-notes{width:100%;background:rgba(250,247,242,.7);border:1px solid rgba(180,140,80,.18);border-radius:12px;padding:9px 13px;font-size:11px;color:#5A4A3A;line-height:1.5;}
+.s-notes strong{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#2A1A0A;font-size:13px;}
 
-/* FOOTER */
-.footer{
-  max-width:1400px;margin:48px auto 0;text-align:center;
-  font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;
-  color:#5A4A3A;
-}
+.footer{max-width:1400px;margin:48px auto 0;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#5A4A3A;}
 .footer em{color:#059669;font-style:italic;}
 </style>
 </head>
 <body>
 
 <div class="masthead">
-  <div class="m-eyb">CALORI LIFE · DESIGN SYSTEM v2 · NAV UNIFIED</div>
+  <div class="m-eyb">CALORI LIFE · DESIGN SYSTEM v3 · UNIFIED NAV + FEATURES</div>
   <div class="m-ttl"><em>Cream</em> Collection</div>
-  <div class="m-sub">11 מסכים · 4 טאבים אחידים · Instrument Serif + Fraunces + Inter</div>
+  <div class="m-sub">25 מסכים · Instrument Serif + Fraunces + Inter · Editorial Warm Scholarly</div>
   <div class="m-meta">
-    <div class="m-stat"><div class="m-stat-v">11</div><div class="m-stat-l">מסכים</div></div>
+    <div class="m-stat"><div class="m-stat-v">25</div><div class="m-stat-l">מסכים</div></div>
     <div class="m-stat"><div class="m-stat-v">4</div><div class="m-stat-l">טאבים בנאב</div></div>
+    <div class="m-stat"><div class="m-stat-v">8</div><div class="m-stat-l">תתי-הגדרות</div></div>
+    <div class="m-stat"><div class="m-stat-v">5</div><div class="m-stat-l">תצוגות יומן</div></div>
     <div class="m-stat"><div class="m-stat-v">3</div><div class="m-stat-l">פונטים</div></div>
   </div>
-
-  <div style="margin-top:18px;padding:14px 18px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.18);border-radius:14px;font-size:13px;color:#065F46;line-height:1.6;text-align:right;">
-    <strong style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:15px;">המבנה החדש:</strong><br>
-    <strong>BottomNav (4 טאבים, ימין → שמאל):</strong> ✨ המנהל · 🏠 בית · 📅 לוח שנה · 📚 לימודים<br>
-    <strong>FAB (+):</strong> הוסף פריט · פוקוס · פתקים · משימות<br>
-    <strong>קלורי:</strong> נכנסים דרך כרטיס ה-Hero בבית · <strong>הגדרות:</strong> דרך האוואטר בכותרת
-  </div>
 </div>
 
-<div class="legend">
-  <div class="lg-chip"><div class="lg-dot" style="background:#059669"></div>תזונה / accent ראשי</div>
-  <div class="lg-chip"><div class="lg-dot" style="background:#7C3AED"></div>פוקוס / מנהל AI</div>
-  <div class="lg-chip"><div class="lg-dot" style="background:#2563EB"></div>לימודים</div>
-  <div class="lg-chip"><div class="lg-dot" style="background:#D97706"></div>פתקים</div>
-  <div class="lg-chip"><div class="lg-dot" style="background:#EF4444"></div>בחינות / דחוף</div>
-  <div class="lg-chip"><div class="lg-dot" style="background:#FAF7F2;border:1px solid rgba(180,140,80,.3)"></div>קרם · רקע</div>
+<div class="info-box">
+  <strong>הניווט החדש:</strong> ✨ המנהל · 🏠 בית · 📅 לוח שנה · 📚 לימודים<br>
+  <strong>FAB:</strong> הוסף פריט · פוקוס · פתקים · משימות &nbsp;&nbsp;|&nbsp;&nbsp; <strong>קלורי:</strong> מ-Hero · <strong>הגדרות:</strong> מאוואטר
 </div>
 
+<!-- PRIMARY NAV SCREENS -->
+<div class="sec">
+  <div class="sec-ttl">טאבים <em>ראשיים</em></div>
+  <div class="sec-cnt">4 מסכים בנאב</div>
+</div>
 <div class="grid">
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num">15</div>
+      <div class="s-name">המנהל <em class="p">האישי</em> · AI</div>
+      <div class="s-tag new">⭐ NEW</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-15-manager.html','_blank')">
+      <iframe src="cream-15-manager.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>AI hero + תוכנית + 4 הצעות</strong> · accept/decline · dismiss · suggestions feed</div>
+  </div>
 
   <div class="screen">
     <div class="s-label-row">
@@ -162,100 +102,145 @@ body{
     </div>
     <div class="s-frame" onclick="window.open('cream-01-home.html','_blank')">
       <iframe src="cream-01-home.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>Hero מאוחד</strong> (Greeting + Nutrition) · QA pills · Timeline · 3 mini stats</div>
+    <div class="s-notes"><strong>Hero מאוחד</strong> · "לא היה אימון" במקום +0/300 · padding תוקן · wordmark גדול יותר</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">02</div>
       <div class="s-name"><em>לוח שנה</em> · 5 תצוגות</div>
-      <div class="s-tag">Calendar</div>
+      <div class="s-tag">5 views ↓</div>
     </div>
-    <div class="s-frame" onclick="window.open('cream-02-calendar.html','_blank')">
-      <iframe src="cream-02-calendar.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
+    <div class="s-frame" onclick="window.open('cream-02a-day.html','_blank')">
+      <iframe src="cream-02a-day.html" scrolling="no"></iframe>
     </div>
-    <div class="s-notes"><strong>Month Hero</strong> · "יוני" 42px italic · Week strip · day timeline</div>
-  </div>
-
-  <div class="screen">
-    <div class="s-label-row">
-      <div class="s-num">03</div>
-      <div class="s-name">הוסף <em>פריט</em> · Bottom Sheet</div>
-      <div class="s-tag">Sheet</div>
-    </div>
-    <div class="s-frame" onclick="window.open('cream-03-add-item.html','_blank')">
-      <iframe src="cream-03-add-item.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
-    </div>
-    <div class="s-notes"><strong>3 טאבים</strong> · placeholder italic · prio segment · due chips · save בולט</div>
+    <div class="s-notes"><strong>02a · יום</strong> — timeline אנכי + "עכשיו" line · בלוקי גבוה</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">04</div>
-      <div class="s-name"><em>לימודים</em> · 5 קורסים</div>
+      <div class="s-name"><em>לימודים</em> · Studies</div>
       <div class="s-tag">Studies</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-04-studies.html','_blank')">
       <iframe src="cream-04-studies.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>"חמישה קורסים"</strong> editorial hero · 3 stats · 2-col grid עם פס צבעוני</div>
+    <div class="s-notes"><strong>"חמישה קורסים"</strong> editorial · 3 stats · רשת קורסים</div>
+  </div>
+</div>
+
+<!-- CALENDAR VIEWS -->
+<div class="sec">
+  <div class="sec-ttl">לוח שנה — <em>5 תצוגות</em></div>
+  <div class="sec-cnt">Google Calendar style</div>
+</div>
+<div class="grid">
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">02b</div>
+      <div class="s-name"><em>3 ימים</em></div>
+      <div class="s-tag">3-day</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-02b-3day.html','_blank')">
+      <iframe src="cream-02b-3day.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>3 עמודות</strong> · השוואה בין ימים סמוכים · density בינוני</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
+      <div class="s-num sub">02c</div>
+      <div class="s-name"><em>שבוע</em> · 7 ימים</div>
+      <div class="s-tag">Week</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-02c-week.html','_blank')">
+      <iframe src="cream-02c-week.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>7 עמודות צרות</strong> · בלוקים קטנים · density גבוה</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">02d</div>
+      <div class="s-name"><em>חודש</em></div>
+      <div class="s-tag">Month</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-02d-month.html','_blank')">
+      <iframe src="cream-02d-month.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>חודש מלא</strong> · נקודות צבע · תגים לחתונות/מבחנים · 5 צבעי קטגוריה</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">02e</div>
+      <div class="s-name"><em>לוח זמנים</em> · Agenda</div>
+      <div class="s-tag">Schedule</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-02e-schedule.html','_blank')">
+      <iframe src="cream-02e-schedule.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>Agenda רציף</strong> · 5-7 ימים מפורטים · גלילה אינסופית</div>
+  </div>
+
+</div>
+
+<!-- FEATURES SCREENS -->
+<div class="sec">
+  <div class="sec-ttl">פיצ׳רים — <em>מ-FAB ו-Quick Actions</em></div>
+  <div class="sec-cnt">5 מסכים</div>
+</div>
+<div class="grid">
+
+  <div class="screen">
+    <div class="s-label-row">
       <div class="s-num">05</div>
-      <div class="s-name">פרטי <em>קורס</em> · אינפי 2</div>
+      <div class="s-name">פרטי <em>קורס</em></div>
       <div class="s-tag">Course</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-05-course-detail.html','_blank')">
       <iframe src="cream-05-course-detail.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>שם הקורס 36px italic</strong> · רינג + 3 stats · 5 טאבים · week selector · משימות מקובצות</div>
+    <div class="s-notes"><strong>אינפי 2</strong> · 5 טאבים · week selector · משימות מקובצות</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">07</div>
-      <div class="s-name"><em>משימות</em></div>
-      <div class="s-tag">Tasks</div>
+      <div class="s-name"><em>משימות</em> · flat v2</div>
+      <div class="s-tag new">REVERTED</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-07-tasks.html','_blank')">
       <iframe src="cream-07-tasks.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>"ארבע משימות פתוחות"</strong> · 3 stats (דחופות/היום/השבוע) · quick-add · קבוצות · השלמות</div>
+    <div class="s-notes"><strong>חזרה למבנה שטוח</strong> · ★ מועדפים · קטגוריות · 🔁 חזרות יומי/שבועי</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">08</div>
-      <div class="s-name"><em class="a">פתקים</em> · amber</div>
-      <div class="s-tag">Notes</div>
+      <div class="s-name"><em class="a">פתקים</em> · + קטגוריות</div>
+      <div class="s-tag new">+ chips</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-08-notes.html','_blank')">
       <iframe src="cream-08-notes.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>amber-thematic</strong> · pinned · masonry 2-col · 6 צבעים · כותרת italic לפי צבע</div>
+    <div class="s-notes"><strong>קטגוריות user-defined</strong> · 6 צבעים · pinned · chips על כל פתק</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">09</div>
-      <div class="s-name"><em>קלורי</em> · תזונה וכושר</div>
-      <div class="s-tag">Calori</div>
+      <div class="s-name"><em>קלורי</em> · v2</div>
+      <div class="s-tag new">+ DeepLink</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-09-calori.html','_blank')">
       <iframe src="cream-09-calori.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>"398" italic 64px</strong> · רינג + macros · ארוחות ירוק flood · אימונים סגול flood</div>
+    <div class="s-notes"><strong>"📱 פתח Calori ↗"</strong> בכותרת · ארוחות עם תמונות · פירוט מלא</div>
   </div>
 
   <div class="screen">
@@ -266,42 +251,177 @@ body{
     </div>
     <div class="s-frame" onclick="window.open('cream-10-pomodoro.html','_blank')">
       <iframe src="cream-10-pomodoro.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>טיימר 78px</strong> "14<em>:23</em>" · context card · phase chips · 3 stats · 8 sessions dots</div>
+    <div class="s-notes"><strong>טיימר 78px</strong> "14<em>:23</em>" · context · 3 stats · 8 sessions dots</div>
   </div>
+
+</div>
+
+<!-- ADD ITEM SHEETS -->
+<div class="sec">
+  <div class="sec-ttl">הוספת פריט — <em>3 sheets</em></div>
+  <div class="sec-cnt">מ-FAB ו-Home QA</div>
+</div>
+<div class="grid">
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">03a</div>
+      <div class="s-name">אירוע <em class="b">Google Calendar style</em></div>
+      <div class="s-tag new">DETAILED</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-03a-add-event.html','_blank')">
+      <iframe src="cream-03a-add-event.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>סגנון Google Calendar</strong> · all-day · חזרה · מיקום · תזכורת · צבע · קטגוריה</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">03b</div>
+      <div class="s-name">משימה <em>+ קורס אופציונלי</em></div>
+      <div class="s-tag new">OPTIONAL</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-03b-add-task.html','_blank')">
+      <iframe src="cream-03b-add-task.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>קורס אופציונלי (dashed)</strong> · ★ + חזרה · עדיפות · קטגוריה · מועד</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">03c</div>
+      <div class="s-name">פתק <em class="a">צבעוני</em></div>
+      <div class="s-tag new">PREVIEW</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-03c-add-note.html','_blank')">
+      <iframe src="cream-03c-add-note.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>תצוגה מקדימה בצבע</strong> · 6 swatches · pinned · קטגוריה user-defined</div>
+  </div>
+
+</div>
+
+<!-- SETTINGS -->
+<div class="sec">
+  <div class="sec-ttl">הגדרות — <em>WhatsApp-style</em></div>
+  <div class="sec-cnt">1 index + 7 sub-pages</div>
+</div>
+<div class="grid">
 
   <div class="screen">
     <div class="s-label-row">
       <div class="s-num">11</div>
-      <div class="s-name"><em>הגדרות</em></div>
-      <div class="s-tag">Settings</div>
+      <div class="s-name"><em>הגדרות</em> · Index</div>
+      <div class="s-tag new">MAIN</div>
     </div>
     <div class="s-frame" onclick="window.open('cream-11-settings.html','_blank')">
       <iframe src="cream-11-settings.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
     </div>
-    <div class="s-notes"><strong>פרופיל hero</strong> avatar 64px · 4 קבוצות · toggle iOS · ערכים italic · "התנתק" italic אדום</div>
+    <div class="s-notes"><strong>פרופיל hero + 4 קבוצות</strong> · נכנס מאוואטר · נווט לתת-עמודים</div>
   </div>
 
   <div class="screen">
     <div class="s-label-row">
-      <div class="s-num new">15</div>
-      <div class="s-name">המנהל <em class="p">האישי</em> · AI</div>
-      <div class="s-tag new">⭐ NEW</div>
+      <div class="s-num sub">11a</div>
+      <div class="s-name"><em>פרופיל</em></div>
+      <div class="s-tag">Profile</div>
     </div>
-    <div class="s-frame" onclick="window.open('cream-15-manager.html','_blank')">
-      <iframe src="cream-15-manager.html" scrolling="no"></iframe>
-      <div class="s-open-hint">לחץ לפתוח במלוא המסך ↗</div>
+    <div class="s-frame" onclick="window.open('cream-11a-profile.html','_blank')">
+      <iframe src="cream-11a-profile.html" scrolling="no"></iframe>
     </div>
-    <div class="s-notes"><strong>מסך חדש</strong> · AI hero מסביר · input bar · 4 בלוקי plan עם bars · suggestions</div>
+    <div class="s-notes"><strong>תמונה מ-Calori</strong> · שם, אימייל, סיסמה · מחיקת חשבון</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11b</div>
+      <div class="s-name"><em class="r">לימודים</em></div>
+      <div class="s-tag">Studies</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11b-studies.html','_blank')">
+      <iframe src="cream-11b-studies.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>סמסטר · 5 קורסים</strong> · AI Links · תבניות משימות אוטומטיות</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11c</div>
+      <div class="s-name"><em class="b">התראות</em></div>
+      <div class="s-tag">Notif</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11c-notifications.html','_blank')">
+      <iframe src="cream-11c-notifications.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>Master toggle</strong> · פר-קטגוריה · שעות שקט · 2 סיכומים יומיים</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11d</div>
+      <div class="s-name"><em class="p">המנהל</em> · AI</div>
+      <div class="s-tag">AI</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11d-manager.html','_blank')">
+      <iframe src="cream-11d-manager.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>פעיל/לא · תדירות</strong> · 4 סוגי הצעות · 67% קבלה · אפס למידה</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11e</div>
+      <div class="s-name"><em>קלורי</em> · סנכרון</div>
+      <div class="s-tag">Sync</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11e-calori.html','_blank')">
+      <iframe src="cream-11e-calori.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>"פתח Calori ↗"</strong> · בקרת סנכרון פר-נתון · קריאה בלבד · ניתוק</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11f</div>
+      <div class="s-name"><em class="a">כללי</em></div>
+      <div class="s-tag">General</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11f-general.html','_blank')">
+      <iframe src="cream-11f-general.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>שפה · נושא · תחילת שבוע</strong> · נגישות · לוח שנה עברי</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11g</div>
+      <div class="s-name">נתונים · <em>גיבוי</em></div>
+      <div class="s-tag">Data</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11g-data.html','_blank')">
+      <iframe src="cream-11g-data.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>4 stats</strong> · ייצוא JSON/CSV · גיבוי ענן · אזור מסוכן</div>
+  </div>
+
+  <div class="screen">
+    <div class="s-label-row">
+      <div class="s-num sub">11h</div>
+      <div class="s-name"><em>אודות</em></div>
+      <div class="s-tag">About</div>
+    </div>
+    <div class="s-frame" onclick="window.open('cream-11h-about.html','_blank')">
+      <iframe src="cream-11h-about.html" scrolling="no"></iframe>
+    </div>
+    <div class="s-notes"><strong>לוגו + גרסה</strong> · משפטי (תנאי שימוש, פרטיות) · קשר ומשוב</div>
   </div>
 
 </div>
 
 <div class="footer">
-  גלריה זו מציגה את כל ה-11 מסכים בעיצוב ה-<em>cream v2</em>.<br>
-  לחץ על כל מסך לפתיחה במלוא הגודל · גלול בתוך מסך עם hover ↗
+  גלריה זו מציגה את כל ה-25 מסכים בעיצוב <em>cream v3</em>.<br>
+  לחיצה על כל מסך → פתיחה בגודל מלא · Ctrl+Shift+R לרענון מלא
 </div>
 
 </body>

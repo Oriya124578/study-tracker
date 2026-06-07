@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Instrument · Pomodoro</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;}
+.wordmark{font-size:15px;font-weight:700;color:#2A1A0A;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:17px;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:14px;}
+
+/* TOP CONTEXT CARD */
+.ctx{background:#fff;border-radius:18px;padding:14px 18px;border:1px solid rgba(180,140,80,.14);box-shadow:0 2px 10px rgba(40,20,0,.05);display:flex;align-items:center;justify-content:space-between;}
+.ctx-l{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;}
+.ctx-c{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.ctx-c em{font-style:italic;color:#059669;}
+.ctx-pill{background:#F0FDF4;border:1px solid rgba(5,150,105,.2);border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;color:#065F46;}
+
+/* PHASE CHIP */
+.phase{display:flex;justify-content:center;gap:6px;}
+.phs{font-size:11px;font-weight:600;color:#8A7A6A;padding:6px 12px;border-radius:999px;background:#F5F0E8;}
+.phs.active{background:#059669;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;padding:5px 14px;}
+
+/* TIMER STAGE */
+.timer-stage{background:#fff;border-radius:32px;padding:32px 20px 30px;border:1px solid rgba(180,140,80,.14);box-shadow:0 8px 32px rgba(40,20,0,.08);position:relative;overflow:hidden;}
+.timer-stage::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7C3AED,#A78BFA,#7C3AED);}
+
+.ring-stage{display:flex;justify-content:center;margin-bottom:18px;position:relative;}
+.timer-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:200px;}
+.timer-eyb{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
+.timer-big{font-family:'Instrument Serif',serif;font-size:78px;font-weight:400;color:#2A1A0A;letter-spacing:-.05em;line-height:.9;}
+.timer-big em{font-style:italic;color:#7C3AED;}
+.timer-sub{font-size:11px;color:#8A7A6A;margin-top:6px;font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+
+/* CONTROLS */
+.ctrls{display:flex;justify-content:center;gap:14px;margin-top:6px;}
+.ctrl{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(180,140,80,.18);background:#fff;color:#2A1A0A;font-size:18px;box-shadow:0 2px 8px rgba(40,20,0,.06);}
+.ctrl.main{width:68px;height:68px;background:#7C3AED;border:none;color:#fff;font-size:24px;box-shadow:0 8px 24px rgba(124,58,237,.4);}
+
+/* TODAY STATS */
+.today-stats{display:flex;gap:8px;}
+.ts{flex:1;background:#fff;border-radius:16px;padding:13px 12px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);}
+.ts-v{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;line-height:1;font-style:italic;}
+.ts-v.p{color:#7C3AED;}
+.ts-v.g{color:#059669;}
+.ts-l{font-size:10px;color:#8A7A6A;font-weight:500;margin-top:3px;}
+
+/* SESSIONS DOTS */
+.sessions{background:#fff;border-radius:16px;padding:14px 16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);}
+.ses-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+.ses-ttl{font-family:'Instrument Serif',serif;font-size:16px;font-weight:400;color:#2A1A0A;}
+.ses-ttl em{font-style:italic;color:#7C3AED;}
+.ses-meta{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#8A7A6A;}
+.ses-row{display:flex;gap:6px;}
+.ses-dot{flex:1;height:8px;border-radius:2px;background:rgba(180,140,80,.12);}
+.ses-dot.done{background:#7C3AED;}
+.ses-dot.active{background:#A78BFA;animation:p 2s infinite;}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#7C3AED;}
+
+/* === Number override — Fraunces 600 (heavier, still characterful) === */
+.timer-big, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v,
+.day-num, .sh-snum, .rt-p, .m-cal, .w-cal, .hc-bnum,
+.vg, .vp, .vw, .mv {
+  font-family: 'Fraunces','Rubik',serif !important;
+  font-weight: 600 !important;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0 !important;
+  letter-spacing: -.04em !important;
+}
+/* Italic numbers (where it was italic before) keep italic with Fraunces */
+.timer-big em, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v, .sh-snum, .rt-p, .m-cal, .w-cal {
+  font-style: italic !important;
+}
+/* Day numbers and bigger heroes get a bit more weight */
+.day-num, .timer-big, .ch-big {
+  font-weight: 600 !important;
+}
+.day.today .day-num {
+  font-weight: 700 !important;
+}
+/* Tabular figures for cleaner alignment in lists */
+.t-due, .m-time, .w-time, .ses-meta, .day-tl-meta, .sec-cnt {
+  font-feature-settings: "tnum" 1;
+}
+</style>
+</head>
+<body>
+<div class="lbl">Instrument · Screen 5</div>
+<div class="ttl">Pomodoro — <em>פוקוס</em></div>
+<div class="dsc">טיימר ענק באיטליק (78px) · נקודות session דקות · קונטקסט הקורס למעלה · כפתור גדול סגול במרכז</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">פוקוס</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="ctx">
+        <div>
+          <div class="ctx-l">עובד כעת על</div>
+          <div class="ctx-c"><em>אינפי 2</em> · הרצאה 9</div>
+        </div>
+        <div class="ctx-pill">החלף</div>
+      </div>
+
+      <div class="phase">
+        <div class="phs active">פוקוס</div>
+        <div class="phs">הפסקה קצרה</div>
+        <div class="phs">הפסקה ארוכה</div>
+      </div>
+
+      <div class="timer-stage">
+        <div class="ring-stage">
+          <svg width="260" height="260" viewBox="0 0 260 260" fill="none">
+            <circle cx="130" cy="130" r="116" stroke="#F5F3FF" stroke-width="14"/>
+            <circle cx="130" cy="130" r="116" stroke="#7C3AED" stroke-width="14" stroke-linecap="round" stroke-dasharray="729" stroke-dashoffset="291" transform="rotate(-90 130 130)"/>
+          </svg>
+          <div class="timer-text">
+            <div class="timer-eyb">סשן פוקוס · 60%</div>
+            <div class="timer-big">14<em>:23</em></div>
+            <div class="timer-sub">מתוך 25 דקות</div>
+          </div>
+        </div>
+        <div class="ctrls">
+          <div class="ctrl">⏭</div>
+          <div class="ctrl main">⏸</div>
+          <div class="ctrl">↺</div>
+        </div>
+      </div>
+
+      <div class="today-stats">
+        <div class="ts">
+          <div class="ts-v p">3</div>
+          <div class="ts-l">סשנים היום</div>
+        </div>
+        <div class="ts">
+          <div class="ts-v g">75</div>
+          <div class="ts-l">דקות פוקוס</div>
+        </div>
+        <div class="ts">
+          <div class="ts-v">4</div>
+          <div class="ts-l">יעד יומי</div>
+        </div>
+      </div>
+
+      <div class="sessions">
+        <div class="ses-head">
+          <div class="ses-ttl">היום · <em>3 מתוך 4</em></div>
+          <div class="ses-meta">עוד 10 דק׳</div>
+        </div>
+        <div class="ses-row">
+          <div class="ses-dot done"></div>
+          <div class="ses-dot done"></div>
+          <div class="ses-dot done"></div>
+          <div class="ses-dot active"></div>
+          <div class="ses-dot"></div>
+          <div class="ses-dot"></div>
+          <div class="ses-dot"></div>
+          <div class="ses-dot"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Calendar — Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:100px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 0;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);}
+.h-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-month{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.h-month em{font-style:italic;color:#059669;}
+.wordmark{font-size:19px;font-weight:800;color:#2A1A0A;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:21px;}
+.seg{display:flex;background:#F5F0E8;border-radius:12px;padding:3px;margin-bottom:14px;}
+.seg-i{flex:1;padding:7px 0;text-align:center;font-size:11px;font-weight:600;color:#8A7A6A;border-radius:9px;cursor:pointer;}
+.seg-i.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+
+.content{padding:0 20px;}
+
+/* DAY HEADER */
+.day-row{display:flex;align-items:center;gap:14px;padding:10px 0 10px;}
+.d-date{display:flex;flex-direction:column;align-items:center;width:46px;flex-shrink:0;}
+.d-date .num{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:24px;color:#2A1A0A;letter-spacing:-.04em;line-height:1;}
+.d-date .num.today{color:#fff;background:#059669;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.d-date .nm{font-size:10px;color:#8A7A6A;margin-top:3px;font-weight:600;}
+.d-line{flex:1;height:1px;background:rgba(180,140,80,.15);}
+.d-day-name{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:#8A7A6A;}
+
+/* ITEMS */
+.item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-radius:14px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 4px rgba(40,20,0,.04);margin-bottom:6px;margin-right:60px;}
+.item.colored{padding:11px 14px;}
+.item.meal{background:#059669;border:none;color:#fff;}
+.item.workout{background:#7C3AED;border:none;color:#fff;}
+.item.exam{background:#FEF2F2;border-color:rgba(239,68,68,.18);}
+.item.lec{background:#EFF6FF;border-color:rgba(37,99,235,.18);}
+.item-time{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:13px;color:#8A7A6A;width:46px;flex-shrink:0;letter-spacing:-.02em;}
+.item.meal .item-time,.item.workout .item-time{color:rgba(255,255,255,.7);}
+.item.exam .item-time{color:#991B1B;}
+.item.lec .item-time{color:#1E40AF;}
+.item-body{flex:1;}
+.item-name{font-size:13px;font-weight:600;color:#2A1A0A;}
+.item.meal .item-name,.item.workout .item-name{color:#fff;}
+.item.exam .item-name{color:#991B1B;}
+.item.lec .item-name{color:#1E40AF;}
+.item-meta{font-size:11px;color:#8A7A6A;margin-top:2px;font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;}
+.item.meal .item-meta,.item.workout .item-meta{color:rgba(255,255,255,.7);}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Calendar · 02e · Schedule (Agenda)</div>
+<div class="ttl">לוח שנה — <em>לוח זמנים</em></div>
+<div class="dsc">תצוגת agenda · 7 ימים מפורטים · גלילה אינסופית · מקובץ לפי יום</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-top">
+        <div class="avatar">א</div>
+        <div class="h-month"><em>יוני</em> 2026</div>
+        <div class="wordmark">calori<em> life</em></div>
+      </div>
+      <div class="seg">
+        <div class="seg-i">יום</div>
+        <div class="seg-i">3 ימים</div>
+        <div class="seg-i">שבוע</div>
+        <div class="seg-i">חודש</div>
+        <div class="seg-i active">לוח זמנים</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- TODAY -->
+      <div class="day-row">
+        <div class="d-date"><div class="num today">4</div><div class="nm">היום</div></div>
+        <div class="d-day-name">רביעי</div>
+        <div class="d-line"></div>
+      </div>
+      <div class="item meal">
+        <div class="item-time">09:54</div>
+        <div class="item-body"><div class="item-name">משקה חלבון אייס קפה</div><div class="item-meta">398 קק"ל · חלבון 45g</div></div>
+      </div>
+      <div class="item lec">
+        <div class="item-time">14:00</div>
+        <div class="item-body"><div class="item-name">הרצאה · אינפי 2</div><div class="item-meta">בניין 9 · חדר 305</div></div>
+      </div>
+      <div class="item exam">
+        <div class="item-time">19:00</div>
+        <div class="item-body"><div class="item-name">⏰ אינפי 2 · 30 ימים</div><div class="item-meta">מועד A</div></div>
+      </div>
+
+      <!-- TOMORROW -->
+      <div class="day-row">
+        <div class="d-date"><div class="num">5</div><div class="nm">מחר</div></div>
+        <div class="d-day-name">חמישי</div>
+        <div class="d-line"></div>
+      </div>
+      <div class="item lec">
+        <div class="item-time">11:00</div>
+        <div class="item-body"><div class="item-name">פגישה עם המרצה</div><div class="item-meta">משרד 305</div></div>
+      </div>
+      <div class="item">
+        <div class="item-time">15:00</div>
+        <div class="item-body"><div class="item-name">קניות לסופ"ש</div><div class="item-meta">משימה חוזרת</div></div>
+      </div>
+
+      <!-- FRI -->
+      <div class="day-row">
+        <div class="d-date"><div class="num">6</div><div class="nm">שישי</div></div>
+        <div class="d-day-name">סוף שבוע</div>
+        <div class="d-line"></div>
+      </div>
+      <div class="item workout">
+        <div class="item-time">07:00</div>
+        <div class="item-body"><div class="item-name">ריצה · 30 דק׳</div><div class="item-meta">+285 קק"ל</div></div>
+      </div>
+
+      <!-- SAT -->
+      <div class="day-row">
+        <div class="d-date"><div class="num">7</div><div class="nm">שבת</div></div>
+        <div class="d-day-name">חופשה</div>
+        <div class="d-line"></div>
+      </div>
+      <div class="item">
+        <div class="item-time">19:00</div>
+        <div class="item-body"><div class="item-name">חתונה בירנבאום</div><div class="item-meta">אולמי חתונות בקיסריה</div></div>
+      </div>
+
+      <!-- SUN -->
+      <div class="day-row">
+        <div class="d-date"><div class="num">8</div><div class="nm">א׳</div></div>
+        <div class="d-day-name">תחילת שבוע</div>
+        <div class="d-line"></div>
+      </div>
+      <div class="item lec">
+        <div class="item-time">12:00</div>
+        <div class="item-body"><div class="item-name">לוגיקה ותורת הקבוצות</div><div class="item-meta">ד"ר ניב עדי · אולם H1</div></div>
+      </div>
+      <div class="item lec">
+        <div class="item-time">18:00</div>
+        <div class="item-body"><div class="item-name">בעיות המאה ה-21</div><div class="item-meta">ד"ר וולף דנה · מרכז חוסידמן</div></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item active"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Tasks (v2 flat)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:100px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;}
+.wordmark{font-size:19px;font-weight:800;color:#2A1A0A;letter-spacing:-.02em;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:21px;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:8px;}
+
+.cats-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.cats-row::-webkit-scrollbar{display:none;}
+.cat-c{flex-shrink:0;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#fff;border:1px solid rgba(180,140,80,.15);color:#8A7A6A;display:flex;align-items:center;gap:5px;}
+.cat-c.active{background:#059669;border-color:#059669;color:#fff;font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;padding:5px 14px;}
+.cat-c .dot{width:6px;height:6px;border-radius:50%;}
+.cat-c .dot.r{background:#DC2626;}
+.cat-c .dot.b{background:#2563EB;}
+.cat-c .dot.p{background:#7C3AED;}
+.cat-c .dot.a{background:#D97706;}
+.cat-c.add{background:transparent;border-style:dashed;border-color:rgba(180,140,80,.3);color:#8A7A6A;}
+
+.qa-box{background:#fff;border:1.5px solid rgba(5,150,105,.18);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;}
+.qa-plus{width:22px;height:22px;border-radius:6px;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:300;flex-shrink:0;}
+.qa-ph{font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:#8A7A6A;flex:1;}
+
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:6px 2px 4px;margin-top:4px;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.sec-ttl em{font-style:italic;color:#059669;}
+.sec-cnt{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#8A7A6A;}
+
+.task{background:#fff;border-radius:12px;padding:11px 13px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 3px rgba(40,20,0,.04);margin-bottom:5px;display:flex;align-items:center;gap:10px;}
+.t-check{width:22px;height:22px;border:1.5px solid rgba(5,150,105,.4);border-radius:50%;flex-shrink:0;background:#fff;}
+.t-check.done{background:#059669;border-color:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;}
+.t-body{flex:1;min-width:0;}
+.t-title-row{display:flex;align-items:center;gap:6px;}
+.t-title{font-size:14px;font-weight:600;color:#2A1A0A;line-height:1.2;}
+.t-title.done{color:#8A7A6A;text-decoration:line-through;}
+.t-star{color:#F59E0B;font-size:14px;}
+.t-star.empty{color:rgba(180,140,80,.3);}
+.t-meta{display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap;}
+.t-due{font-size:11px;color:#8A7A6A;font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;}
+.t-due.today{color:#059669;}
+.t-due.overdue{color:#DC2626;}
+.t-cat{border-radius:6px;padding:2px 7px;font-size:10px;font-weight:600;}
+.t-cat.work{background:#EFF6FF;color:#1E40AF;}
+.t-cat.home{background:#F0FDF4;color:#065F46;}
+.t-cat.money{background:#FFFBEB;color:#B45309;}
+.t-cat.study{background:#FEF2F2;color:#991B1B;}
+.t-prio{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.t-prio.h{background:#DC2626;}
+.t-prio.m{background:#D97706;}
+.t-prio.l{background:#9CA3AF;}
+.t-rec{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:#7C3AED;font-weight:700;}
+
+.done-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 6px 4px;color:#8A7A6A;font-size:12px;font-weight:600;margin-top:6px;}
+.done-toggle em{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Screen 7 · Tasks (FLAT v2)</div>
+<div class="ttl">משימות — <em>הכל מקובץ</em></div>
+<div class="dsc">חזרה למבנה שטוח · ★ מועדפים · קטגוריות user-defined · משימות חוזרות (יומי/שבועי/חודשי)</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">משימות</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="cats-row">
+        <div class="cat-c active">הכל</div>
+        <div class="cat-c"><span class="dot a">★</span>מועדפים</div>
+        <div class="cat-c"><span class="dot r"></span>לימודים</div>
+        <div class="cat-c"><span class="dot b"></span>עבודה</div>
+        <div class="cat-c"><span class="dot a"></span>כסף</div>
+        <div class="cat-c"><span class="dot p"></span>בית</div>
+        <div class="cat-c add">+ קטגוריה</div>
+      </div>
+
+      <div class="qa-box">
+        <div class="qa-plus">+</div>
+        <div class="qa-ph">הוסף משימה חדשה...</div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl"><em>היום</em></div>
+        <div class="sec-cnt">3 פריטים</div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">לסכם הרצאה 9 באינפי 2</div>
+            <span class="t-star">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio h"></div>
+            <span class="t-due today">היום, 18:00</span>
+            <span class="t-cat study">לימודים</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">לשלם חשבון חשמל</div>
+            <span class="t-star empty">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio m"></div>
+            <span class="t-due today">היום, 23:59</span>
+            <span class="t-cat money">כסף</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">להוציא את הזבל</div>
+            <span class="t-star empty">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio l"></div>
+            <span class="t-due">היום, 22:00</span>
+            <span class="t-cat home">בית</span>
+            <span class="t-rec">🔁 יומי</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl">חוזרים <em>שבועי</em></div>
+        <div class="sec-cnt">2 פריטים</div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">קניות לסופ"ש</div>
+            <span class="t-star">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio m"></div>
+            <span class="t-due">יום ה׳</span>
+            <span class="t-cat home">בית</span>
+            <span class="t-rec">🔁 שבועי</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">הגשת תרגיל אלגברה</div>
+            <span class="t-star empty">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio m"></div>
+            <span class="t-due">יום א׳, 23:59</span>
+            <span class="t-cat study">לימודים</span>
+            <span class="t-rec">🔁 שבועי</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl"><em>בקרוב</em></div>
+        <div class="sec-cnt">1 פריט</div>
+      </div>
+
+      <div class="task">
+        <div class="t-check"></div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title">הכנה למבחן אינפי 2 — מועד A</div>
+            <span class="t-star">★</span>
+          </div>
+          <div class="t-meta">
+            <div class="t-prio h"></div>
+            <span class="t-due overdue">בעוד 30 ימים</span>
+            <span class="t-cat study">לימודים</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="done-toggle">
+        <span><em>הושלמו</em> · 12 פריטים</span>
+        <span>▼</span>
+      </div>
+
+      <div class="task" style="opacity:.55">
+        <div class="t-check done">✓</div>
+        <div class="t-body">
+          <div class="t-title-row">
+            <div class="t-title done">לרכוש ספר מבני נתונים</div>
+          </div>
+          <div class="t-meta"><span class="t-due">אתמול</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

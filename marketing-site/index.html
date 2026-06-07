@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calori Life · היום שלך, מאוחד</title>
+<meta name="description" content="Calori Life — אפליקציה אחת שמאחדת לימודים, חיים אישיים ותזונה בציר זמן חכם אחד. עברית-first, מהטלפון.">
+<meta property="og:title" content="Calori Life — Your day, unified">
+<meta property="og:description" content="One app that unifies your studies, your life, and your nutrition in a single smart timeline.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23065F46'/><path d='M50 22c-14 0-24 10-24 26 0 16 14 28 24 30 10-2 24-14 24-30 0-16-10-26-24-26z' fill='%23059669'/><path d='M50 26v52' stroke='%23FAF7F2' stroke-width='4' stroke-linecap='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#059669; --forest:#065F46; --green2:#10B981; --green-soft:#F0FDF4; --green-softer:#ECFDF5;
+  --purple:#7C3AED; --purple-soft:#F3EFFB; --purple-softer:#EDE9FE;
+  --info:#2563EB; --info-soft:#EFF6FF; --warning:#D97706; --warning-soft:#FFFBEB; --danger:#EF4444;
+  --canvas:#FAF7F2; --surface:#FFFFFF; --ink:#2A1A0A; --ink-soft:#8A7A6A;
+  --hairline:rgba(180,140,80,.16); --hairline-soft:rgba(180,140,80,.10); --tint-warm:#F5F0E8;
+  --font-display:'Instrument Serif','Rubik',serif;
+  --font-num:'Fraunces','Rubik',serif;
+  --font-body:'Inter','Rubik',sans-serif;
+  --shadow-card:0 1px 2px rgba(40,20,0,.04),0 8px 28px rgba(40,20,0,.07);
+  --shadow-device:0 30px 70px rgba(40,20,0,.24),0 0 0 1.5px rgba(180,140,80,.12);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --maxw:1180px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-body); color:var(--ink); background:var(--canvas);
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; line-height:1.5;
+}
+/* warm grain / glow backdrop */
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(60% 40% at 80% -5%, rgba(5,150,105,.10), transparent 60%),
+    radial-gradient(50% 35% at 0% 8%, rgba(124,58,237,.07), transparent 60%),
+    radial-gradient(70% 50% at 50% 100%, rgba(217,119,6,.06), transparent 60%);
+}
+em{font-style:italic;}
+h1,h2,h3{font-family:var(--font-display); font-weight:400; letter-spacing:-.03em; line-height:1.04;}
+h1 em,h2 em,h3 em,.accent{font-family:var(--font-display); font-style:italic; color:var(--green);}
+.num{font-family:var(--font-num); font-weight:600; font-variation-settings:"opsz" 144; letter-spacing:-.04em;}
+a{color:inherit; text-decoration:none;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding-inline:24px;}
+.eyebrow{font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed; inset-block-start:0; inset-inline:0; z-index:100;
+  backdrop-filter:blur(18px); background:rgba(250,247,242,.78);
+  border-block-end:1px solid var(--hairline-soft); transition:padding .3s var(--ease);
+}
+.nav-in{display:flex; align-items:center; justify-content:space-between; height:64px;}
+.wordmark{font-size:20px; font-weight:800; letter-spacing:-.02em; font-family:var(--font-body);}
+.wordmark em{font-family:var(--font-display); font-style:italic; color:var(--green); font-weight:400;}
+.nav-links{display:flex; align-items:center; gap:28px;}
+.nav-links a{font-size:14px; font-weight:600; color:var(--ink-soft); transition:color .2s;}
+.nav-links a:hover{color:var(--ink);}
+.nav-right{display:flex; align-items:center; gap:14px;}
+.lang-toggle{
+  display:flex; border:1px solid var(--hairline); border-radius:999px; overflow:hidden;
+  font-size:12px; font-weight:700; background:var(--surface);
+}
+.lang-toggle button{
+  border:0; background:transparent; cursor:pointer; padding:6px 12px; color:var(--ink-soft);
+  font-family:var(--font-body); font-weight:700; transition:.2s;
+}
+.lang-toggle button.on{background:var(--forest); color:#fff;}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; border:0; cursor:pointer;
+  font-family:var(--font-body); font-weight:700; font-size:14px; border-radius:999px;
+  padding:11px 20px; transition:transform .18s var(--ease), box-shadow .2s, background .2s;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--green); color:#fff; box-shadow:0 6px 20px rgba(5,150,105,.30);}
+.btn-primary:hover{background:var(--forest); box-shadow:0 10px 28px rgba(5,150,105,.38);}
+.btn-ghost{background:var(--surface); color:var(--ink); border:1px solid var(--hairline);}
+.btn-ghost:hover{border-color:var(--green); color:var(--green);}
+.nav-burger{display:none; background:none; border:0; cursor:pointer; font-size:22px; color:var(--ink);}
+
+/* ============ HERO ============ */
+.hero{padding-block:120px 60px; position:relative;}
+.hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
+.hero-eyebrow{display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--hairline);
+  border-radius:999px; padding:7px 14px; margin-block-end:22px; box-shadow:var(--shadow-card);}
+.hero-eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(5,150,105,.18);}
+.hero-eyebrow span{font-size:12px; font-weight:600; color:var(--ink-soft);}
+.hero h1{font-size:clamp(44px,6.4vw,82px); margin-block-end:22px;}
+.hero-sub{font-size:clamp(16px,1.7vw,20px); color:var(--ink-soft); max-width:30ch; margin-block-end:30px; line-height:1.55;}
+.hero-cta{display:flex; gap:14px; flex-wrap:wrap; margin-block-end:34px;}
+.hero-cta .btn{padding:14px 26px; font-size:15px;}
+.hero-stats{display:flex; gap:28px; flex-wrap:wrap;}
+.hstat .num{font-size:32px; color:var(--green); display:block; line-height:1;}
+.hstat .num.p{color:var(--purple);} .hstat .num.i{color:var(--info);}
+.hstat-l{font-size:12px; color:var(--ink-soft); margin-block-start:4px; font-weight:500;}
+.hero-phone-wrap{display:flex; justify-content:center; position:relative;}
+.hero-phone-wrap::before{content:''; position:absolute; width:380px; height:380px; border-radius:50%;
+  background:radial-gradient(circle, rgba(5,150,105,.16), transparent 70%); filter:blur(10px); z-index:0;}
+.blob{position:absolute; border-radius:50%; filter:blur(2px); opacity:.9; z-index:0;}
+
+/* ============ DEVICE (phone iframe) ============ */
+.device{
+  --s:.66;
+  width:calc(390px * var(--s)); height:calc(844px * var(--s));
+  border-radius:calc(52px * var(--s)); overflow:hidden; position:relative; z-index:1;
+  background:var(--canvas); box-shadow:var(--shadow-device); flex:none;
+}
+.device iframe{width:390px; height:844px; border:0; position:absolute; inset-block-start:0; inset-inline-start:0;
+  transform:scale(var(--s)); transform-origin:top left;}
+[dir=ltr] .device iframe{inset-inline-start:auto; left:0;}
+.device.hero-dev{--s:.74;}
+.floats{animation:float 7s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
+
+/* ============ SECTION SHELL ============ */
+section{position:relative;}
+.sec-head{text-align:center; max-width:680px; margin:0 auto 56px;}
+.sec-head .eyebrow{margin-block-end:14px; display:block;}
+.sec-head h2{font-size:clamp(32px,4.4vw,52px); margin-block-end:16px;}
+.sec-head p{font-size:17px; color:var(--ink-soft); line-height:1.6;}
+.pad{padding-block:90px;}
+
+/* ============ THREE WORLDS ============ */
+.worlds{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+.world{background:var(--surface); border:1px solid var(--hairline); border-radius:22px; padding:28px 24px;
+  box-shadow:var(--shadow-card); position:relative; overflow:hidden; transition:transform .3s var(--ease), box-shadow .3s;}
+.world:hover{transform:translateY(-6px); box-shadow:0 18px 44px rgba(40,20,0,.12);}
+.world::before{content:''; position:absolute; inset-block-start:0; inset-inline:0; height:3px; background:var(--accentc,var(--green));}
+.world .wicon{width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; margin-block-end:18px; background:var(--isoft,var(--green-soft));}
+.world h3{font-size:24px; margin-block-end:10px;}
+.world p{font-size:14px; color:var(--ink-soft); line-height:1.6;}
+
+/* ============ FEATURE ROWS ============ */
+.feat{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; margin-block-end:110px;}
+.feat:last-child{margin-block-end:0;}
+.feat.flip .feat-media{order:2;}
+.feat-media{display:flex; justify-content:center; position:relative;}
+.feat-media.duo{gap:0;}
+.feat-media.duo .device:last-child{margin-inline-start:-90px; margin-block-start:46px; --s:.56; z-index:0; opacity:.96;}
+.feat-tag{display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ftc,var(--green)); margin-block-end:16px;}
+.feat-tag .tdot{width:8px; height:8px; border-radius:50%; background:currentColor;}
+.feat-txt h3{font-size:clamp(28px,3.4vw,40px); margin-block-end:16px;}
+.feat-txt p{font-size:16.5px; color:var(--ink-soft); line-height:1.65; margin-block-end:20px;}
+.feat-list{display:flex; flex-direction:column; gap:11px;}
+.feat-list li{list-style:none; display:flex; align-items:flex-start; gap:10px; font-size:14.5px; color:var(--ink);}
+.feat-list .ck{width:22px; height:22px; border-radius:50%; background:var(--green-soft); color:var(--green);
+  display:flex; align-items:center; justify-content:center; flex:none; font-size:12px; font-weight:800; margin-block-start:1px;}
+
+/* ============ DESIGN SYSTEM ============ */
+.design{background:linear-gradient(180deg,transparent, rgba(245,240,232,.6) 30%, rgba(245,240,232,.6) 70%, transparent);}
+.ds-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:22px; margin-block-start:10px;}
+.ds-card{background:var(--surface); border:1px solid var(--hairline); border-radius:22px; padding:30px; box-shadow:var(--shadow-card);}
+.ds-card h4{font-family:var(--font-display); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin-block-end:20px; font-weight:400;}
+.font-row{padding-block:14px; border-block-end:1px solid var(--hairline-soft);}
+.font-row:last-child{border:0;}
+.font-row .big{font-size:34px; line-height:1.1; color:var(--ink);}
+.font-row .meta{font-size:12px; color:var(--ink-soft); margin-block-start:4px;}
+.f-disp{font-family:var(--font-display);} .f-disp em{color:var(--green);}
+.f-num{font-family:var(--font-num); font-weight:600; font-variation-settings:"opsz" 144; letter-spacing:-.04em;}
+.f-body{font-family:var(--font-body); font-weight:600; font-size:24px!important;}
+.swatches{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+.sw{border-radius:14px; height:74px; display:flex; align-items:flex-end; padding:9px; color:#fff; font-size:10px; font-weight:700; box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);}
+.sw.light{color:var(--ink);}
+.ds-quote{grid-column:1 / -1; text-align:center; padding:18px;}
+.ds-quote p{font-family:var(--font-display); font-size:clamp(24px,3vw,36px); color:var(--ink); line-height:1.3;}
+.ds-quote em{color:var(--green);}
+
+/* ============ TECH ============ */
+.tech-chips{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; max-width:760px; margin:0 auto 30px;}
+.chip{background:var(--surface); border:1px solid var(--hairline); border-radius:999px; padding:10px 18px; font-size:14px;
+  font-weight:600; box-shadow:var(--shadow-card); display:flex; align-items:center; gap:8px;}
+.chip .cd{width:8px; height:8px; border-radius:50%;}
+.tech-note{text-align:center; max-width:620px; margin:0 auto; color:var(--ink-soft); font-size:15px; line-height:1.7;}
+
+/* ============ DEMO / VIDEO ============ */
+.demo .video-shell{max-width:880px; margin:0 auto; border-radius:26px; overflow:hidden; position:relative;
+  box-shadow:0 30px 70px rgba(40,20,0,.22); border:1px solid var(--hairline); background:#0e0b07;}
+.demo video, .demo .video-ph{width:100%; display:block; aspect-ratio:16/9; object-fit:cover;}
+.video-ph{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  background:radial-gradient(60% 80% at 50% 0%, rgba(5,150,105,.25), transparent), #14100b; color:#fff; text-align:center; padding:30px;}
+.video-ph .play{width:74px; height:74px; border-radius:50%; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+  display:flex; align-items:center; justify-content:center; font-size:26px;}
+.video-ph .vt{font-family:var(--font-display); font-style:italic; font-size:22px;}
+.video-ph .vs{font-size:13px; opacity:.7; max-width:42ch;}
+
+/* ============ FINAL CTA ============ */
+.final{text-align:center; padding-block:110px;}
+.final-card{background:linear-gradient(135deg,var(--forest),var(--green)); border-radius:34px; padding:70px 40px;
+  position:relative; overflow:hidden; box-shadow:0 30px 70px rgba(5,150,105,.3);}
+.final-card::after{content:''; position:absolute; inset:0; background:radial-gradient(60% 60% at 80% 0%, rgba(255,255,255,.18), transparent 60%); pointer-events:none;}
+.final-card h2{color:#fff; font-size:clamp(34px,5vw,60px); margin-block-end:18px;}
+.final-card h2 em{color:#D1FAE5;}
+.final-card p{color:rgba(255,255,255,.85); font-size:18px; margin-block-end:32px;}
+.final-card .btn-primary{background:#fff; color:var(--forest); box-shadow:0 10px 30px rgba(0,0,0,.18);}
+.final-card .btn-primary:hover{background:#F0FDF4;}
+
+/* ============ FOOTER ============ */
+footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft);}
+.foot-in{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;}
+.foot-in .small{font-size:13px; color:var(--ink-soft);}
+
+/* ============ REVEAL ============ */
+.reveal{opacity:0; transform:translateY(26px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+.reveal.in{opacity:1; transform:none;}
+.reveal.d1{transition-delay:.08s;} .reveal.d2{transition-delay:.16s;} .reveal.d3{transition-delay:.24s;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr; gap:30px;}
+  .hero-phone-wrap{order:-1;}
+  .hero h1{text-align:center;} .hero-sub{margin-inline:auto; text-align:center; max-width:36ch;}
+  .hero-eyebrow{margin-inline:auto;} .hero-cta,.hero-stats{justify-content:center;}
+  .hero .feat-txt{text-align:center;}
+  .worlds{grid-template-columns:1fr;}
+  .feat{grid-template-columns:1fr; gap:34px; margin-block-end:80px;}
+  .feat.flip .feat-media{order:-1;}
+  .feat-media{order:-1;}
+  .feat-txt{text-align:center;} .feat-tag,.feat-list li{justify-content:center;}
+  .feat-list li{text-align:start;}
+  .ds-grid{grid-template-columns:1fr;}
+  .device{--s:.6;} .device.hero-dev{--s:.68;}
+  .feat-media.duo .device:last-child{display:none;}
+}
+@media (max-width:680px){
+  .nav-links{display:none;}
+  .nav-burger{display:block;}
+  .nav-links.open{display:flex; position:absolute; inset-block-start:64px; inset-inline:0; flex-direction:column;
+    background:rgba(250,247,242,.98); backdrop-filter:blur(18px); padding:18px 24px; gap:18px; border-block-end:1px solid var(--hairline);}
+  .device{--s:.52;} .device.hero-dev{--s:.62;}
+  .pad{padding-block:64px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;}
+  .reveal{opacity:1; transform:none; transition:none;}
+  html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="wordmark">calori<em> life</em></a>
+    <div class="nav-links" id="navLinks">
+      <a href="#features" data-he="תכונות" data-en="Features">תכונות</a>
+      <a href="#design" data-he="עיצוב" data-en="Design">עיצוב</a>
+      <a href="#tech" data-he="טכנולוגיה" data-en="Tech">טכנולוגיה</a>
+      <a href="#demo" data-he="הדגמה" data-en="Demo">הדגמה</a>
+    </div>
+    <div class="nav-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button data-lang="he" class="on" onclick="setLang('he')">עב</button>
+        <button data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+      <a href="#cta" class="btn btn-primary" data-he="התחל עכשיו" data-en="Get started">התחל עכשיו</a>
+      <button class="nav-burger" aria-label="Menu" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+</nav>
+
+<span id="top"></span>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="feat-txt">
+      <div class="hero-eyebrow reveal"><span class="dot"></span><span data-he="מנהל אישי · מעקב לימודים · אקוסיסטם קלורי" data-en="Personal manager · study tracker · Calori ecosystem">מנהל אישי · מעקב לימודים · אקוסיסטם קלורי</span></div>
+      <h1 class="reveal d1" data-he="היום שלך,<br><em>מאוחד</em>." data-en="Your day,<br><em>unified</em>.">היום שלך,<br><em>מאוחד</em>.</h1>
+      <p class="hero-sub reveal d2" data-he="אפליקציה אחת שמאחדת לימודים, חיים אישיים ותזונה — בציר זמן אחד חכם. בעברית, מהטלפון, בלי בלגן." data-en="One app that unifies your studies, your life, and your nutrition — in a single smart timeline. Hebrew-first, mobile, calm.">אפליקציה אחת שמאחדת לימודים, חיים אישיים ותזונה — בציר זמן אחד חכם. בעברית, מהטלפון, בלי בלגן.</p>
+      <div class="hero-cta reveal d2">
+        <a href="#features" class="btn btn-primary" data-he="גלה את האפליקציה" data-en="Explore the app">גלה את האפליקציה</a>
+        <a href="#demo" class="btn btn-ghost" data-he="צפה בהדגמה ▶" data-en="Watch the demo ▶">צפה בהדגמה ▶</a>
+      </div>
+      <div class="hero-stats reveal d3">
+        <div class="hstat"><span class="num">11</span><div class="hstat-l" data-he="מסכים" data-en="screens">מסכים</div></div>
+        <div class="hstat"><span class="num">4</span><div class="hstat-l" data-he="טאבים אחידים" data-en="unified tabs">טאבים אחידים</div></div>
+        <div class="hstat"><span class="num p">3</span><div class="hstat-l" data-he="שכבות חיים" data-en="life layers">שכבות חיים</div></div>
+        <div class="hstat"><span class="num i">∞</span><div class="hstat-l" data-he="זמן אמת" data-en="real-time">זמן אמת</div></div>
+      </div>
+    </div>
+    <div class="hero-phone-wrap reveal d1">
+      <div class="blob" style="width:90px;height:90px;background:var(--purple-softer);inset-block-start:6%;inset-inline-end:2%;"></div>
+      <div class="blob" style="width:60px;height:60px;background:var(--green-soft);inset-block-end:10%;inset-inline-start:0;"></div>
+      <div class="device hero-dev floats"><iframe loading="lazy" title="Home screen" src="screens/cream-01-home.html" onload="cleanFrame(this)"></iframe></div>
+    </div>
+  </div>
+</header>
+
+<!-- THREE WORLDS -->
+<section class="pad" id="worlds">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-he="הרעיון" data-en="The idea">הרעיון</span>
+      <h2 data-he="שלושה <em>עולמות</em>, ציר זמן אחד" data-en="Three <em>worlds</em>, one timeline">שלושה <em>עולמות</em>, ציר זמן אחד</h2>
+      <p data-he="סטודנטים בישראל מנהלים חמש אפליקציות במקביל. Calori Life מאחד את הכל — מה שקורה היום, עכשיו, במבט אחד." data-en="Students juggle five apps at once. Calori Life unifies it all — what's happening today, now, in one glance.">סטודנטים בישראל מנהלים חמש אפליקציות במקביל. Calori Life מאחד את הכל — מה שקורה היום, עכשיו, במבט אחד.</p>
+    </div>
+    <div class="worlds">
+      <div class="world reveal" style="--accentc:var(--info);--isoft:var(--info-soft);">
+        <div class="wicon">📚</div>
+        <h3 data-he="לימודים" data-en="Studies">לימודים</h3>
+        <p data-he="קורסים, משימות שבועיות, בחינות ופומודורו — עם פסי התקדמות ולוח בחינות חכם." data-en="Courses, weekly tasks, exams and pomodoro — with progress bars and a smart exam board.">קורסים, משימות שבועיות, בחינות ופומודורו — עם פסי התקדמות ולוח בחינות חכם.</p>
+      </div>
+      <div class="world reveal d1" style="--accentc:var(--warning);--isoft:var(--warning-soft);">
+        <div class="wicon">🗓️</div>
+        <h3 data-he="חיים אישיים" data-en="Personal life">חיים אישיים</h3>
+        <p data-he="אירועים, משימות עם תת-משימות, ופתקים צבעוניים מהירים — כל מה שהיום שלך צריך." data-en="Events, tasks with subtasks, and quick colorful notes — everything your day needs.">אירועים, משימות עם תת-משימות, ופתקים צבעוניים מהירים — כל מה שהיום שלך צריך.</p>
+      </div>
+      <div class="world reveal d2" style="--accentc:var(--purple);--isoft:var(--purple-softer);">
+        <div class="wicon">🥗</div>
+        <h3 data-he="תזונה וכושר" data-en="Nutrition & fitness">תזונה וכושר</h3>
+        <p data-he="גשר לקריאה בלבד לאפליקציית קלורי: ארוחות בירוק, אימונים בסגול, וציון תזונה יומי." data-en="A read-only bridge to the Calori app: meals in green, workouts in purple, and a daily nutrition score.">גשר לקריאה בלבד לאפליקציית קלורי: ארוחות בירוק, אימונים בסגול, וציון תזונה יומי.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="pad" id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-he="המסכים" data-en="The screens">המסכים</span>
+      <h2 data-he="כל פיצ׳ר, <em>במקומו</em>" data-en="Every feature, <em>in its place</em>">כל פיצ׳ר, <em>במקומו</em></h2>
+      <p data-he="מסכים אמיתיים מתוך האפליקציה. צבע הוא מידע, נטוי הוא הדגשה." data-en="Real screens from the app. Color is information, italic is emphasis.">מסכים אמיתיים מתוך האפליקציה. צבע הוא מידע, נטוי הוא הדגשה.</p>
+    </div>
+
+    <!-- 1 Home -->
+    <div class="feat reveal">
+      <div class="feat-media"><div class="device floats"><iframe loading="lazy" title="Home" src="screens/cream-01-home.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--green)"><span class="tdot"></span><span data-he="בית · SmartDashboard" data-en="Home · SmartDashboard">בית · SmartDashboard</span></div>
+        <h3 data-he="מרכז <em>שליטה</em>" data-en="Command <em>center</em>">מרכז <em>שליטה</em></h3>
+        <p data-he="כרטיס Hero אחד שמאחד ברכה ונתוני תזונה, ארבע פעולות מהירות, וציר זמן של כל היום — ארוחות, אירועים, משימות ובחינות, ממוינים לפי שעה." data-en="One hero card merging your greeting and nutrition, four quick actions, and a full-day timeline — meals, events, tasks and exams, sorted by time.">כרטיס Hero אחד שמאחד ברכה ונתוני תזונה, ארבע פעולות מהירות, וציר זמן של כל היום — ארוחות, אירועים, משימות ובחינות, ממוינים לפי שעה.</p>
+        <ul class="feat-list">
+          <li><span class="ck">✓</span><span data-he="ברכה לפי שעה + ספירה לאחור לבחינה הקרובה" data-en="Time-based greeting + countdown to your next exam">ברכה לפי שעה + ספירה לאחור לבחינה הקרובה</span></li>
+          <li><span class="ck">✓</span><span data-he="הכרטיס כולו לחיץ → נפתח מסך קלורי המלא" data-en="The whole card is tappable → opens full Calori view">הכרטיס כולו לחיץ → נפתח מסך קלורי המלא</span></li>
+          <li><span class="ck">✓</span><span data-he="מצב ריק עריכותי כשאין מה להציג היום" data-en="Editorial empty state when the day is clear">מצב ריק עריכותי כשאין מה להציג היום</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2 Calendar -->
+    <div class="feat flip reveal">
+      <div class="feat-media"><div class="device"><iframe loading="lazy" title="Calendar" src="screens/cream-02-calendar.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--info)"><span class="tdot"></span><span data-he="לוח שנה · 5 תצוגות" data-en="Calendar · 5 views">לוח שנה · 5 תצוגות</span></div>
+        <h3 data-he="לוח שנה <em>מאוחד</em>" data-en="Unified <em>calendar</em>">לוח שנה <em>מאוחד</em></h3>
+        <p data-he="חמש תצוגות — יום, שלושה ימים, שבוע, חודש ורשימה. לימודים, אירועים ותזונה על לוח אחד אמיתי, עם מחוון ׳עכשיו׳." data-en="Five views — day, 3-day, week, month and list. Studies, events and nutrition on one real calendar, with a live 'now' indicator.">חמש תצוגות — יום, שלושה ימים, שבוע, חודש ורשימה. לימודים, אירועים ותזונה על לוח אחד אמיתי, עם מחוון ׳עכשיו׳.</p>
+        <ul class="feat-list">
+          <li><span class="ck">✓</span><span data-he="כל סוג פריט בצבע משלו — הרצאה, אירוע, ארוחה, בחינה" data-en="Each item type in its own color — lecture, event, meal, exam">כל סוג פריט בצבע משלו — הרצאה, אירוע, ארוחה, בחינה</span></li>
+          <li><span class="ck">✓</span><span data-he="חודש כותרת עריכותית 42px נטוי" data-en="Editorial 42px italic month header">חודש כותרת עריכותית 42px נטוי</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3 Studies -->
+    <div class="feat reveal">
+      <div class="feat-media"><div class="device"><iframe loading="lazy" title="Studies" src="screens/cream-04-studies.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--info)"><span class="tdot"></span><span data-he="לימודים · רכזת קורסים" data-en="Studies · courses hub">לימודים · רכזת קורסים</span></div>
+        <h3 data-he="רכזת <em>לימודים</em>" data-en="Studies <em>hub</em>">רכזת <em>לימודים</em></h3>
+        <p data-he="כל הקורסים בגריד עם פסי התקדמות וסטטיסטיקות. לחיצה על קורס פותחת משימות שבועיות, קבצים, פתקים וקישורי AI ייעודיים." data-en="All courses in a grid with progress bars and stats. Tap a course to open weekly tasks, files, notes and dedicated AI links.">כל הקורסים בגריד עם פסי התקדמות וסטטיסטיקות. לחיצה על קורס פותחת משימות שבועיות, קבצים, פתקים וקישורי AI ייעודיים.</p>
+        <ul class="feat-list">
+          <li><span class="ck">✓</span><span data-he="טבלת בחינות + טבעת התקדמות כוללת" data-en="Exam board + overall progress ring">טבלת בחינות + טבעת התקדמות כוללת</span></li>
+          <li><span class="ck">✓</span><span data-he="תבניות משימות שבועיות לכל קורס" data-en="Weekly task templates per course">תבניות משימות שבועיות לכל קורס</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4 Calori bridge -->
+    <div class="feat flip reveal">
+      <div class="feat-media"><div class="device floats"><iframe loading="lazy" title="Calori" src="screens/cream-09-calori.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--green)"><span class="tdot"></span><span data-he="קלורי · תזונה וכושר" data-en="Calori · nutrition & fitness">קלורי · תזונה וכושר</span></div>
+        <h3 data-he="גשר <em>קלורי</em>" data-en="The <em>Calori</em> bridge">גשר <em>קלורי</em></h3>
+        <p data-he="מראה לקריאה בלבד של נתוני התזונה והכושר שלך מאפליקציית קלורי — קלוריות, מאקרו, ארוחות בירוק ואימונים בסגול. אף פעם לא כותב, רק משקף בזמן אמת." data-en="A read-only mirror of your nutrition and fitness data from the Calori app — calories, macros, meals in green and workouts in purple. Never writes, only reflects in real time.">מראה לקריאה בלבד של נתוני התזונה והכושר שלך מאפליקציית קלורי — קלוריות, מאקרו, ארוחות בירוק ואימונים בסגול. אף פעם לא כותב, רק משקף בזמן אמת.</p>
+        <ul class="feat-list">
+          <li><span class="ck">✓</span><span data-he="ארכיטקטורת קריאה-בלבד — הנתונים שלך בטוחים" data-en="Read-only architecture — your data stays safe">ארכיטקטורת קריאה-בלבד — הנתונים שלך בטוחים</span></li>
+          <li><span class="ck">✓</span><span data-he="קלוריות 64px נטוי + טבעת מאקרו כפולה" data-en="64px italic calories + double macro ring">קלוריות 64px נטוי + טבעת מאקרו כפולה</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5 AI Manager -->
+    <div class="feat reveal">
+      <div class="feat-media"><div class="device"><iframe loading="lazy" title="AI Manager" src="screens/cream-15-manager.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--purple)"><span class="tdot"></span><span data-he="המנהל האישי · AI" data-en="Personal manager · AI">המנהל האישי · AI</span></div>
+        <h3 data-he="המנהל <em class='accent' style='color:var(--purple)'>האישי</em>" data-en="Your AI <em class='accent' style='color:var(--purple)'>manager</em>">המנהל <em class="accent" style="color:var(--purple)">האישי</em></h3>
+        <p data-he="בינה שמסתכלת על כל היום שלך — לימודים, אירועים, תזונה — ומציעה תוכנית: מתי ללמוד, מתי לנוח, ומה הכי דחוף עכשיו." data-en="An intelligence that looks across your whole day — studies, events, nutrition — and suggests a plan: when to study, when to rest, and what's most urgent now.">בינה שמסתכלת על כל היום שלך — לימודים, אירועים, תזונה — ומציעה תוכנית: מתי ללמוד, מתי לנוח, ומה הכי דחוף עכשיו.</p>
+        <ul class="feat-list">
+          <li><span class="ck" style="background:var(--purple-softer);color:var(--purple)">✓</span><span data-he="בלוקי תוכנית עם פסי זמן + הצעות חכמות" data-en="Plan blocks with time bars + smart suggestions">בלוקי תוכנית עם פסי זמן + הצעות חכמות</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 6 Pomodoro -->
+    <div class="feat flip reveal">
+      <div class="feat-media"><div class="device"><iframe loading="lazy" title="Pomodoro" src="screens/cream-10-pomodoro.html" onload="cleanFrame(this)"></iframe></div></div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--purple)"><span class="tdot"></span><span data-he="פוקוס · פומודורו" data-en="Focus · pomodoro">פוקוס · פומודורו</span></div>
+        <h3 data-he="<em class='accent' style='color:var(--purple)'>פוקוס</em> עמוק" data-en="Deep <em class='accent' style='color:var(--purple)'>focus</em>">‎<em class="accent" style="color:var(--purple)">פוקוס</em> עמוק</h3>
+        <p data-he="טיימר פומודורו 78px עם טבעת התקדמות, קישור לקורס, ומעקב סשנים — סיכום דקות הפוקוס שלך לכל יום." data-en="A 78px pomodoro timer with a progress ring, course link, and session tracking — a daily summary of your focus minutes.">טיימר פומודורו 78px עם טבעת התקדמות, קישור לקורס, ומעקב סשנים — סיכום דקות הפוקוס שלך לכל יום.</p>
+        <ul class="feat-list">
+          <li><span class="ck" style="background:var(--purple-softer);color:var(--purple)">✓</span><span data-he="מיני-בר פעיל מעל הניווט בכל מסך" data-en="Active mini-bar above the nav on every screen">מיני-בר פעיל מעל הניווט בכל מסך</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 7 Tasks & Notes -->
+    <div class="feat reveal">
+      <div class="feat-media duo">
+        <div class="device"><iframe loading="lazy" title="Tasks" src="screens/cream-07-tasks.html" onload="cleanFrame(this)"></iframe></div>
+        <div class="device"><iframe loading="lazy" title="Notes" src="screens/cream-08-notes.html" onload="cleanFrame(this)"></iframe></div>
+      </div>
+      <div class="feat-txt">
+        <div class="feat-tag" style="--ftc:var(--warning)"><span class="tdot"></span><span data-he="משימות ופתקים" data-en="Tasks & notes">משימות ופתקים</span></div>
+        <h3 data-he="משימות <em style='color:var(--warning)'>ופתקים</em>" data-en="Tasks <em style='color:var(--warning)'>& notes</em>">משימות <em style="color:var(--warning)">ופתקים</em></h3>
+        <p data-he="משימות בסגנון Google Tasks עם הוספה מהירה, תת-משימות ותאריכי יעד. ופתקים צבעוניים בגריד masonry עם נעיצה ושישה צבעים." data-en="Google Tasks-style tasks with quick add, subtasks and due dates. Plus colorful notes in a masonry grid with pinning and six colors.">משימות בסגנון Google Tasks עם הוספה מהירה, תת-משימות ותאריכי יעד. ופתקים צבעוניים בגריד masonry עם נעיצה ושישה צבעים.</p>
+        <ul class="feat-list">
+          <li><span class="ck" style="background:var(--warning-soft);color:var(--warning)">✓</span><span data-he="נפתחים מה-FAB או מהפעולות המהירות בבית" data-en="Opened from the FAB or home quick actions">נפתחים מה-FAB או מהפעולות המהירות בבית</span></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DESIGN SYSTEM -->
+<section class="pad design" id="design">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-he="שפת העיצוב" data-en="Design language">שפת העיצוב</span>
+      <h2 data-he="שקט כברירת מחדל. <em>רועם</em> כשחשוב." data-en="Quiet by default. <em>Loud</em> when it matters.">שקט כברירת מחדל. <em>רועם</em> כשחשוב.</h2>
+      <p data-he="שפה עיצובית עריכותית-חמה — כמו יומן מודפס יפה שמכיר אותך. רקעי קרם, מספרים אופייניים, ירוק יער ונגיעות נטוי." data-en="A warm, editorial design language — like a beautifully printed journal that happens to know you. Cream backgrounds, characterful numbers, forest green, italic accents.">שפה עיצובית עריכותית-חמה — כמו יומן מודפס יפה שמכיר אותך. רקעי קרם, מספרים אופייניים, ירוק יער ונגיעות נטוי.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-card reveal">
+        <h4 data-he="שלושה פונטים, כל אחד בתפקידו" data-en="Three fonts, each with a role">שלושה פונטים, כל אחד בתפקידו</h4>
+        <div class="font-row"><div class="big f-disp">ערב טוב, <em>אוריה</em></div><div class="meta">Instrument Serif · <span data-he="כותרות ונגיעות נטוי" data-en="headings & italic accents">כותרות ונגיעות נטוי</span></div></div>
+        <div class="font-row"><div class="big f-num">398 · 14:23 · 86.5</div><div class="meta">Fraunces 600 · <span data-he="כל המספרים" data-en="all numbers">כל המספרים</span></div></div>
+        <div class="font-row"><div class="big f-body" dir="ltr">The quiet command center</div><div class="meta">Inter / Rubik · <span data-he="גוף וממשק" data-en="body & UI">גוף וממשק</span></div></div>
+      </div>
+      <div class="ds-card reveal d1">
+        <h4 data-he="צבע הוא מידע" data-en="Color is information">צבע הוא מידע</h4>
+        <div class="swatches">
+          <div class="sw" style="background:#059669">תזונה</div>
+          <div class="sw" style="background:#7C3AED">כושר</div>
+          <div class="sw" style="background:#2563EB">לימודים</div>
+          <div class="sw" style="background:#EF4444">בחינות</div>
+          <div class="sw" style="background:#D97706">פתקים</div>
+          <div class="sw" style="background:#065F46">יער</div>
+          <div class="sw light" style="background:#FAF7F2;box-shadow:inset 0 0 0 1px var(--hairline)">קרם</div>
+          <div class="sw light" style="background:#FFFFFF;box-shadow:inset 0 0 0 1px var(--hairline)">משטח</div>
+        </div>
+        <p class="meta" style="margin-block-start:16px;color:var(--ink-soft);font-size:13px;line-height:1.6" data-he="70% קרם ולבן, 30% ירוק. כל צבע אחר הוא מידע — מופיע רק על כרטיס מסוג מסוים." data-en="70% cream & white, 30% green. Any other color is information — it appears only on a specific item type.">70% קרם ולבן, 30% ירוק. כל צבע אחר הוא מידע — מופיע רק על כרטיס מסוג מסוים.</p>
+      </div>
+      <div class="ds-quote reveal d2">
+        <p data-he="צבע הוא <em>מידע</em>. נטוי הוא <em>הדגשה</em>." data-en="Color is <em>information</em>. Italic is <em>emphasis</em>.">צבע הוא <em>מידע</em>. נטוי הוא <em>הדגשה</em>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section class="pad" id="tech">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-he="מתחת למכסה המנוע" data-en="Under the hood">מתחת למכסה המנוע</span>
+      <h2 data-he="בנוי <em>נכון</em>" data-en="Built <em>right</em>">בנוי <em>נכון</em></h2>
+    </div>
+    <div class="tech-chips reveal">
+      <div class="chip"><span class="cd" style="background:#61DAFB"></span>React 19 + Vite</div>
+      <div class="chip"><span class="cd" style="background:#38BDF8"></span>Tailwind 4</div>
+      <div class="chip"><span class="cd" style="background:#FFCA28"></span>Firebase</div>
+      <div class="chip"><span class="cd" style="background:#764ABC"></span>Zustand</div>
+      <div class="chip"><span class="cd" style="background:var(--green)"></span><span data-he="מאזינים בזמן אמת" data-en="Real-time listeners">מאזינים בזמן אמת</span></div>
+      <div class="chip"><span class="cd" style="background:var(--ink)"></span>RTL-first</div>
+      <div class="chip"><span class="cd" style="background:#FF6B6B"></span>Framer Motion</div>
+    </div>
+    <p class="tech-note reveal d1" data-he="ריאקט 19 על Vite, Firebase לאימות ו-Firestore בזמן אמת, וגשר לקריאה-בלבד לאקוסיסטם קלורי דרך פרויקט Firebase משותף. עברית RTL מקצה לקצה, נגישות AA, ועדכונים אופטימיים בכל פעולה." data-en="React 19 on Vite, Firebase for auth and real-time Firestore, and a read-only bridge to the Calori ecosystem through a shared Firebase project. Hebrew RTL end-to-end, AA accessibility, and optimistic updates on every action.">ריאקט 19 על Vite, Firebase לאימות ו-Firestore בזמן אמת, וגשר לקריאה-בלבד לאקוסיסטם קלורי דרך פרויקט Firebase משותף. עברית RTL מקצה לקצה, נגישות AA, ועדכונים אופטימיים בכל פעולה.</p>
+  </div>
+</section>
+
+<!-- DEMO / VIDEO -->
+<section class="pad demo" id="demo">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-he="הדגמה" data-en="Demo">הדגמה</span>
+      <h2 data-he="רואים את זה <em>בפעולה</em>" data-en="See it <em>in action</em>">רואים את זה <em>בפעולה</em></h2>
+      <p data-he="הדגמת AI קצרה — דמות שמשתמשת ב-Calori Life ביום-יום." data-en="A short AI demo — a character using Calori Life in everyday life.">הדגמת AI קצרה — דמות שמשתמשת ב-Calori Life ביום-יום.</p>
+    </div>
+    <div class="video-shell reveal d1">
+      <video id="demoVideo" controls playsinline preload="none" poster="assets/demo-poster.jpg" style="display:none">
+        <source id="demoSrc" src="assets/demo.mp4" type="video/mp4">
+      </video>
+      <div class="video-ph" id="videoPh">
+        <div class="play">▶</div>
+        <div class="vt" data-he="הדגמת ה-AI בהכנה" data-en="AI demo in the works">הדגמת ה-AI בהכנה</div>
+        <div class="vs" data-he="קליפ קצר שנוצר ב-Higgsfield יוטמע כאן." data-en="A short clip generated with Higgsfield will be embedded here.">קליפ קצר שנוצר ב-Higgsfield יוטמע כאן.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="wrap final" id="cta">
+  <div class="final-card reveal">
+    <h2 data-he="היום שלך, <em>מאוחד</em>." data-en="Your day, <em>unified</em>.">היום שלך, <em>מאוחד</em>.</h2>
+    <p data-he="לימודים, חיים ותזונה — במקום אחד שקט וחכם." data-en="Studies, life and nutrition — in one calm, smart place.">לימודים, חיים ותזונה — במקום אחד שקט וחכם.</p>
+    <a href="#top" class="btn btn-primary" data-he="חזרה למעלה ↑" data-en="Back to top ↑">חזרה למעלה ↑</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap foot-in">
+    <a href="#top" class="wordmark">calori<em> life</em></a>
+    <div class="small" data-he="נבנה עם React · Firebase · ועיצוב Cream v2" data-en="Built with React · Firebase · Cream v2 design">נבנה עם React · Firebase · ועיצוב Cream v2</div>
+    <div class="small">© 2026 Calori Life</div>
+  </div>
+</footer>
+
+<script>
+// ---- inject clean styling into embedded app screens ----
+function cleanFrame(f){
+  try{
+    var d = f.contentDocument || f.contentWindow.document;
+    if(!d) return;
+    var s = d.createElement('style');
+    s.textContent = 'body{background:transparent!important;padding:0!important;margin:0!important;gap:0!important;min-height:0!important;display:block!important;}.lbl,.ttl,.dsc{display:none!important;}.phone{margin:0 auto!important;box-shadow:none!important;}';
+    (d.head||d.documentElement).appendChild(s);
+  }catch(e){ /* cross-origin / not ready */ }
+}
+
+// ---- bilingual i18n ----
+function setLang(lang){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-'+lang+']').forEach(function(el){
+    el.innerHTML = el.getAttribute('data-'+lang);
+  });
+  document.querySelectorAll('.lang-toggle button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.lang === lang);
+  });
+  try{ localStorage.setItem('cl-lang', lang); }catch(e){}
+}
+(function(){
+  var saved = 'he';
+  try{ saved = localStorage.getItem('cl-lang') || 'he'; }catch(e){}
+  setLang(saved);
+})();
+
+// ---- scroll reveal ----
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold:.12, rootMargin:'0px 0px -8% 0px' });
+document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+// ---- nav shrink ----
+var nav = document.querySelector('.nav');
+addEventListener('scroll', function(){ nav.style.height = ''; }, {passive:true});
+
+// ---- show video if it exists (graceful) ----
+(function(){
+  var v = document.getElementById('demoVideo'), ph = document.getElementById('videoPh');
+  fetch('assets/demo.mp4', {method:'HEAD'}).then(function(r){
+    if(r.ok){ v.style.display='block'; ph.style.display='none'; }
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

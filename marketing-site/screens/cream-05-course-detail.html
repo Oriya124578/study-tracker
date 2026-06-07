@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Course Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* HEADER with back */
+.header{position:sticky;top:0;z-index:50;padding:52px 14px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;gap:6px;}
+.h-back{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-mid{flex:1;text-align:center;}
+.h-eyb{font-size:9px;font-weight:600;color:#8A7A6A;letter-spacing:.16em;text-transform:uppercase;}
+.h-title{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.h-title em{font-style:italic;color:#059669;}
+.h-more{width:36px;height:36px;border-radius:50%;background:#F5F0E8;color:#2A1A0A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:12px;}
+
+/* COURSE HERO */
+.c-hero{background:#fff;border-radius:22px;padding:22px 20px 20px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);position:relative;overflow:hidden;}
+.c-hero::before{content:'';position:absolute;top:0;right:0;width:5px;height:100%;background:#059669;}
+.c-hero::after{content:'';position:absolute;top:-50px;left:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(5,150,105,.06) 0%,transparent 70%);pointer-events:none;}
+
+.c-eyb{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
+.c-name{font-family:'Instrument Serif',serif;font-size:36px;font-weight:400;color:#2A1A0A;letter-spacing:-.04em;line-height:.95;margin-bottom:10px;}
+.c-name em{font-style:italic;color:#059669;}
+.c-meta{display:flex;gap:14px;font-size:12px;color:#8A7A6A;margin-bottom:16px;}
+.c-meta strong{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#2A1A0A;font-size:14px;}
+
+.c-stats{display:flex;align-items:center;gap:14px;padding-top:14px;border-top:1px solid rgba(180,140,80,.1);}
+.c-ring{flex-shrink:0;position:relative;}
+.rt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rt-p{font-family:'Fraunces','Rubik',serif;font-weight:600;font-style:italic;font-size:20px;color:#059669;letter-spacing:-.03em;}
+.rt-l{font-size:9px;color:#8A7A6A;}
+.c-stats-list{flex:1;display:flex;flex-direction:column;gap:5px;}
+.cs-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#8A7A6A;}
+.cs-val{font-family:'Fraunces','Rubik',serif;font-weight:600;font-style:italic;color:#2A1A0A;font-size:14px;letter-spacing:-.02em;}
+
+/* TABS */
+.tabs{display:flex;background:#F5F0E8;border-radius:12px;padding:3px;}
+.tab{flex:1;padding:7px 0;text-align:center;font-size:11px;font-weight:600;color:#8A7A6A;border-radius:9px;}
+.tab.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+
+/* WEEK SELECTOR */
+.week-sel{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.week-sel::-webkit-scrollbar{display:none;}
+.w{flex-shrink:0;border-radius:10px;padding:8px 12px;text-align:center;background:#fff;border:1px solid rgba(180,140,80,.12);min-width:54px;}
+.w.active{background:#059669;border-color:#059669;}
+.w-eyb{font-size:8px;font-weight:600;color:#8A7A6A;letter-spacing:.1em;text-transform:uppercase;}
+.w.active .w-eyb{color:rgba(255,255,255,.6);}
+.w-num{font-family:'Fraunces','Rubik',serif;font-weight:600;font-style:italic;font-size:18px;color:#2A1A0A;line-height:1;margin-top:2px;letter-spacing:-.03em;}
+.w.active .w-num{color:#fff;}
+.w.done .w-num{color:#8A7A6A;}
+.w.done::after{content:'✓';position:absolute;}
+
+/* SECTION head */
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.sec-ttl em{font-style:italic;color:#059669;}
+.sec-meta{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:#8A7A6A;}
+
+/* TASK GROUPS */
+.tg{background:#fff;border-radius:16px;border:1px solid rgba(180,140,80,.12);box-shadow:0 1px 6px rgba(40,20,0,.04);overflow:hidden;}
+.tg-head{padding:12px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(180,140,80,.08);}
+.tg-ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.tg-ico.l{background:#EFF6FF;color:#1E40AF;}
+.tg-ico.t{background:#F0FDF4;color:#065F46;}
+.tg-ico.h{background:#FFFBEB;color:#D97706;}
+.tg-name{flex:1;font-family:'Instrument Serif',serif;font-size:15px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.tg-cnt{font-family:'Fraunces','Rubik',serif;font-weight:600;font-style:italic;font-size:13px;color:#8A7A6A;letter-spacing:-.02em;}
+.tg-item{padding:10px 14px;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(180,140,80,.06);}
+.tg-item:first-of-type{border-top:none;}
+.t-check{width:20px;height:20px;border:1.5px solid rgba(5,150,105,.4);border-radius:50%;flex-shrink:0;background:#fff;}
+.t-check.done{background:#059669;border-color:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;}
+.tg-txt{flex:1;font-size:13px;color:#2A1A0A;font-weight:500;}
+.tg-txt.done{color:#8A7A6A;text-decoration:line-through;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Screen 5 · Course Detail</div>
+<div class="ttl">פרטי <em>קורס</em> — אינפי 2</div>
+<div class="dsc">הירו עם שם הקורס הענק · רינג התקדמות · טאבים · בוחר שבוע · משימות שבועיות מקובצות</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-back">›</div>
+      <div class="h-mid">
+        <div class="h-eyb">קורס</div>
+        <div class="h-title"><em>אינפי 2</em></div>
+      </div>
+      <div class="h-more">⋯</div>
+    </div>
+    <div class="content">
+
+      <div class="c-hero">
+        <div class="c-eyb">סמסטר ב׳ · 2026</div>
+        <div class="c-name"><em>אינפי</em> 2</div>
+        <div class="c-meta">
+          <div>שבוע <strong>9</strong> מ-14</div>
+          <div>מועד A · <strong>30 ימים</strong></div>
+        </div>
+        <div class="c-stats">
+          <div class="c-ring">
+            <svg width="76" height="76" viewBox="0 0 76 76" fill="none">
+              <circle cx="38" cy="38" r="32" stroke="rgba(5,150,105,.12)" stroke-width="9"/>
+              <circle cx="38" cy="38" r="32" stroke="#059669" stroke-width="9" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="70" transform="rotate(-90 38 38)"/>
+            </svg>
+            <div class="rt"><div class="rt-p">65%</div><div class="rt-l">הושלם</div></div>
+          </div>
+          <div class="c-stats-list">
+            <div class="cs-row"><span>משימות הושלמו</span><span class="cs-val">28 / 43</span></div>
+            <div class="cs-row"><span>פומודורו השבוע</span><span class="cs-val">12 סשנים</span></div>
+            <div class="cs-row"><span>קבצים</span><span class="cs-val">23</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab">סקירה</div>
+        <div class="tab active">משימות</div>
+        <div class="tab">קבצים</div>
+        <div class="tab">פתקים</div>
+        <div class="tab">קישורים</div>
+      </div>
+
+      <div class="week-sel">
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">1</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">2</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">3</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">4</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">5</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">6</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">7</div></div>
+        <div class="w done"><div class="w-eyb">שבוע</div><div class="w-num">8</div></div>
+        <div class="w active"><div class="w-eyb">שבוע</div><div class="w-num">9</div></div>
+        <div class="w"><div class="w-eyb">שבוע</div><div class="w-num">10</div></div>
+        <div class="w"><div class="w-eyb">שבוע</div><div class="w-num">11</div></div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-ttl">משימות <em>שבוע 9</em></div>
+        <div class="sec-meta">3 מתוך 5</div>
+      </div>
+
+      <div class="tg">
+        <div class="tg-head">
+          <div class="tg-ico l">🎓</div>
+          <div class="tg-name">הרצאות</div>
+          <div class="tg-cnt">2/2</div>
+        </div>
+        <div class="tg-item">
+          <div class="t-check done">✓</div>
+          <div class="tg-txt done">לצפות בהרצאה 9 — אינטגרלים</div>
+        </div>
+        <div class="tg-item">
+          <div class="t-check done">✓</div>
+          <div class="tg-txt done">לצפות בהרצאה 10 — שיטות חישוב</div>
+        </div>
+      </div>
+
+      <div class="tg">
+        <div class="tg-head">
+          <div class="tg-ico t">📝</div>
+          <div class="tg-name">תרגולים</div>
+          <div class="tg-cnt">1/2</div>
+        </div>
+        <div class="tg-item">
+          <div class="t-check done">✓</div>
+          <div class="tg-txt done">לפתור תרגול 9</div>
+        </div>
+        <div class="tg-item">
+          <div class="t-check"></div>
+          <div class="tg-txt">לפתור תרגול 10</div>
+        </div>
+      </div>
+
+      <div class="tg">
+        <div class="tg-head">
+          <div class="tg-ico h">📚</div>
+          <div class="tg-name">שיעורי בית</div>
+          <div class="tg-cnt">0/1</div>
+        </div>
+        <div class="tg-item">
+          <div class="t-check"></div>
+          <div class="tg-txt">להגיש שיעור בית 9 · להגשה 8/6</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item active"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Instrument · Studies</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:84px;}
+.screen::-webkit-scrollbar{display:none;}
+
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 13px;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-between;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-title{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.wordmark{font-size:15px;font-weight:700;color:#2A1A0A;letter-spacing:-.02em;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:17px;}
+
+.content{padding:14px 14px 0;display:flex;flex-direction:column;gap:14px;}
+
+/* HERO */
+.s-hero{background:#fff;border-radius:22px;padding:20px 18px;border:1px solid rgba(180,140,80,.14);box-shadow:0 4px 24px rgba(40,20,0,.07);position:relative;overflow:hidden;}
+.s-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#065F46,#059669,#047857);}
+.sh-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;}
+.sh-eyb{font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;}
+.sh-ttl{font-family:'Instrument Serif',serif;font-size:34px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;line-height:.95;}
+.sh-ttl em{font-style:italic;color:#059669;}
+.sh-sem{background:#F0FDF4;border:1px solid rgba(5,150,105,.2);border-radius:14px;padding:9px 12px;text-align:center;}
+.sh-snum{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;color:#065F46;line-height:1;font-style:italic;}
+.sh-slbl{font-size:9px;color:rgba(6,95,70,.55);margin-top:1px;}
+
+.sh-stats{display:flex;gap:0;padding-top:14px;border-top:1px solid rgba(180,140,80,.1);}
+.shs{flex:1;padding:0 12px 0 0;}
+.shs+.shs{padding:0 12px;border-right:1px solid rgba(180,140,80,.1);}
+.shs-val{font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;color:#2A1A0A;letter-spacing:-.03em;line-height:1;font-style:italic;}
+.shs-val.g{color:#059669;}
+.shs-val.b{color:#2563EB;}
+.shs-lbl{font-size:10px;color:#8A7A6A;margin-top:4px;font-weight:500;}
+
+/* COURSES SECTION */
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 4px;}
+.sec-ttl{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.sec-ttl em{font-style:italic;color:#059669;}
+.sec-lnk{font-size:11px;font-weight:600;color:#059669;}
+
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.course{background:#fff;border-radius:18px;padding:14px;border:1px solid rgba(180,140,80,.14);box-shadow:0 2px 10px rgba(40,20,0,.05);position:relative;overflow:hidden;}
+.course::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;}
+.c1::before{background:#059669;}
+.c2::before{background:#2563EB;}
+.c3::before{background:#D97706;}
+.c4::before{background:#7C3AED;}
+.c5::before{background:#DC2626;}
+.c-name{font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#2A1A0A;line-height:1.15;letter-spacing:-.02em;margin-bottom:6px;min-height:42px;}
+.c-week{font-size:10px;color:#8A7A6A;font-weight:500;margin-bottom:8px;}
+.c-week em{font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:#2A1A0A;}
+.c-bar{height:5px;background:rgba(180,140,80,.12);border-radius:3px;overflow:hidden;}
+.c-fill{height:100%;border-radius:3px;}
+.c1 .c-fill{background:#059669;width:65%;}
+.c2 .c-fill{background:#2563EB;width:40%;}
+.c3 .c-fill{background:#D97706;width:78%;}
+.c4 .c-fill{background:#7C3AED;width:32%;}
+.c5 .c-fill{background:#DC2626;width:55%;}
+.c-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:#8A7A6A;}
+.c-exam{font-family:'Instrument Serif',serif;font-style:italic;font-size:11px;color:#059669;font-weight:400;}
+
+/* NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+
+/* === Number override — Fraunces 600 (heavier, still characterful) === */
+.timer-big, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v,
+.day-num, .sh-snum, .rt-p, .m-cal, .w-cal, .hc-bnum,
+.vg, .vp, .vw, .mv {
+  font-family: 'Fraunces','Rubik',serif !important;
+  font-weight: 600 !important;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0 !important;
+  letter-spacing: -.04em !important;
+}
+/* Italic numbers (where it was italic before) keep italic with Fraunces */
+.timer-big em, .ch-big, .ts-v, .mac-v, .shs-val, .ths-v, .sh-snum, .rt-p, .m-cal, .w-cal {
+  font-style: italic !important;
+}
+/* Day numbers and bigger heroes get a bit more weight */
+.day-num, .timer-big, .ch-big {
+  font-weight: 600 !important;
+}
+.day.today .day-num {
+  font-weight: 700 !important;
+}
+/* Tabular figures for cleaner alignment in lists */
+.t-due, .m-time, .w-time, .ses-meta, .day-tl-meta, .sec-cnt {
+  font-feature-settings: "tnum" 1;
+}
+</style>
+</head>
+<body>
+<div class="lbl">Instrument · Screen 2</div>
+<div class="ttl">Studies — <em>הקורסים שלי</em></div>
+<div class="dsc">ראש כללי + רשת קורסים עם פס צבעוני · שם קורס ב-Instrument Serif · אחוזי התקדמות באיטליק</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="avatar">א</div>
+      <div class="h-title">לימודים</div>
+      <div class="wordmark">calori<em> life</em></div>
+    </div>
+    <div class="content">
+
+      <div class="s-hero">
+        <div class="sh-top">
+          <div>
+            <div class="sh-eyb">סמסטר ב׳ · 2026</div>
+            <div class="sh-ttl">חמישה <em>קורסים</em></div>
+          </div>
+          <div class="sh-sem">
+            <div class="sh-snum">30</div>
+            <div class="sh-slbl">ימים לאינפי 2</div>
+          </div>
+        </div>
+        <div class="sh-stats">
+          <div class="shs"><div class="shs-val g">53%</div><div class="shs-lbl">התקדמות ממוצעת</div></div>
+          <div class="shs"><div class="shs-val">180</div><div class="shs-lbl">משימות שבועיות</div></div>
+          <div class="shs"><div class="shs-val b">12</div><div class="shs-lbl">שבועות שנשארו</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head">
+          <div class="sec-ttl">הקורסים <em>שלי</em></div>
+          <div class="sec-lnk">+ הוסף קורס</div>
+        </div>
+      </div>
+
+      <div class="courses">
+        <div class="course c1">
+          <div class="c-name">אינפי 2</div>
+          <div class="c-week">שבוע <em>9</em> מתוך 14</div>
+          <div class="c-bar"><div class="c-fill"></div></div>
+          <div class="c-meta">
+            <span>65% הושלם</span>
+            <span class="c-exam">30 יום</span>
+          </div>
+        </div>
+        <div class="course c2">
+          <div class="c-name">אלגברה לינארית 2</div>
+          <div class="c-week">שבוע <em>6</em> מתוך 14</div>
+          <div class="c-bar"><div class="c-fill"></div></div>
+          <div class="c-meta">
+            <span>40% הושלם</span>
+            <span class="c-exam">45 יום</span>
+          </div>
+        </div>
+        <div class="course c3">
+          <div class="c-name">תכנות בשפת C</div>
+          <div class="c-week">שבוע <em>11</em> מתוך 14</div>
+          <div class="c-bar"><div class="c-fill"></div></div>
+          <div class="c-meta">
+            <span>78% הושלם</span>
+            <span class="c-exam">52 יום</span>
+          </div>
+        </div>
+        <div class="course c4">
+          <div class="c-name">מבני נתונים</div>
+          <div class="c-week">שבוע <em>5</em> מתוך 14</div>
+          <div class="c-bar"><div class="c-fill"></div></div>
+          <div class="c-meta">
+            <span>32% הושלם</span>
+            <span class="c-exam">58 יום</span>
+          </div>
+        </div>
+        <div class="course c5">
+          <div class="c-name">לוגיקה ותורת הקבוצות</div>
+          <div class="c-week">שבוע <em>8</em> מתוך 14</div>
+          <div class="c-bar"><div class="c-fill"></div></div>
+          <div class="c-meta">
+            <span>55% הושלם</span>
+            <span class="c-exam">38 יום</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item active"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

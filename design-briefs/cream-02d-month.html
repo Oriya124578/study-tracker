@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Calendar — Month View</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:100px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 0;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);}
+.h-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-month{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.h-month em{font-style:italic;color:#059669;}
+.wordmark{font-size:19px;font-weight:800;color:#2A1A0A;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:21px;}
+.seg{display:flex;background:#F5F0E8;border-radius:12px;padding:3px;margin-bottom:10px;}
+.seg-i{flex:1;padding:7px 0;text-align:center;font-size:11px;font-weight:600;color:#8A7A6A;border-radius:9px;cursor:pointer;}
+.seg-i.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+
+.dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding-bottom:8px;}
+.dow{text-align:center;font-size:10px;font-weight:600;color:#8A7A6A;letter-spacing:.05em;}
+
+.month-grid{padding:0 16px 16px;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cell{aspect-ratio:1/1.15;border-radius:8px;padding:5px 3px;background:#fff;border:1px solid rgba(180,140,80,.08);display:flex;flex-direction:column;}
+.cell.muted{background:rgba(180,140,80,.04);}
+.cell.muted .c-num{color:rgba(138,122,106,.3);}
+.cell.today{background:#059669;border-color:#059669;}
+.c-num{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:13px;color:#2A1A0A;text-align:center;letter-spacing:-.02em;}
+.cell.today .c-num{color:#fff;}
+.c-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:3px;}
+.c-d{width:4px;height:4px;border-radius:50%;}
+.c-d.g{background:#059669;}
+.c-d.b{background:#2563EB;}
+.c-d.r{background:#EF4444;}
+.c-d.p{background:#7C3AED;}
+.c-d.a{background:#D97706;}
+.cell.today .c-d{background:#fff;}
+.c-tag{font-size:7px;font-weight:700;text-align:center;line-height:1.1;margin-top:2px;color:#1E40AF;padding:0 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.c-tag.r{color:#991B1B;}
+.c-tag.g{color:#065F46;}
+
+.legend{padding:14px 20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:#8A7A6A;}
+.leg .dot{width:6px;height:6px;border-radius:50%;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Calendar · 02d · Month</div>
+<div class="ttl">לוח שנה — <em>חודש</em></div>
+<div class="dsc">Month grid · 6 שורות · אירועים כנקודות צבעוניות + תגים קצרים</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-top">
+        <div class="avatar">א</div>
+        <div class="h-month"><em>יוני</em> 2026</div>
+        <div class="wordmark">calori<em> life</em></div>
+      </div>
+      <div class="seg">
+        <div class="seg-i">יום</div>
+        <div class="seg-i">3 ימים</div>
+        <div class="seg-i">שבוע</div>
+        <div class="seg-i active">חודש</div>
+        <div class="seg-i">לוח זמנים</div>
+      </div>
+      <div class="dow-row">
+        <div class="dow">א׳</div><div class="dow">ב׳</div><div class="dow">ג׳</div><div class="dow">ד׳</div><div class="dow">ה׳</div><div class="dow">ו׳</div><div class="dow">ש׳</div>
+      </div>
+    </div>
+
+    <div class="month-grid">
+      <!-- Week 1 -->
+      <div class="cell muted"><div class="c-num">31</div></div>
+      <div class="cell"><div class="c-num">1</div><div class="c-dots"><div class="c-d g"></div></div></div>
+      <div class="cell"><div class="c-num">2</div><div class="c-dots"><div class="c-d b"></div><div class="c-d p"></div></div></div>
+      <div class="cell"><div class="c-num">3</div><div class="c-tag">חתונה</div></div>
+      <div class="cell today"><div class="c-num">4</div><div class="c-dots"><div class="c-d"></div><div class="c-d"></div></div></div>
+      <div class="cell"><div class="c-num">5</div><div class="c-dots"><div class="c-d b"></div></div></div>
+      <div class="cell"><div class="c-num">6</div></div>
+
+      <!-- Week 2 -->
+      <div class="cell"><div class="c-num">7</div></div>
+      <div class="cell"><div class="c-num">8</div><div class="c-dots"><div class="c-d b"></div><div class="c-d p"></div></div></div>
+      <div class="cell"><div class="c-num">9</div><div class="c-tag">פגישה</div></div>
+      <div class="cell"><div class="c-num">10</div><div class="c-dots"><div class="c-d b"></div></div></div>
+      <div class="cell"><div class="c-num">11</div><div class="c-dots"><div class="c-d g"></div></div></div>
+      <div class="cell"><div class="c-num">12</div><div class="c-tag">יום הולדת</div></div>
+      <div class="cell"><div class="c-num">13</div></div>
+
+      <!-- Week 3 -->
+      <div class="cell"><div class="c-num">14</div></div>
+      <div class="cell"><div class="c-num">15</div><div class="c-dots"><div class="c-d b"></div></div></div>
+      <div class="cell"><div class="c-num">16</div></div>
+      <div class="cell"><div class="c-num">17</div><div class="c-dots"><div class="c-d p"></div></div></div>
+      <div class="cell"><div class="c-num">18</div><div class="c-dots"><div class="c-d b"></div></div></div>
+      <div class="cell"><div class="c-num">19</div></div>
+      <div class="cell"><div class="c-num">20</div></div>
+
+      <!-- Week 4 -->
+      <div class="cell"><div class="c-num">21</div></div>
+      <div class="cell"><div class="c-num">22</div><div class="c-tag g">קפה</div></div>
+      <div class="cell"><div class="c-num">23</div></div>
+      <div class="cell"><div class="c-num">24</div><div class="c-dots"><div class="c-d b"></div></div></div>
+      <div class="cell"><div class="c-num">25</div><div class="c-tag">סמסטר</div></div>
+      <div class="cell"><div class="c-num">26</div></div>
+      <div class="cell"><div class="c-num">27</div></div>
+
+      <!-- Week 5 -->
+      <div class="cell"><div class="c-num">28</div></div>
+      <div class="cell"><div class="c-num">29</div></div>
+      <div class="cell"><div class="c-num">30</div></div>
+      <div class="cell"><div class="c-num">1</div><div class="c-tag r">⏰ אינפי 2</div></div>
+      <div class="cell muted"><div class="c-num">2</div></div>
+      <div class="cell muted"><div class="c-num">3</div></div>
+      <div class="cell muted"><div class="c-num">4</div></div>
+    </div>
+
+    <div class="legend">
+      <div class="leg"><div class="dot" style="background:#059669"></div>תזונה</div>
+      <div class="leg"><div class="dot" style="background:#7C3AED"></div>אימונים</div>
+      <div class="leg"><div class="dot" style="background:#2563EB"></div>לימודים</div>
+      <div class="leg"><div class="dot" style="background:#EF4444"></div>מבחנים</div>
+      <div class="leg"><div class="dot" style="background:#D97706"></div>אירועים</div>
+    </div>
+
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item active"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>

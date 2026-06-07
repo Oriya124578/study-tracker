@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cream · Calendar — 3 Day View</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#DDD5C8;min-height:100vh;font-family:'Inter','Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:14px;}
+.lbl{font-size:10px;font-weight:600;color:#6A5A4A;letter-spacing:.16em;text-transform:uppercase;text-align:center;}
+.ttl{font-family:'Instrument Serif','Rubik',serif;font-size:22px;font-weight:400;color:#2A1A0A;text-align:center;margin-top:4px;}
+.dsc{font-size:12px;color:#8A7A6A;text-align:center;margin-top:4px;max-width:340px;line-height:1.5;}
+.phone{width:390px;height:844px;border-radius:50px;overflow:hidden;position:relative;background:#FAF7F2;box-shadow:0 40px 80px rgba(40,20,0,.2),0 0 0 1.5px rgba(180,140,80,.15);flex-shrink:0;}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#2A1A0A;border-radius:20px;z-index:100;}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:100px;}
+.screen::-webkit-scrollbar{display:none;}
+.header{position:sticky;top:0;z-index:50;padding:52px 20px 0;background:rgba(250,247,242,.94);backdrop-filter:blur(22px);}
+.h-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:#065F46;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.h-month{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:#2A1A0A;letter-spacing:-.02em;}
+.h-month em{font-style:italic;color:#059669;}
+.wordmark{font-size:19px;font-weight:800;color:#2A1A0A;}
+.wordmark em{font-family:'Instrument Serif',serif;font-weight:400;color:#059669;font-size:21px;}
+.seg{display:flex;background:#F5F0E8;border-radius:12px;padding:3px;margin-bottom:10px;}
+.seg-i{flex:1;padding:7px 0;text-align:center;font-size:11px;font-weight:600;color:#8A7A6A;border-radius:9px;cursor:pointer;}
+.seg-i.active{background:#fff;color:#2A1A0A;box-shadow:0 1px 3px rgba(40,20,0,.1);font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;}
+.day-hdr{display:grid;grid-template-columns:50px 1fr 1fr 1fr;padding:0 16px 10px;border-bottom:1px solid rgba(180,140,80,.12);}
+.dh-spc{}
+.dh-day{text-align:center;}
+.dh-name{font-size:10px;color:#8A7A6A;font-weight:600;}
+.dh-num{font-family:'Fraunces',serif;font-weight:600;font-style:italic;font-size:22px;color:#2A1A0A;margin-top:2px;letter-spacing:-.03em;}
+.dh-day.today .dh-num{color:#fff;background:#059669;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;}
+.dh-day.today .dh-name{color:#059669;}
+
+.grid{display:grid;grid-template-columns:50px 1fr 1fr 1fr;padding:0 16px;}
+.t-col{display:flex;flex-direction:column;}
+.t-row{height:54px;border-top:1px solid rgba(180,140,80,.08);position:relative;}
+.t-row:first-child{border-top:none;}
+.tl{font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:11px;color:#8A7A6A;padding-top:4px;text-align:left;letter-spacing:-.02em;}
+.dc{position:relative;border-right:1px solid rgba(180,140,80,.06);}
+.dc:last-child{border-right:none;}
+.evt{position:absolute;left:3px;right:3px;border-radius:6px;padding:5px 7px;font-size:10px;line-height:1.2;overflow:hidden;}
+.evt-n{font-weight:700;font-size:10px;}
+.evt-m{font-family:'Instrument Serif',serif;font-style:italic;font-size:9px;margin-top:1px;}
+.evt.lec{background:#EFF6FF;border:1px solid rgba(37,99,235,.2);color:#1E40AF;}
+.evt.meal{background:#059669;color:#fff;}
+.evt.meal .evt-m{color:rgba(255,255,255,.7);}
+.evt.exam{background:#FEF2F2;border:1px solid rgba(239,68,68,.25);color:#991B1B;}
+.evt.event{background:#fff;border:1px solid rgba(180,140,80,.2);color:#2A1A0A;}
+.now-line{position:absolute;left:0;right:0;height:2px;background:#DC2626;z-index:5;}
+.now-line::before{content:'';position:absolute;left:-3px;width:8px;height:8px;border-radius:50%;background:#DC2626;top:-3px;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:rgba(250,247,242,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(180,140,80,.12);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.ni{font-size:20px;opacity:.25;}
+.nl{font-size:10px;font-weight:600;color:rgba(42,26,10,.3);}
+.nav-item.active .ni{opacity:1;}
+.nav-item.active .nl{color:#059669;}
+.fab{position:absolute;bottom:88px;left:20px;width:52px;height:52px;border-radius:50%;background:#065F46;color:#fff;font-size:26px;font-weight:200;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(6,95,70,.35);z-index:60;}
+</style>
+</head>
+<body>
+<div class="lbl">Calendar · 02b · 3 Days</div>
+<div class="ttl">לוח שנה — <em>3 ימים</em></div>
+<div class="dsc">3-day side-by-side · רואים פחות שעות אבל הקשרים בין הימים</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="header">
+      <div class="h-top">
+        <div class="avatar">א</div>
+        <div class="h-month"><em>יוני</em> 2026</div>
+        <div class="wordmark">calori<em> life</em></div>
+      </div>
+      <div class="seg">
+        <div class="seg-i">יום</div>
+        <div class="seg-i active">3 ימים</div>
+        <div class="seg-i">שבוע</div>
+        <div class="seg-i">חודש</div>
+        <div class="seg-i">לוח זמנים</div>
+      </div>
+      <div class="day-hdr">
+        <div class="dh-spc"></div>
+        <div class="dh-day today"><div class="dh-name">ד׳ · היום</div><div class="dh-num">4</div></div>
+        <div class="dh-day"><div class="dh-name">ה׳</div><div class="dh-num">5</div></div>
+        <div class="dh-day"><div class="dh-name">ו׳</div><div class="dh-num">6</div></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="t-col">
+        <div class="t-row"><div class="tl">07:00</div></div>
+        <div class="t-row"><div class="tl">08:00</div></div>
+        <div class="t-row"><div class="tl">09:00</div></div>
+        <div class="t-row"><div class="tl">10:00</div></div>
+        <div class="t-row"><div class="tl">11:00</div></div>
+        <div class="t-row"><div class="tl">12:00</div></div>
+        <div class="t-row"><div class="tl">13:00</div></div>
+        <div class="t-row"><div class="tl">14:00</div></div>
+        <div class="t-row"><div class="tl">15:00</div></div>
+        <div class="t-row"><div class="tl">16:00</div></div>
+        <div class="t-row"><div class="tl">17:00</div></div>
+        <div class="t-row"><div class="tl">18:00</div></div>
+        <div class="t-row"><div class="tl">19:00</div></div>
+        <div class="t-row"><div class="tl">20:00</div></div>
+      </div>
+
+      <!-- Day 1 (Today) -->
+      <div class="t-col">
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt meal" style="top:30px;height:30px"><div class="evt-n">משקה חלבון</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt workout" style="background:#7C3AED;color:#fff;top:5px;height:44px"><div class="evt-n">פומודורו</div><div class="evt-m" style="color:rgba(255,255,255,.7)">25 דק׳</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt lec" style="top:0;height:105px"><div class="evt-n">אינפי 2</div><div class="evt-m">ד"ר ניב</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="now-line" style="top:0"></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt event" style="top:0;height:50px"><div class="evt-n">פגישה</div><div class="evt-m">משרד 305</div></div></div>
+        <div class="t-row dc"><div class="evt exam" style="top:25px;height:40px"><div class="evt-n">⏰ אינפי</div></div></div>
+        <div class="t-row dc"></div>
+      </div>
+
+      <!-- Day 2 -->
+      <div class="t-col">
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt lec" style="top:0;height:80px"><div class="evt-n">פגישה</div><div class="evt-m">מרצה</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt event" style="top:0;height:50px"><div class="evt-n">קניות</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+      </div>
+
+      <!-- Day 3 -->
+      <div class="t-col">
+        <div class="t-row dc"><div class="evt workout" style="background:#7C3AED;color:#fff;top:30px;height:50px"><div class="evt-n">ריצה</div><div class="evt-m" style="color:rgba(255,255,255,.7)">+285</div></div></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"></div>
+        <div class="t-row dc"><div class="evt event" style="top:0;height:60px"><div class="evt-n">חתונה</div><div class="evt-m">בירנבאום</div></div></div>
+        <div class="t-row dc"></div>
+      </div>
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="ni">✨</div><div class="nl">המנהל</div></div>
+    <div class="nav-item"><div class="ni">🏠</div><div class="nl">בית</div></div>
+    <div class="nav-item active"><div class="ni">📅</div><div class="nl">לוח שנה</div></div>
+    <div class="nav-item"><div class="ni">📚</div><div class="nl">לימודים</div></div>
+  </div>
+</div>
+</body>
+</html>
