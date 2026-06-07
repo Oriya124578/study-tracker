@@ -1,14 +1,17 @@
 import React from 'react';
-import { Home, Calendar, BookOpen, Bot, Settings, Target } from 'lucide-react';
+import { Home, Calendar, BookOpen, Sparkles } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 
+// v3 cream redesign — EXACTLY 4 tabs. RTL right→left:
+// ✨ Manager · 🏠 Home · 📅 Calendar · 📚 Studies
+// Focus moved to FAB. Calori opens from Home Hero card tap. Tasks/Notes from FAB.
 const NAV_ITEMS = [
-  { key: 'commandCenter', icon: Bot, labelKey: 'navCommandCenter' },
-  { key: 'overview', icon: Home, labelKey: 'navHome' },
-  { key: 'courses', icon: BookOpen, labelKey: 'navStudies' },
-  { key: 'focus', icon: Target, labelKey: 'navFocus' },
+  { key: 'commandCenter', icon: Sparkles, labelKey: 'navManager',  activeColor: 'text-fitness-primary' },
+  { key: 'overview',      icon: Home,     labelKey: 'navHome',     activeColor: 'text-nutrition-primary' },
+  { key: 'calendar',      icon: Calendar, labelKey: 'navCalendar', activeColor: 'text-nutrition-primary' },
+  { key: 'courses',       icon: BookOpen, labelKey: 'navStudies',  activeColor: 'text-nutrition-primary' },
 ];
 
 export const BottomNav = () => {
@@ -26,8 +29,7 @@ export const BottomNav = () => {
         const Icon = item.icon;
         const isActive =
           activeCategory === item.key ||
-          (item.key === 'courses' && (activeCategory === 'courses' || activeCategory === 'course')) ||
-          (item.key === 'commandCenter' && (activeCategory === 'commandCenter' || activeCategory === 'calendar'));
+          (item.key === 'courses' && (activeCategory === 'courses' || activeCategory === 'course'));
 
         return (
           <button
@@ -36,10 +38,10 @@ export const BottomNav = () => {
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all min-w-[56px] rounded-xl hover:bg-muted/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
-              isActive ? 'text-primary' : 'text-muted-foreground',
+              isActive ? item.activeColor || 'text-primary' : 'text-muted-foreground',
             )}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className={cn('w-5 h-5', isActive ? '' : 'opacity-50')} />
             <span className="text-[10px] font-bold leading-none mt-1">
               {t(item.labelKey)}
             </span>

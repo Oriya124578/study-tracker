@@ -428,6 +428,7 @@ export const translations = {
 
     // Navigation & Command Center
     navCommandCenter: 'המנהל האישי',
+    navManager: 'המנהל',
     saveCommandCenterSettings: 'שמור הגדרות מנהל אישי',
 
     // Dashboard Bento tiles
@@ -980,6 +981,7 @@ export const translations = {
 
     // Navigation & Command Center
     navCommandCenter: 'Personal Manager',
+    navManager: 'Manager',
     saveCommandCenterSettings: 'Save Personal Manager Settings',
 
     // Dashboard Bento tiles

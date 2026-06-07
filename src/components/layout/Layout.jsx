@@ -45,6 +45,9 @@ export const Layout = () => {
   useNotificationScheduler();
 
   const renderContent = () => {
+    if (activeCategory.startsWith('settings')) {
+      return <SettingsView />;
+    }
     switch (activeCategory) {
       case 'overview':
         return <SmartDashboard />;
@@ -52,8 +55,6 @@ export const Layout = () => {
         return <CalendarView />;
       case 'course':
         return <CourseView />;
-      case 'settings':
-        return <SettingsView />;
       case 'courses':
         return <StudiesHub />;
       case 'tasks':
@@ -76,7 +77,7 @@ export const Layout = () => {
       ? activeCourse.name
       : activeCategory === 'calendar'
       ? t('navCalendar')
-      : activeCategory === 'settings'
+      : activeCategory.startsWith('settings')
       ? t('navSettings')
       : activeCategory === 'courses'
       ? t('navStudies')
@@ -103,14 +104,16 @@ export const Layout = () => {
           <button
             onClick={() => setActiveCategory('settings')}
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border shadow-sm transition-all hover:scale-105 active:scale-95 duration-200 select-none cursor-pointer shrink-0",
-              activeCategory === 'settings'
+              "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border shadow-sm transition-all hover:scale-105 active:scale-95 duration-200 select-none cursor-pointer shrink-0 overflow-hidden",
+              activeCategory.startsWith('settings')
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
             )}
             title={t('navSettings', 'הגדרות')}
           >
-            {displayName ? displayName.trim().charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
+            {data?.profile?.photoURL ? (
+               <img src={data.profile.photoURL} alt="Profile" className="w-full h-full object-cover" />
+            ) : displayName ? displayName.trim().charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
           </button>
           <h1
             className="font-black text-xl tracking-tight bg-clip-text text-transparent truncate text-start select-none"
@@ -120,9 +123,10 @@ export const Layout = () => {
           </h1>
         </div>
         <div className="flex items-center gap-3 shrink-0" dir="ltr">
+          {/* v3 cream wordmark: 'calori' Inter 800, ' life' Instrument Serif italic 400 green, slightly larger for prominence */}
           <div className="flex flex-col items-end select-none">
-            <span className="text-2xl font-black tracking-tight text-foreground leading-none">
-              calori<span className="text-primary font-medium ms-0.5">life</span>
+            <span className="text-[22px] font-extrabold tracking-tight text-foreground leading-none">
+              calori<span className="text-primary font-serif italic font-normal text-[24px] ms-0.5">life</span>
             </span>
           </div>
         </div>
