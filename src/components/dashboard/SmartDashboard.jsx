@@ -332,7 +332,7 @@ export const SmartDashboard = () => {
         </div>
 
         {todayBlocks.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 no-scrollbar">
             {todayBlocks.map((block) => {
               const dotColor = block.type === 'meal' ? '#059669' : block.type === 'workout' ? '#7C3AED' : block.type === 'exam' ? '#EF4444' : '#D6C8B8';
               const cardStyle = block.type === 'meal'

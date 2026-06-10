@@ -808,34 +808,8 @@ export const CommandCenterView = () => {
         )}
       </div>
 
-      {/* Sub-Tabs — cream v3 pill */}
-      <div className="flex gap-[6px] justify-center select-none">
-        {[
-          { key: 'schedule', label: t('ccHourlyTimeline', 'לוז יומי') },
-          { key: 'calendar', label: t('navCalendar', 'לוח שנה') },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveSubTab(tab.key)}
-            className="transition-all cursor-pointer active:scale-95"
-            style={{
-              padding: activeSubTab === tab.key ? '5px 14px' : '6px 12px',
-              borderRadius: 999,
-              fontSize: activeSubTab === tab.key ? 13 : 11,
-              fontWeight: activeSubTab === tab.key ? 400 : 600,
-              fontFamily: activeSubTab === tab.key ? "'Instrument Serif', serif" : "'Inter', sans-serif",
-              fontStyle: activeSubTab === tab.key ? 'italic' : 'normal',
-              background: activeSubTab === tab.key ? '#7C3AED' : '#F5F0E8',
-              color: activeSubTab === tab.key ? '#fff' : '#8A7A6A',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Main Content: Conditional based on activeSubTab */}
-      {activeSubTab === 'schedule' ? (
+      {/* Main Content */}
+      {true ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-in fade-in duration-200">
         
         {/* Left/Middle: Timeline (Spans 2 columns) */}
@@ -1187,11 +1161,7 @@ export const CommandCenterView = () => {
           </div>
         </div>
       </div>
-      ) : activeSubTab === 'calendar' && (
-        <div className="animate-in fade-in duration-200" style={{ ...ccCard, padding: 16 }}>
-          <CalendarView />
-        </div>
-      )}
+      ) : null}
 
       {/* Manual Time Picker Dialog (Upgraded to support dual direction) */}
       {timePickerModal && timePickerModal.taskId && (

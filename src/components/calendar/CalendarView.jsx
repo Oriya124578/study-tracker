@@ -66,6 +66,7 @@ export const CalendarView = () => {
         endDate: safeParse(ev.end),
         allDay: !!ev.allDay,
         location: ev.location,
+        isLocked: ev.isLocked,
       });
     });
 
@@ -270,6 +271,7 @@ export const CalendarView = () => {
                   <div className={styles.itemName}>{item.title}</div>
                   <div className={styles.itemMeta}>{item.location || (item.endDate ? format(item.endDate, 'HH:mm') : '')}</div>
                 </div>
+                <button aria-label="Edit" disabled={item.isLocked} style={{ marginLeft: 'auto', background: 'transparent', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 8px', cursor: item.isLocked ? 'not-allowed' : 'pointer' }}>Edit</button>
               </div>
             </React.Fragment>
           );
@@ -458,31 +460,17 @@ export const CalendarView = () => {
 
   return (
     <div className={styles.wrapper} dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className={viewMode === 'list' || viewMode === 'month' ? styles.monthHero : styles.header}>
-        {viewMode === 'list' || viewMode === 'month' ? (
-          <div className={styles.mhTop}>
-            <div>
-              <div className={styles.mhYear}>{format(currentDate, 'yyyy', { locale })}</div>
-              <div className={styles.mhMonth}><em>{format(currentDate, 'MMMM', { locale })}</em></div>
-            </div>
-            <div className={styles.mhNav}>
-              <div className={styles.navBtn} onClick={() => nav('prev')}>›</div>
-              <div className={styles.navBtn} onClick={() => nav('next')}>‹</div>
-            </div>
+      <div className={styles.monthHero}>
+        <div className={styles.mhTop}>
+          <div>
+            <div className={styles.mhYear}>{format(currentDate, 'yyyy', { locale })}</div>
+            <div className={styles.mhMonth}><em>{format(currentDate, 'MMMM', { locale })}</em></div>
           </div>
-        ) : (
-          <div className={styles.hTop}>
-            <div className={styles.avatar}>א</div>
-            <div className={styles.hMonth}>
-              <div className={styles.navBtn} onClick={() => nav('prev')}>›</div>
-              <em>{format(currentDate, 'MMMM', { locale })}</em> {format(currentDate, 'yyyy')}
-              <div className={styles.navBtn} onClick={() => nav('next')}>‹</div>
-            </div>
-            <div className={styles.wordmark}>
-              calori<em> life</em>
-            </div>
+          <div className={styles.mhNav}>
+            <div className={styles.navBtn} onClick={() => nav('prev')}>›</div>
+            <div className={styles.navBtn} onClick={() => nav('next')}>‹</div>
           </div>
-        )}
+        </div>
         <div className={styles.seg}>
           {[
             { id: 'day', label: 'יום', ariaLabel: 'Day View' },
