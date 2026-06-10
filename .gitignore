@@ -26,3 +26,8 @@ dist-ssr
 # Firebase admin service account (DO NOT COMMIT)
 firebase-admin-key.json
 
+# Test and AI generated logs
+.agents/
+playwright-report/
+test-results/
+lint_output.txt
