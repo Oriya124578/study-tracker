@@ -904,7 +904,7 @@ export const CommandCenterView = () => {
 
                       {/* Content area */}
                       <DroppableHour id={hour} isCovered={isCovered}>
-                        <div className="flex-1 flex flex-col gap-2.5 justify-center h-full min-h-[3rem]">
+                        <div className="flex-1 flex flex-col gap-2.5 justify-center h-full min-h-[3rem] min-w-0">
                           {hourBlocks.length > 0 ? (
                             hourBlocks.map((block) => {
                               const Icon = blockIcons[block.type] || CalendarIcon;

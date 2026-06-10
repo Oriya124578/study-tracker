@@ -156,7 +156,7 @@ export const Layout = () => {
       {/* FAB — cream v3: dark green (#065F46), positioned above nav */}
       <button
         onClick={() => setIsFanMenuOpen(!isFanMenuOpen)}
-        className="fixed left-5 bottom-[88px] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="fixed right-5 bottom-[88px] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         style={{ background: '#065F46', boxShadow: '0 6px 20px rgba(6,95,70,.35)' }}
         aria-label={isFanMenuOpen ? t('close') : t('navMore')}
       >

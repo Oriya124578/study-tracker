@@ -32,39 +32,39 @@ const commitInChunks = async (operations) => {
 
 // --- Path helpers ---------------------------------------------------------
 
-const profileDoc = (uid) => doc(db, 'users', uid, 'cl_profile', 'main');
-const coursesCol = (uid) => collection(db, 'users', uid, 'cl_courses');
-const courseDoc = (uid, courseId) => doc(db, 'users', uid, 'cl_courses', courseId);
-const courseTasksCol = (uid) => collection(db, 'users', uid, 'cl_courseTasks');
-const courseTaskDoc = (uid, taskId) => doc(db, 'users', uid, 'cl_courseTasks', taskId);
-const pomodoroCol = (uid) => collection(db, 'users', uid, 'cl_pomodoroSessions');
+const profileDoc = (uid) => doc(db, 'users', uid, 'profile', 'main');
+const coursesCol = (uid) => collection(db, 'users', uid, 'courses');
+const courseDoc = (uid, courseId) => doc(db, 'users', uid, 'courses', courseId);
+const courseTasksCol = (uid) => collection(db, 'users', uid, 'courseTasks');
+const courseTaskDoc = (uid, taskId) => doc(db, 'users', uid, 'courseTasks', taskId);
+const pomodoroCol = (uid) => collection(db, 'users', uid, 'pomodoroSessions');
 const pomodoroDoc = (uid, sessionId) =>
-  doc(db, 'users', uid, 'cl_pomodoroSessions', sessionId);
-const eventsCol = (uid) => collection(db, 'users', uid, 'cl_events');
-const eventDoc = (uid, id) => doc(db, 'users', uid, 'cl_events', id);
+  doc(db, 'users', uid, 'pomodoroSessions', sessionId);
+const eventsCol = (uid) => collection(db, 'users', uid, 'events');
+const eventDoc = (uid, id) => doc(db, 'users', uid, 'events', id);
 const personalTasksCol = (uid) =>
-  collection(db, 'users', uid, 'cl_personalTasks');
+  collection(db, 'users', uid, 'personalTasks');
 const personalTaskDoc = (uid, id) =>
-  doc(db, 'users', uid, 'cl_personalTasks', id);
-const notesCol = (uid) => collection(db, 'users', uid, 'cl_notes');
-const noteDoc = (uid, id) => doc(db, 'users', uid, 'cl_notes', id);
-const taskListsCol = (uid) => collection(db, 'users', uid, 'cl_taskLists');
-const taskListDoc = (uid, id) => doc(db, 'users', uid, 'cl_taskLists', id);
-const noteCategoriesCol = (uid) => collection(db, 'users', uid, 'cl_noteCategories');
-const noteCategoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_noteCategories', id);
+  doc(db, 'users', uid, 'personalTasks', id);
+const notesCol = (uid) => collection(db, 'users', uid, 'notes');
+const noteDoc = (uid, id) => doc(db, 'users', uid, 'notes', id);
+const taskListsCol = (uid) => collection(db, 'users', uid, 'taskLists');
+const taskListDoc = (uid, id) => doc(db, 'users', uid, 'taskLists', id);
+const noteCategoriesCol = (uid) => collection(db, 'users', uid, 'noteCategories');
+const noteCategoryDoc = (uid, id) => doc(db, 'users', uid, 'noteCategories', id);
 // Phase 6a: single source-of-truth daily schedule.
-const scheduleDoc = (uid, dateStr) => doc(db, 'users', uid, 'cl_schedule', dateStr);
+const scheduleDoc = (uid, dateStr) => doc(db, 'users', uid, 'schedule', dateStr);
 // Phase 6e: per-day analytics aggregate doc.
-const dailyAnalyticsCol = (uid) => collection(db, 'users', uid, 'cl_dailyAnalytics');
-const dailyAnalyticsDoc = (uid, date) => doc(db, 'users', uid, 'cl_dailyAnalytics', date);
+const dailyAnalyticsCol = (uid) => collection(db, 'users', uid, 'dailyAnalytics');
+const dailyAnalyticsDoc = (uid, date) => doc(db, 'users', uid, 'dailyAnalytics', date);
 // Phase 6d: recurring task rules.
-const recurringTasksCol = (uid) => collection(db, 'users', uid, 'cl_recurringTasks');
-const recurringTaskDoc = (uid, id) => doc(db, 'users', uid, 'cl_recurringTasks', id);
-const categoriesCol = (uid) => collection(db, 'users', uid, 'cl_categories');
-const categoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_categories', id);
+const recurringTasksCol = (uid) => collection(db, 'users', uid, 'recurringTasks');
+const recurringTaskDoc = (uid, id) => doc(db, 'users', uid, 'recurringTasks', id);
+const categoriesCol = (uid) => collection(db, 'users', uid, 'categories');
+const categoryDoc = (uid, id) => doc(db, 'users', uid, 'categories', id);
 // Phase 4: AI Manager Suggestions
-const aiSuggestionsCol = (uid) => collection(db, 'users', uid, 'cl_aiSuggestions');
-const aiSuggestionDoc = (uid, id) => doc(db, 'users', uid, 'cl_aiSuggestions', id);
+const aiSuggestionsCol = (uid) => collection(db, 'users', uid, 'aiSuggestions');
+const aiSuggestionDoc = (uid, id) => doc(db, 'users', uid, 'aiSuggestions', id);
 
 // New id helper for client-minted documents.
 export const newId = (uid, kind) => {

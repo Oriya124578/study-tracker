@@ -25,13 +25,13 @@ export const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 px-2 sm:px-4 flex justify-around items-center pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
+      className="fixed bottom-0 inset-x-0 z-50 px-2 sm:px-4 flex justify-around items-center pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
       style={{
         background: 'rgba(250,247,242,.96)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(180,140,80,.12)',
-        height: '72px',
+        minHeight: '72px',
       }}
     >
       {NAV_ITEMS.map((item) => {
