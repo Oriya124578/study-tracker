@@ -28,6 +28,7 @@ const NotesView = lazy(() => import('../notes/NotesView').then((m) => ({ default
 const CaloriView = lazy(() => import('../calori/CaloriView').then((m) => ({ default: m.CaloriView })));
 const CommandCenterView = lazy(() => import('../command-center/CommandCenterView').then((m) => ({ default: m.CommandCenterView })));
 const FocusHub = lazy(() => import('../focus/FocusHub').then((m) => ({ default: m.FocusHub })));
+const ShoppingListView = lazy(() => import('../shopping/ShoppingListView').then((m) => ({ default: m.ShoppingListView })));
 
 // Lightweight, on-brand fallback shown while a lazy view chunk loads.
 const ViewFallback = () => (
@@ -68,6 +69,8 @@ export const Layout = () => {
         return <CommandCenterView />;
       case 'focus':
         return <FocusHub />;
+      case 'shopping':
+        return <ShoppingListView />;
       default:
         return <SmartDashboard />;
     }
@@ -92,6 +95,8 @@ export const Layout = () => {
       ? t('navCommandCenter')
       : activeCategory === 'focus'
       ? t('navFocus', 'פוקוס')
+      : activeCategory === 'shopping'
+      ? t('shoppingTitle')
       : t('navHome');
 
   return (

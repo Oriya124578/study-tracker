@@ -55,7 +55,13 @@ import {
   newId,
   subscribeAiSuggestions,
   updateAiSuggestion,
+  subscribeShoppingLists,
+  setShoppingList as fsSetShoppingList,
+  deleteShoppingList as fsDeleteShoppingList,
+  subscribeGroceryDict,
+  mergeGroceryDict,
 } from '../lib/firestoreRepo';
+import { applyExternalDict, genItemId } from '../lib/groceryCategories';
 import { recurringInstancesForDate } from '../lib/recurrence';
 import {
   dateKey,
@@ -349,6 +355,16 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, aiSuggestions } }));
     });
 
+    const unsubShoppingLists = subscribeShoppingLists(uid, (shoppingLists) => {
+      set((state) => ({ data: { ...state.data, shoppingLists } }));
+    });
+
+    // Seed the local grocery dict cache from Firestore so AI learnings flow
+    // between devices.
+    const unsubGroceryDict = subscribeGroceryDict(uid, (dict) => {
+      applyExternalDict(dict);
+    });
+
     // ── Calori bridge (READ-ONLY) ──
     // Recent history is date-range independent; subscribe once here.
     const unsubRecentCalori = subscribeRecentDailyHistory(uid, (recentHistory) => {
@@ -402,6 +418,8 @@ export const useStore = create((set, get) => ({
         unsubRecurringTasks,
         unsubRecentDailyAnalytics,
         unsubAiSuggestions,
+        unsubShoppingLists,
+        unsubGroceryDict,
       ],
     });
 
@@ -683,6 +701,153 @@ export const useStore = create((set, get) => ({
       return { data: { ...state.data, aiSuggestions: suggestions } };
     });
     await updateAiSuggestion(uid, suggestionId, { status }).catch(console.error);
+  },
+
+  // ---------- Shopping lists (cl_shoppingLists) -------------------------
+  // Items live as an array inside each list doc. Every mutation rewrites the
+  // items array (lists stay small — typically 20-40 items).
+
+  createShoppingList: async (name, rawText, items) => {
+    const { uid, data } = get();
+    if (!uid) return null;
+    const id = newId(uid, 'shoppingList');
+    const now = new Date().toISOString();
+    const list = {
+      name: name || 'רשימת קניות',
+      createdAt: now,
+      updatedAt: now,
+      isActive: true,
+      items: items || [],
+      rawText: rawText || '',
+    };
+    // Optimistic: deactivate previous active lists, prepend the new one.
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: [
+          { id, ...list },
+          ...state.data.shoppingLists.map((l) =>
+            l.isActive ? { ...l, isActive: false } : l
+          ),
+        ],
+      },
+    }));
+    // Persist: deactivate old actives, then create.
+    for (const l of data.shoppingLists) {
+      if (l.isActive) {
+        fsSetShoppingList(uid, l.id, { isActive: false, updatedAt: now }).catch(console.error);
+      }
+    }
+    await fsSetShoppingList(uid, id, list).catch(console.error);
+    return id;
+  },
+
+  // Compute the next items array INSIDE the set updater so rapid sequential
+  // mutations chain off each other's result instead of all reading the same
+  // pre-mutation snapshot (which would clobber earlier writes).
+  _patchShoppingItems: (listId, mutate) => {
+    const { uid } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    let nextItems = null;
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) => {
+          if (l.id !== listId) return l;
+          nextItems = mutate(l.items || []);
+          return { ...l, items: nextItems, updatedAt: now };
+        }),
+      },
+    }));
+    if (nextItems) fsSetShoppingList(uid, listId, { items: nextItems, updatedAt: now }).catch(console.error);
+  },
+
+  toggleShoppingItem: (listId, itemId) =>
+    get()._patchShoppingItems(listId, (items) =>
+      items.map((it) => (it.id === itemId ? { ...it, checked: !it.checked } : it))
+    ),
+
+  addShoppingItem: (listId, item) =>
+    get()._patchShoppingItems(listId, (items) => [
+      ...items,
+      {
+        id: genItemId(),
+        name: item.name || '',
+        category: item.category || 'other',
+        checked: false,
+        qty: item.qty || null,
+        unit: item.unit || null,
+        addedAt: new Date().toISOString(),
+      },
+    ]),
+
+  updateShoppingItem: (listId, itemId, patch) =>
+    get()._patchShoppingItems(listId, (items) =>
+      items.map((it) => (it.id === itemId ? { ...it, ...patch } : it))
+    ),
+
+  removeShoppingItem: (listId, itemId) =>
+    get()._patchShoppingItems(listId, (items) =>
+      items.filter((it) => it.id !== itemId)
+    ),
+
+  clearShoppingList: (listId) => {
+    const { uid } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) =>
+          l.id === listId ? { ...l, isActive: false, updatedAt: now } : l
+        ),
+      },
+    }));
+    fsSetShoppingList(uid, listId, { isActive: false, updatedAt: now }).catch(console.error);
+  },
+
+  reopenShoppingList: (listId) => {
+    const { uid, data } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) =>
+          l.id === listId
+            ? { ...l, isActive: true, updatedAt: now }
+            : l.isActive
+            ? { ...l, isActive: false }
+            : l
+        ),
+      },
+    }));
+    for (const l of data.shoppingLists) {
+      if (l.isActive && l.id !== listId) {
+        fsSetShoppingList(uid, l.id, { isActive: false, updatedAt: now }).catch(console.error);
+      }
+    }
+    fsSetShoppingList(uid, listId, { isActive: true, updatedAt: now }).catch(console.error);
+  },
+
+  deleteShoppingList: (listId) => {
+    const { uid } = get();
+    if (!uid) return;
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.filter((l) => l.id !== listId),
+      },
+    }));
+    fsDeleteShoppingList(uid, listId).catch(console.error);
+  },
+
+  // Persist a learned item→category mapping to Firestore (cross-device sync).
+  learnGroceryItems: (learnedMap) => {
+    const { uid } = get();
+    if (!uid || !learnedMap || Object.keys(learnedMap).length === 0) return;
+    mergeGroceryDict(uid, learnedMap).catch(console.error);
   },
 
   // ---------- Courses ----------------------------------------------------

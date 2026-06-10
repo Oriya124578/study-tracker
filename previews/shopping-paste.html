@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Shopping List — Paste & Parse</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg: #FAF7F2; --ink: #2A1A0A; --muted: #8A7A6A; --sub: #5A4A3A;
+    --border: rgba(180,140,80,.12); --border-mid: rgba(180,140,80,.14);
+    --green: #059669; --green-soft: #D1FAE5; --green-light: rgba(5,150,105,.08);
+    --card-shadow: 0 2px 10px rgba(40,20,0,.05);
+    --sans: 'Inter','Rubik','Heebo',system-ui,sans-serif;
+    --serif: 'Instrument Serif',serif;
+    --display: 'Fraunces',serif;
+  }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    max-width: 430px; margin: 0 auto; min-height: 100dvh;
+    display: flex; flex-direction: column; overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    background:rgba(250,247,242,.94);
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .avatar {
+    width:34px; height:34px; border-radius:50%;
+    background:linear-gradient(135deg,#10B981,#059669);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:14px;
+  }
+  .header-title { font-family:var(--serif); font-size:17px; font-weight:400; color:var(--ink); }
+  .wordmark { font-size:19px; font-weight:800; color:var(--ink); letter-spacing:-.02em; line-height:1; }
+  .wordmark span { font-family:var(--serif); font-weight:400; color:var(--green); font-size:21px; }
+
+  /* Content */
+  .content { flex:1; padding:20px 16px 120px; display:flex; flex-direction:column; gap:16px; }
+
+  /* Back row */
+  .back-row {
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    color:var(--green); font-size:14px; font-weight:600;
+  }
+  .back-row svg { width:18px; height:18px; }
+
+  /* Card */
+  .card {
+    background:#fff; border-radius:14px; border:1px solid var(--border-mid);
+    box-shadow:var(--card-shadow); overflow:hidden;
+  }
+
+  /* Paste Section */
+  .paste-card { padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .paste-header {
+    display:flex; align-items:center; gap:10px;
+  }
+  .paste-icon {
+    width:40px; height:40px; border-radius:12px;
+    background:var(--green-light); display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .paste-title-group { display:flex; flex-direction:column; gap:2px; }
+  .paste-title { font-family:var(--serif); font-size:18px; color:var(--ink); }
+  .paste-sub { font-size:12px; color:var(--muted); }
+
+  textarea {
+    width:100%; min-height:200px; padding:14px 16px;
+    border:1.5px solid var(--border-mid); border-radius:12px;
+    background:rgba(250,247,242,.5); color:var(--ink);
+    font-family:var(--sans); font-size:14px; line-height:1.7;
+    resize:vertical; outline:none;
+    transition:border-color .2s;
+  }
+  textarea:focus { border-color:var(--green); }
+  textarea::placeholder { color:rgba(138,122,106,.5); }
+
+  .hint {
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--muted); padding:0 2px;
+  }
+  .hint svg { width:14px; height:14px; flex-shrink:0; opacity:.6; }
+
+  .btn-parse {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:14px; border-radius:14px; width:100%;
+    background:var(--green); color:#fff;
+    font-size:15px; font-weight:600;
+    border:none; cursor:pointer;
+    box-shadow:0 4px 16px rgba(5,150,105,.25);
+    transition:transform .15s;
+  }
+  .btn-parse:active { transform:scale(.97); }
+  .btn-parse svg { width:20px; height:20px; }
+
+  /* Preview parsed result */
+  .preview-card { padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .preview-title {
+    font-size:13px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.05em;
+  }
+  .category-preview {
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border-radius:10px; background:rgba(250,247,242,.6);
+    border:1px solid var(--border);
+  }
+  .cat-emoji { font-size:20px; width:28px; text-align:center; }
+  .cat-info { flex:1; display:flex; flex-direction:column; gap:1px; }
+  .cat-name { font-size:13px; font-weight:600; color:var(--ink); }
+  .cat-items { font-size:11px; color:var(--muted); }
+  .cat-count {
+    font-family:var(--display); font-size:16px; font-weight:600;
+    color:var(--green); min-width:24px; text-align:center;
+  }
+
+  .btn-confirm {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px; border-radius:14px; width:100%;
+    background:var(--green); color:#fff;
+    font-size:15px; font-weight:600;
+    border:none; cursor:pointer;
+    box-shadow:0 4px 16px rgba(5,150,105,.25);
+    transition:transform .15s; margin-top:4px;
+  }
+  .btn-confirm:active { transform:scale(.97); }
+  .btn-confirm svg { width:20px; height:20px; }
+
+  /* Separator */
+  .or-divider {
+    display:flex; align-items:center; gap:12px; padding:4px 0;
+  }
+  .or-divider::before, .or-divider::after {
+    content:''; flex:1; height:1px; background:var(--border-mid);
+  }
+  .or-divider span { font-size:12px; color:var(--muted); font-weight:500; }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:430px; z-index:50;
+    display:flex; justify-content:space-around; align-items:center;
+    padding:12px 8px calc(16px + env(safe-area-inset-bottom));
+    background:rgba(250,247,242,.96);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid var(--border); min-height:72px;
+  }
+  .nav-item {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 4px; min-width:48px; border:none; background:none;
+    cursor:pointer; border-radius:12px;
+  }
+  .nav-icon { width:20px; height:20px; }
+  .nav-label { font-size:10px; font-weight:700; line-height:1; margin-top:3px; }
+  .nav-item.active .nav-icon { opacity:1; }
+  .nav-item:not(.active) .nav-icon { opacity:.25; }
+  .nav-item.active .nav-label { color:var(--green); }
+  .nav-item:not(.active) .nav-label { color:rgba(42,26,10,.3); }
+
+  .fab {
+    position:fixed; z-index:60; bottom:80px; left:50%; transform:translateX(-50%);
+    width:52px; height:52px; border-radius:16px; background:var(--green);
+    color:#fff; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(5,150,105,.35);
+  }
+  .fab svg { width:24px; height:24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="avatar">O</div>
+    <div class="header-title">רשימת קניות</div>
+  </div>
+  <div class="wordmark">calori<span> life</span></div>
+</div>
+
+<div class="content">
+
+  <!-- Paste Card -->
+  <div class="card paste-card">
+    <div class="paste-header">
+      <div class="paste-icon">📋</div>
+      <div class="paste-title-group">
+        <div class="paste-title">הדבק רשימה</div>
+        <div class="paste-sub">מווטסאפ, הודעות, או כל טקסט</div>
+      </div>
+    </div>
+
+    <textarea placeholder="חלב תנובה 3%
+ביצים x2
+עגבניות שרי
+חזה עוף 1 ק&quot;ג
+פסטה
+אורז בסמטי
+בצל
+מלפפונים
+גבינה צהובה
+לחם אחיד
+סבון כלים
+נייר טואלט
+במבה
+שוקולד מריר">חלב תנובה 3%
+ביצים x2
+עגבניות שרי
+חזה עוף 1 ק"ג
+פסטה
+אורז בסמטי
+בצל
+מלפפונים
+גבינה צהובה
+לחם אחיד
+סבון כלים
+נייר טואלט
+במבה
+שוקולד מריר</textarea>
+
+    <div class="hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      שורה = מוצר. כמויות (x2, 1 ק"ג) מזוהות אוטומטית
+    </div>
+
+    <button class="btn-parse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 9 8 12 2 12"/></svg>
+      נתח רשימה
+    </button>
+  </div>
+
+  <div class="or-divider"><span>תוצאת הניתוח</span></div>
+
+  <!-- Parsed Preview -->
+  <div class="card preview-card">
+    <div class="preview-title">14 מוצרים זוהו ב-6 קטגוריות</div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🥛</div>
+      <div class="cat-info">
+        <div class="cat-name">מוצרי חלב</div>
+        <div class="cat-items">חלב תנובה 3%, גבינה צהובה</div>
+      </div>
+      <div class="cat-count">2</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🥩</div>
+      <div class="cat-info">
+        <div class="cat-name">בשר / עוף / דגים</div>
+        <div class="cat-items">חזה עוף 1 ק"ג</div>
+      </div>
+      <div class="cat-count">1</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🥦</div>
+      <div class="cat-info">
+        <div class="cat-name">ירקות ופירות</div>
+        <div class="cat-items">עגבניות שרי, בצל, מלפפונים</div>
+      </div>
+      <div class="cat-count">3</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🍞</div>
+      <div class="cat-info">
+        <div class="cat-name">אפייה ולחם</div>
+        <div class="cat-items">לחם אחיד</div>
+      </div>
+      <div class="cat-count">1</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🍝</div>
+      <div class="cat-info">
+        <div class="cat-name">יבשים וקטניות</div>
+        <div class="cat-items">פסטה, אורז בסמטי, ביצים x2</div>
+      </div>
+      <div class="cat-count">3</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🍫</div>
+      <div class="cat-info">
+        <div class="cat-name">חטיפים ומתוקים</div>
+        <div class="cat-items">במבה, שוקולד מריר</div>
+      </div>
+      <div class="cat-count">2</div>
+    </div>
+
+    <div class="category-preview">
+      <div class="cat-emoji">🧼</div>
+      <div class="cat-info">
+        <div class="cat-name">ניקיון וחד"פ</div>
+        <div class="cat-items">סבון כלים, נייר טואלט</div>
+      </div>
+      <div class="cat-count">2</div>
+    </div>
+
+    <button class="btn-confirm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      צור רשימה — 14 מוצרים
+    </button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="nav-label" style="color:rgba(42,26,10,.3)">מנהל</span>
+  </button>
+  <button class="nav-item active">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    <span class="nav-label">קניות</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nav-label">בית</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-label">לוח</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span class="nav-label">לימודים</span>
+  </button>
+</nav>
+
+</body>
+</html>

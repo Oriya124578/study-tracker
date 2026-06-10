@@ -104,6 +104,8 @@ export const generateInitialState = () => {
     schedule: null,
     // Phase 6d: recurring task rules (cl_recurringTasks).
     recurringTasks: [],
+    // Shopping lists (cl_shoppingLists).
+    shoppingLists: [],
   };
 
   return state;

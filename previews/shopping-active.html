@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Shopping List — Active List + History</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg: #FAF7F2; --ink: #2A1A0A; --muted: #8A7A6A; --sub: #5A4A3A;
+    --border: rgba(180,140,80,.12); --border-mid: rgba(180,140,80,.14);
+    --green: #059669; --green-soft: #D1FAE5; --green-light: rgba(5,150,105,.08);
+    --red: #DC2626; --red-soft: #FEE2E2;
+    --card-shadow: 0 2px 10px rgba(40,20,0,.05);
+    --sans: 'Inter','Rubik','Heebo',system-ui,sans-serif;
+    --serif: 'Instrument Serif',serif;
+    --display: 'Fraunces',serif;
+  }
+  body {
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    max-width:430px; margin:0 auto; min-height:100dvh;
+    display:flex; flex-direction:column; overflow-x:hidden;
+  }
+
+  /* Header */
+  .header {
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    background:rgba(250,247,242,.94);
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .avatar {
+    width:34px; height:34px; border-radius:50%;
+    background:linear-gradient(135deg,#10B981,#059669);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:14px;
+  }
+  .header-title { font-family:var(--serif); font-size:17px; font-weight:400; color:var(--ink); }
+  .header-action {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:10px;
+    background:var(--green-light); color:var(--green);
+    font-size:13px; font-weight:600; border:none; cursor:pointer;
+    transition:background .15s;
+  }
+  .header-action:active { background:var(--green-soft); }
+  .header-action svg { width:16px; height:16px; }
+
+  /* Content */
+  .content { flex:1; padding:16px 16px 120px; display:flex; flex-direction:column; gap:14px; }
+
+  /* Progress Bar */
+  .progress-card {
+    background:#fff; border-radius:14px; border:1px solid var(--border-mid);
+    box-shadow:var(--card-shadow); padding:14px 16px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .progress-text {
+    display:flex; flex-direction:column; gap:2px; min-width:0;
+  }
+  .progress-main {
+    font-size:14px; font-weight:600; color:var(--ink);
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .progress-main .num {
+    font-family:var(--display); font-size:22px; font-weight:700; color:var(--green);
+  }
+  .progress-sub { font-size:11px; color:var(--muted); }
+  .progress-bar-wrapper {
+    flex:1; height:8px; background:rgba(180,140,80,.08);
+    border-radius:99px; overflow:hidden;
+  }
+  .progress-bar-fill {
+    height:100%; border-radius:99px;
+    background:linear-gradient(90deg,#10B981,#059669);
+    transition:width .4s ease;
+  }
+  .progress-pct {
+    font-family:var(--display); font-size:16px; font-weight:600;
+    color:var(--green); min-width:38px; text-align:center;
+  }
+
+  /* Category Accordion */
+  .category-section {
+    background:#fff; border-radius:14px; border:1px solid var(--border-mid);
+    box-shadow:var(--card-shadow); overflow:hidden;
+  }
+  .category-header {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px; cursor:pointer;
+    transition:background .15s; user-select:none;
+  }
+  .category-header:active { background:rgba(180,140,80,.04); }
+  .cat-emoji { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
+  .cat-title { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
+  .cat-badge {
+    font-size:11px; font-weight:700; padding:2px 8px;
+    border-radius:99px; background:var(--green-soft); color:var(--green);
+  }
+  .cat-badge.done { background:rgba(180,140,80,.08); color:var(--muted); text-decoration:line-through; }
+  .cat-chevron {
+    width:18px; height:18px; color:var(--muted);
+    transition:transform .2s; flex-shrink:0;
+  }
+  .cat-chevron.open { transform:rotate(180deg); }
+
+  /* Items */
+  .items-list { border-top:1px solid var(--border); }
+  .item-row {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 16px 11px 12px;
+    border-bottom:1px solid rgba(180,140,80,.06);
+    transition:background .15s;
+    position:relative;
+    overflow:hidden;
+  }
+  .item-row:last-child { border-bottom:none; }
+  .item-row:active { background:rgba(180,140,80,.03); }
+
+  /* Checkbox */
+  .checkbox {
+    width:22px; height:22px; border-radius:50%; flex-shrink:0;
+    border:2px solid rgba(180,140,80,.25); background:transparent;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s;
+  }
+  .checkbox.checked {
+    border-color:var(--green); background:var(--green);
+  }
+  .checkbox.checked svg { opacity:1; }
+  .checkbox svg { width:13px; height:13px; color:#fff; opacity:0; transition:opacity .15s; }
+
+  .item-content { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .item-name { font-size:14px; color:var(--ink); transition:all .2s; }
+  .item-name.checked { color:var(--muted); text-decoration:line-through; }
+  .item-qty { font-size:11px; color:var(--muted); font-weight:500; }
+
+  /* Swipe delete hint */
+  .item-delete {
+    display:flex; align-items:center; justify-content:center;
+    width:36px; height:36px; border-radius:10px;
+    background:var(--red-soft); color:var(--red);
+    border:none; cursor:pointer; flex-shrink:0;
+    opacity:0; transition:opacity .2s;
+  }
+  .item-row:hover .item-delete { opacity:1; }
+  .item-delete svg { width:16px; height:16px; }
+
+  /* Edit indicator */
+  .item-edit {
+    display:flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:8px;
+    color:var(--muted); border:none; background:none;
+    cursor:pointer; flex-shrink:0;
+    opacity:0; transition:opacity .2s;
+  }
+  .item-row:hover .item-edit { opacity:.6; }
+  .item-edit svg { width:14px; height:14px; }
+
+  /* Add item inline */
+  .add-item-row {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 16px; border-top:1px solid var(--border);
+    cursor:pointer;
+  }
+  .add-item-row:active { background:rgba(180,140,80,.04); }
+  .add-icon {
+    width:22px; height:22px; border-radius:50%;
+    border:2px dashed rgba(5,150,105,.3);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--green);
+  }
+  .add-icon svg { width:12px; height:12px; }
+  .add-label { font-size:13px; color:var(--green); font-weight:500; }
+
+  /* Clear button */
+  .clear-btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px; border-radius:12px; width:100%;
+    background:none; color:var(--muted);
+    font-size:13px; font-weight:500;
+    border:1px dashed rgba(180,140,80,.2); cursor:pointer;
+    transition:all .15s;
+  }
+  .clear-btn:hover { border-color:var(--red); color:var(--red); }
+  .clear-btn svg { width:16px; height:16px; }
+
+  /* History Section */
+  .section-title {
+    display:flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.05em;
+    padding:8px 4px 4px;
+  }
+  .section-title svg { width:16px; height:16px; opacity:.6; }
+
+  .history-card {
+    background:#fff; border-radius:12px; border:1px solid var(--border-mid);
+    box-shadow:0 1px 4px rgba(40,20,0,.03);
+    padding:12px 16px;
+    display:flex; align-items:center; gap:12px;
+    cursor:pointer; transition:background .15s;
+  }
+  .history-card:active { background:rgba(250,247,242,.6); }
+  .history-icon {
+    width:36px; height:36px; border-radius:10px;
+    background:rgba(180,140,80,.06);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+  }
+  .history-info { flex:1; display:flex; flex-direction:column; gap:2px; }
+  .history-name { font-size:14px; font-weight:600; color:var(--ink); }
+  .history-meta { font-size:11px; color:var(--muted); display:flex; gap:8px; }
+  .history-actions { display:flex; gap:6px; }
+  .history-btn {
+    padding:6px 10px; border-radius:8px; font-size:11px; font-weight:600;
+    border:none; cursor:pointer; transition:all .15s;
+  }
+  .history-btn.reopen {
+    background:var(--green-light); color:var(--green);
+  }
+  .history-btn.reopen:active { background:var(--green-soft); }
+  .history-btn.delete {
+    background:rgba(220,38,38,.06); color:rgba(220,38,38,.6);
+  }
+  .history-btn.delete:active { background:var(--red-soft); color:var(--red); }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:430px; z-index:50;
+    display:flex; justify-content:space-around; align-items:center;
+    padding:12px 8px calc(16px + env(safe-area-inset-bottom));
+    background:rgba(250,247,242,.96);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid var(--border); min-height:72px;
+  }
+  .nav-item {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 4px; min-width:48px; border:none; background:none;
+    cursor:pointer; border-radius:12px;
+  }
+  .nav-icon { width:20px; height:20px; }
+  .nav-label { font-size:10px; font-weight:700; line-height:1; margin-top:3px; }
+  .nav-item.active .nav-icon { opacity:1; }
+  .nav-item:not(.active) .nav-icon { opacity:.25; }
+  .nav-item.active .nav-label { color:var(--green); }
+  .nav-item:not(.active) .nav-label { color:rgba(42,26,10,.3); }
+
+  .fab {
+    position:fixed; z-index:60; bottom:80px; left:50%; transform:translateX(-50%);
+    width:52px; height:52px; border-radius:16px; background:var(--green);
+    color:#fff; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(5,150,105,.35);
+  }
+  .fab svg { width:24px; height:24px; }
+
+  /* Interactive: toggle items */
+  .item-row { cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="avatar">O</div>
+    <div class="header-title">רשימת קניות</div>
+  </div>
+  <button class="header-action">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    הוסף
+  </button>
+</div>
+
+<div class="content">
+
+  <!-- Progress -->
+  <div class="progress-card">
+    <div class="progress-text">
+      <div class="progress-main">
+        <span class="num">5</span> / 14 מוצרים
+      </div>
+      <div class="progress-sub">קניות שבועיות</div>
+    </div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar-fill" style="width:36%"></div>
+    </div>
+    <div class="progress-pct">36%</div>
+  </div>
+
+  <!-- Category: Dairy (2 items, 1 checked) -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="cat-emoji">🥛</div>
+      <div class="cat-title">מוצרי חלב</div>
+      <div class="cat-badge">1/2</div>
+      <svg class="cat-chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="items-list">
+      <div class="item-row">
+        <div class="checkbox checked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name checked">חלב תנובה 3%</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="item-row">
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name">גבינה צהובה</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category: Meat (1 item, 1 checked — completed) -->
+  <div class="category-section" style="opacity:.7">
+    <div class="category-header">
+      <div class="cat-emoji">🥩</div>
+      <div class="cat-title">בשר / עוף / דגים</div>
+      <div class="cat-badge done">1/1</div>
+      <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Category: Produce (3 items, 2 checked) -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="cat-emoji">🥦</div>
+      <div class="cat-title">ירקות ופירות</div>
+      <div class="cat-badge">2/3</div>
+      <svg class="cat-chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="items-list">
+      <div class="item-row">
+        <div class="checkbox checked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name checked">עגבניות שרי</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="item-row">
+        <div class="checkbox checked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name checked">בצל</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="item-row">
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name">מלפפונים</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <!-- Add item inline -->
+      <div class="add-item-row">
+        <div class="add-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="add-label">הוסף מוצר</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category: Bakery (1 item, 0 checked) -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="cat-emoji">🍞</div>
+      <div class="cat-title">אפייה ולחם</div>
+      <div class="cat-badge">0/1</div>
+      <svg class="cat-chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="items-list">
+      <div class="item-row">
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-name">לחם אחיד</div>
+        </div>
+        <button class="item-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="item-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category: Dry goods (collapsed) -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="cat-emoji">🍝</div>
+      <div class="cat-title">יבשים וקטניות</div>
+      <div class="cat-badge">1/3</div>
+      <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Category: Snacks (collapsed) -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="cat-emoji">🍫</div>
+      <div class="cat-title">חטיפים ומתוקים</div>
+      <div class="cat-badge">0/2</div>
+      <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Category: Cleaning (completed) -->
+  <div class="category-section" style="opacity:.7">
+    <div class="category-header">
+      <div class="cat-emoji">🧼</div>
+      <div class="cat-title">ניקיון וחד"פ</div>
+      <div class="cat-badge done">2/2</div>
+      <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Clear List -->
+  <button class="clear-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M19 6l-1 14c0 1-1 2-2 2H8c-1 0-2-1-2-2L5 6"/></svg>
+    סיימתי — נקה רשימה
+  </button>
+
+  <!-- History -->
+  <div class="section-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    היסטוריה
+  </div>
+
+  <div class="history-card">
+    <div class="history-icon">🛒</div>
+    <div class="history-info">
+      <div class="history-name">קניות 03/06</div>
+      <div class="history-meta">
+        <span>8 מוצרים</span>
+        <span>8/8 הושלמו</span>
+      </div>
+    </div>
+    <div class="history-actions">
+      <button class="history-btn reopen">פתח מחדש</button>
+      <button class="history-btn delete">מחק</button>
+    </div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-icon">🛒</div>
+    <div class="history-info">
+      <div class="history-name">קניות 27/05</div>
+      <div class="history-meta">
+        <span>12 מוצרים</span>
+        <span>10/12 הושלמו</span>
+      </div>
+    </div>
+    <div class="history-actions">
+      <button class="history-btn reopen">פתח מחדש</button>
+      <button class="history-btn delete">מחק</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="nav-label" style="color:rgba(42,26,10,.3)">מנהל</span>
+  </button>
+  <button class="nav-item active">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    <span class="nav-label">קניות</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nav-label">בית</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-label">לוח</span>
+  </button>
+  <button class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span class="nav-label">לימודים</span>
+  </button>
+</nav>
+
+</body>
+</html>

@@ -62,6 +62,12 @@ const recurringTasksCol = (uid) => collection(db, 'users', uid, 'cl_recurringTas
 const recurringTaskDoc = (uid, id) => doc(db, 'users', uid, 'cl_recurringTasks', id);
 const categoriesCol = (uid) => collection(db, 'users', uid, 'cl_categories');
 const categoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_categories', id);
+// Shopping Lists
+const shoppingListsCol = (uid) => collection(db, 'users', uid, 'cl_shoppingLists');
+const shoppingListDoc = (uid, id) => doc(db, 'users', uid, 'cl_shoppingLists', id);
+// Grocery learned dictionary (synced across devices)
+const groceryDictDoc = (uid) => doc(db, 'users', uid, 'cl_profile', 'groceryDict');
+
 // Phase 4: AI Manager Suggestions
 const aiSuggestionsCol = (uid) => collection(db, 'users', uid, 'cl_aiSuggestions');
 const aiSuggestionDoc = (uid, id) => doc(db, 'users', uid, 'cl_aiSuggestions', id);
@@ -83,6 +89,8 @@ export const newId = (uid, kind) => {
       ? recurringTasksCol(uid)
       : kind === 'category'
       ? categoriesCol(uid)
+      : kind === 'shoppingList'
+      ? shoppingListsCol(uid)
       : null;
   if (!col) throw new Error(`newId: unknown kind ${kind}`);
   return doc(col).id;
@@ -342,6 +350,39 @@ export const setRecurringTask = async (uid, id, data) => {
 
 export const deleteRecurringTask = async (uid, id) => {
   await deleteDoc(recurringTaskDoc(uid, id));
+};
+
+// --- Shopping Lists (cl_shoppingLists) -----------------------------------
+// Doc shape: { id, name, createdAt, updatedAt, isActive, items: [...], rawText }
+
+export const subscribeShoppingLists = (uid, cb) =>
+  onSnapshot(
+    query(shoppingListsCol(uid), orderBy('createdAt', 'desc')),
+    (snap) => cb(snapshotToArray(snap))
+  );
+
+export const setShoppingList = async (uid, id, data) => {
+  await setDoc(shoppingListDoc(uid, id), data, { merge: true });
+};
+
+export const deleteShoppingList = async (uid, id) => {
+  await deleteDoc(shoppingListDoc(uid, id));
+};
+
+// --- Grocery learned dictionary (cl_profile/groceryDict) -----------------
+// One doc holding { dict: { itemNameLower: categoryKey }, updatedAt }.
+
+export const subscribeGroceryDict = (uid, cb) =>
+  onSnapshot(groceryDictDoc(uid), (snap) =>
+    cb(snap.exists() ? snap.data().dict || {} : {})
+  );
+
+export const mergeGroceryDict = async (uid, dictPatch) => {
+  await setDoc(
+    groceryDictDoc(uid),
+    { dict: dictPatch, updatedAt: new Date().toISOString() },
+    { merge: true }
+  );
 };
 
 // --- Phase 4: AI Suggestions (cl_aiSuggestions) --------------------------
