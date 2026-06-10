@@ -1,18 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Bell, BookOpen, Flag, MapPin, Check, Clock, CheckSquare, FolderOpen } from 'lucide-react';
+import { Calendar, Clock, MapPin, Bell, BookOpen, Flag, Check, Star, Pin, Lock, Repeat, Tags } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 
+/* ── cream v3 palette ─────────────────────────────────────── */
+const CREAM = {
+  bg: '#FAF7F2',
+  ink: '#2A1A0A',
+  muted: '#8A7A6A',
+  border: 'rgba(180,140,80,.15)',
+  borderLight: 'rgba(180,140,80,.12)',
+  handle: 'rgba(180,140,80,.35)',
+  tabBg: '#F5F0E8',
+  green: '#059669',
+  blue: '#2563EB',
+  amber: '#D97706',
+};
+
 const TABS = ['event', 'task', 'note'];
 
-const PRIORITY_OPTIONS = [
-  { value: 'high', color: 'bg-red-500' },
-  { value: 'med', color: 'bg-amber-500' },
-  { value: 'low', color: 'bg-emerald-500' },
+/* accent color per tab */
+const TAB_ACCENT = { event: CREAM.blue, task: CREAM.green, note: CREAM.amber };
+
+/* ── Event color dots ─────────────────────────────────────── */
+const EVENT_COLORS = [
+  { id: 'blue', hex: '#2563EB' },
+  { id: 'green', hex: '#059669' },
+  { id: 'red', hex: '#DC2626' },
+  { id: 'amber', hex: '#D97706' },
+  { id: 'purple', hex: '#7C3AED' },
 ];
+
+/* ── Note colors (preview bg + border + text tint) ───────── */
+const NOTE_COLORS = [
+  { id: 'yellow', bg: '#FEF3C7', border: 'rgba(217,119,6,.15)', text: '#92400E', dot: '#FEF3C7', dotBorder: '#FCD34D' },
+  { id: 'green', bg: '#D1FAE5', border: 'rgba(5,150,105,.15)', text: '#065F46', dot: '#D1FAE5', dotBorder: '#6EE7B7' },
+  { id: 'pink', bg: '#FEE2E2', border: 'rgba(220,38,38,.15)', text: '#991B1B', dot: '#FEE2E2', dotBorder: '#FCA5A5' },
+  { id: 'purple', bg: '#F5F3FF', border: 'rgba(124,58,237,.15)', text: '#5B21B6', dot: '#F5F3FF', dotBorder: '#C4B5FD' },
+  { id: 'blue', bg: '#DBEAFE', border: 'rgba(37,99,235,.15)', text: '#1E40AF', dot: '#DBEAFE', dotBorder: '#93C5FD' },
+  { id: 'gray', bg: '#FFFFFF', border: 'rgba(180,140,80,.15)', text: '#2A1A0A', dot: '#FFFFFF', dotBorder: 'rgba(180,140,80,.3)' },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'priorityLow', dotColor: '#9CA3AF', borderActive: '#9CA3AF', bgActive: '#F9FAFB' },
+  { value: 'med', label: 'priorityMed', dotColor: '#D97706', borderActive: '#D97706', bgActive: '#FFFBEB' },
+  { value: 'high', label: 'priorityHigh', dotColor: '#DC2626', borderActive: '#DC2626', bgActive: '#FEF2F2' },
+];
+
+/* font-family shorthand */
+const serif = "'Instrument Serif', serif";
 
 export const AddItemSheet = () => {
   const {
@@ -38,10 +77,15 @@ export const AddItemSheet = () => {
   const [priority, setPriority] = useState('low');
   const [courseId, setCourseId] = useState('');
   const [location, setLocation] = useState('');
-  const [reminder, setReminder] = useState('default'); // 'default' | 'none' | minutes(string)
-  const [list, setList] = useState('personal');
+  const [reminder, setReminder] = useState('default');
+  const [eventColor, setEventColor] = useState('blue');
+  const [noteColorId, setNoteColorId] = useState('yellow');
+  const [starred, setStarred] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [categoryIds, setCategoryIds] = useState([]);
   const [categoryId, setCategoryId] = useState('general');
   const [submitting, setSubmitting] = useState(false);
+  const [notes, setNotes] = useState('');
   const titleRef = useRef(null);
 
   useEffect(() => {
@@ -57,12 +101,19 @@ export const AddItemSheet = () => {
       setCourseId(addSheetPrefill?.courseId || '');
       setLocation('');
       setReminder('default');
-      setList(addSheetPrefill?.list || 'personal');
+      setEventColor('blue');
+      setNoteColorId('yellow');
+      setStarred(!!addSheetPrefill?.starred);
+      setPinned(!!addSheetPrefill?.pinned);
+      setCategoryIds(addSheetPrefill?.categoryIds || []);
       setCategoryId(addSheetPrefill?.categoryId || 'general');
+      setNotes('');
       setSubmitting(false);
       setTimeout(() => titleRef.current?.focus(), 350);
     }
   }, [showAddSheet, addSheetInitialTab, addSheetPrefill]);
+
+  const accent = TAB_ACCENT[activeTab];
 
   const handleSubmit = async () => {
     if (activeTab !== 'note' && !title.trim()) {
@@ -73,7 +124,6 @@ export const AddItemSheet = () => {
       toast.error(t('titleRequired'));
       return;
     }
-    // Convert reminder choice → reminderMinutes (null=default, -1=off, >=0 minutes).
     const reminderMinutes =
       reminder === 'default' ? null : reminder === 'none' ? -1 : Number(reminder);
 
@@ -86,25 +136,30 @@ export const AddItemSheet = () => {
           end: dueDate ? (allDay ? dueDate : `${dueDate}T${endTime || startTime || '10:00'}`) : null,
           allDay,
           location: location.trim(),
+          notes: notes.trim(),
+          color: eventColor || null,
           courseId: courseId || null,
           reminderMinutes,
+          categoryIds,
         });
       } else if (activeTab === 'task') {
         await addPersonalTask({
           title: title.trim(),
           dueDate: dueDate || null,
           priority,
-          list,
-          starred: !!addSheetPrefill?.starred,
+          categoryIds,
+          starred,
           courseId: courseId || null,
           reminderMinutes,
+          notes: notes.trim(),
         });
       } else {
         await addQuickNote({
           title: title.trim(),
           content: content.trim(),
+          color: noteColorId || null,
           categoryId,
-          pinned: !!addSheetPrefill?.pinned,
+          pinned,
           courseId: courseId || null,
         });
       }
@@ -122,8 +177,10 @@ export const AddItemSheet = () => {
     task: t('tabTask'),
     note: t('tabNote'),
   };
+  const tabIcons = { event: '\u{1F4C5}', task: '✓', note: '\u{1F4D2}' };
 
   const activeCourses = data?.courses?.filter((c) => !c.isArchived) || [];
+  const noteColor = NOTE_COLORS.find((c) => c.id === noteColorId) || NOTE_COLORS[0];
 
   return (
     <AnimatePresence>
@@ -131,7 +188,8 @@ export const AddItemSheet = () => {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/40 z-[60]"
+            className="fixed inset-0 z-[60]"
+            style={{ background: 'rgba(42,26,10,.55)', backdropFilter: 'blur(3px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -140,7 +198,12 @@ export const AddItemSheet = () => {
 
           {/* Sheet */}
           <motion.div
-            className="fixed bottom-0 inset-x-0 z-[61] bg-background rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] max-h-[92dvh] overflow-y-auto"
+            className="fixed bottom-0 inset-x-0 z-[61] max-h-[92dvh] overflow-hidden flex flex-col"
+            style={{
+              background: CREAM.bg,
+              borderRadius: '28px 28px 0 0',
+              boxShadow: '0 -8px 30px rgba(40,20,0,.2)',
+            }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -148,307 +211,602 @@ export const AddItemSheet = () => {
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div style={{ width: 42, height: 5, borderRadius: 3, background: CREAM.handle }} />
             </div>
 
-            <div className="px-5 pb-8 pt-2">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-extrabold text-foreground">
-                  {t('addNewItem')}
-                </h2>
-                <button
-                  onClick={closeAddSheet}
-                  className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                  aria-label={t('cancel')}
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
-              </div>
+            {/* Header: Cancel — Title — Save */}
+            <div
+              className="flex items-center justify-between px-5 py-3"
+              style={{ borderBottom: `1px solid ${CREAM.borderLight}` }}
+            >
+              <button
+                onClick={closeAddSheet}
+                className="text-[13px] font-semibold transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                style={{ color: CREAM.muted, fontFamily: serif }}
+              >
+                {t('cancel')}
+              </button>
 
-              {/* Segment Tabs */}
-              <div className="flex bg-muted rounded-xl p-1 gap-0.5 mb-5" role="tablist">
-                {TABS.map((tab) => (
+              <h2 style={{ fontFamily: serif, fontSize: 20, fontWeight: 400, color: CREAM.ink, letterSpacing: '-.02em' }}>
+                {activeTab === 'event' && <>{t('tabEvent')} <em style={{ fontStyle: 'italic', color: accent }}>{t('new', 'new')}</em></>}
+                {activeTab === 'task' && <>{t('tabTask')} <em style={{ fontStyle: 'italic', color: accent }}>{t('new', 'new')}</em></>}
+                {activeTab === 'note' && <>{t('tabNote')} <em style={{ fontStyle: 'italic', color: accent }}>{t('new', 'new')}</em></>}
+              </h2>
+
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="text-[13px] font-bold text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                style={{
+                  background: accent,
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  boxShadow: `0 4px 12px ${accent}40`,
+                }}
+              >
+                {t('save', 'Save')}
+              </button>
+            </div>
+
+            {/* Tab pills */}
+            <div
+              className="flex mx-5 mt-3.5 p-[3px]"
+              style={{ background: CREAM.tabBg, borderRadius: 12 }}
+              role="tablist"
+            >
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab;
+                return (
                   <button
                     key={tab}
                     role="tab"
-                    aria-selected={activeTab === tab}
-                    className={cn(
-                      'flex-1 text-center text-sm font-semibold py-2.5 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
-                      activeTab === tab
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-muted-foreground hover:text-foreground',
-                    )}
+                    aria-selected={isActive}
                     onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      'flex-1 py-2 text-center flex items-center justify-center gap-1.5 transition-all focus-visible:ring-2 focus-visible:outline-none',
+                    )}
+                    style={{
+                      borderRadius: 9,
+                      fontSize: isActive ? 14 : 12,
+                      fontWeight: isActive ? 400 : 600,
+                      fontFamily: isActive ? serif : 'inherit',
+                      fontStyle: isActive ? 'italic' : 'normal',
+                      color: isActive ? CREAM.ink : CREAM.muted,
+                      background: isActive ? '#fff' : 'transparent',
+                      boxShadow: isActive ? '0 1px 3px rgba(40,20,0,.1)' : 'none',
+                    }}
                   >
-                    {tabLabels[tab]}
+                    <span>{tabIcons[tab]}</span>
+                    <span>{tabLabels[tab]}</span>
                   </button>
-                ))}
-              </div>
+                );
+              })}
+            </div>
 
-              {/* Title Input */}
-              <input
-                ref={titleRef}
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={
-                  activeTab === 'event'
-                    ? t('eventTitlePlaceholder')
-                    : activeTab === 'task'
-                    ? t('taskTitlePlaceholder')
-                    : t('noteTitlePlaceholder')
-                }
-                className="w-full px-4 py-3.5 border-[1.5px] border-border rounded-2xl text-[15px] font-medium text-foreground bg-muted/30 outline-none transition-colors focus:border-primary focus:bg-background mb-4"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-              />
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-5 pt-4 pb-8 flex flex-col gap-2.5" style={{ scrollbarWidth: 'none' }}>
 
-              {/* Note content textarea */}
+              {/* ════════ NOTE TAB ════════ */}
               {activeTab === 'note' && (
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={t('noteContentPlaceholder')}
-                  rows={4}
-                  className="w-full px-4 py-3 border-[1.5px] border-border rounded-2xl text-sm text-foreground bg-muted/30 outline-none transition-colors focus:border-primary focus:bg-background mb-4 resize-none"
-                />
+                <>
+                  {/* Live color preview card */}
+                  <div
+                    className="p-4"
+                    style={{
+                      borderRadius: 14,
+                      background: noteColor.bg,
+                      border: `1px solid ${noteColor.border}`,
+                      boxShadow: '0 2px 8px rgba(40,20,0,.05)',
+                    }}
+                  >
+                    <input
+                      ref={titleRef}
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder={t('noteTitlePlaceholder')}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: `1.5px solid ${noteColor.text}30`,
+                        fontFamily: serif,
+                        fontSize: 20,
+                        fontStyle: 'italic',
+                        color: noteColor.text,
+                        width: '100%',
+                        outline: 'none',
+                        paddingBottom: 6,
+                        marginBottom: 10,
+                      }}
+                    />
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder={t('noteContentPlaceholder')}
+                      rows={4}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 14,
+                        color: noteColor.text,
+                        width: '100%',
+                        minHeight: 80,
+                        outline: 'none',
+                        lineHeight: 1.5,
+                        resize: 'none',
+                      }}
+                    />
+                  </div>
+
+                  {/* Color picker */}
+                  <CreamRow>
+                    <span style={{ fontSize: 11, color: CREAM.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', marginInlineEnd: 'auto' }}>
+                      {t('color', 'Color')}
+                    </span>
+                    <div className="flex gap-2">
+                      {NOTE_COLORS.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setNoteColorId(c.id)}
+                          className="transition-all focus-visible:outline-none"
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: '50%',
+                            background: c.dot,
+                            border: `2px solid ${c.dotBorder}`,
+                            boxShadow: noteColorId === c.id ? `0 0 0 3px ${CREAM.amber}` : 'none',
+                            cursor: 'pointer',
+                          }}
+                          aria-label={c.id}
+                        />
+                      ))}
+                    </div>
+                  </CreamRow>
+
+                  {/* Pin + Private flags */}
+                  <div className="flex gap-2">
+                    <FlagButton
+                      active={pinned}
+                      onClick={() => setPinned(!pinned)}
+                      icon={<Pin className="w-[17px] h-[17px]" />}
+                      label={t('pinned', 'Pinned')}
+                      activeColor={CREAM.amber}
+                      activeBg="#FFFBEB"
+                    />
+                    <FlagButton
+                      active={false}
+                      onClick={() => {}}
+                      icon={<Lock className="w-[17px] h-[17px]" />}
+                      label={t('private', 'Private')}
+                      activeColor={CREAM.muted}
+                      activeBg="#F9FAFB"
+                    />
+                  </div>
+
+                  {/* Category */}
+                  {data?.noteCategories?.length > 0 && (
+                    <>
+                      <SectionLabel>{t('categoryLabel')}</SectionLabel>
+                      <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                        {data.noteCategories.map((c) => (
+                          <CatChip
+                            key={c.id}
+                            active={categoryId === c.id}
+                            onClick={() => setCategoryId(c.id)}
+                            accentColor={CREAM.amber}
+                          >
+                            {c.name}
+                          </CatChip>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
-              {/* Form fields */}
-              <div className="mb-5 divide-y divide-border">
-                {/* Note Category selector (note only) */}
-                {activeTab === 'note' && data?.noteCategories?.length > 0 && (
-                  <FormRow
-                    icon={<FolderOpen className="w-[18px] h-[18px] text-amber-600" />}
-                    iconBg="bg-amber-100 dark:bg-amber-900/30"
-                    label={t('categoryLabel')}
-                  >
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
-                    >
-                      {data.noteCategories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormRow>
-                )}
+              {/* ════════ EVENT TAB ════════ */}
+              {activeTab === 'event' && (
+                <>
+                  {/* Title input - Google Calendar style bottom-border */}
+                  <input
+                    ref={titleRef}
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder={t('eventTitlePlaceholder')}
+                    style={{
+                      background: '#fff',
+                      border: 'none',
+                      borderBottom: `2px solid ${CREAM.blue}`,
+                      borderRadius: 0,
+                      padding: '8px 4px 10px',
+                      fontFamily: serif,
+                      fontSize: 22,
+                      fontStyle: 'italic',
+                      color: CREAM.ink,
+                      width: '100%',
+                      outline: 'none',
+                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                  />
 
-                {/* Task List selector (task only) */}
-                {activeTab === 'task' && data?.taskLists?.length > 0 && (
-                  <FormRow
-                    icon={<CheckSquare className="w-[18px] h-[18px] text-emerald-600" />}
-                    iconBg="bg-emerald-100 dark:bg-emerald-900/30"
-                    label={t('listLabel')}
-                  >
-                    <select
-                      value={list}
-                      onChange={(e) => setList(e.target.value)}
-                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
-                    >
-                      {data.taskLists.map((l) => (
-                        <option key={l.id} value={l.id}>
-                          {l.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormRow>
-                )}
-
-                {/* Date */}
-                {activeTab !== 'note' && (
-                  <FormRow
-                    icon={<Calendar className="w-[18px] h-[18px] text-purple-600" />}
-                    iconBg="bg-purple-100 dark:bg-purple-900/30"
-                    label={activeTab === 'event' ? t('startTime') : t('dueDate')}
-                  >
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
-                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer"
-                    />
-                  </FormRow>
-                )}
-
-                {/* Time (event only) */}
-                {activeTab === 'event' && !allDay && (
-                  <FormRow
-                    icon={<Clock className="w-[18px] h-[18px] text-blue-600" />}
-                    iconBg="bg-blue-100 dark:bg-blue-900/30"
-                    label={t('endTime')}
-                  >
-                    <div className="flex items-center gap-2">
+                  {/* Date + Time grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <DateTimeCell label={t('date', 'Date')}>
                       <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="text-sm bg-transparent text-foreground outline-none w-24"
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="bg-transparent outline-none cursor-pointer w-full"
+                        style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 16, color: CREAM.ink, letterSpacing: '-.03em' }}
                       />
-                      <span className="text-muted-foreground">-</span>
+                    </DateTimeCell>
+                    {!allDay && (
+                      <DateTimeCell label={t('startTime')}>
+                        <input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="bg-transparent outline-none cursor-pointer w-full"
+                          style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 16, color: CREAM.ink }}
+                        />
+                      </DateTimeCell>
+                    )}
+                    <DateTimeCell label={t('endDate', 'End date')}>
                       <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="text-sm bg-transparent text-foreground outline-none w-24"
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="bg-transparent outline-none cursor-pointer w-full"
+                        style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 16, color: CREAM.ink, letterSpacing: '-.03em' }}
+                      />
+                    </DateTimeCell>
+                    {!allDay && (
+                      <DateTimeCell label={t('endTime')}>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="bg-transparent outline-none cursor-pointer w-full"
+                          style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 16, color: CREAM.ink }}
+                        />
+                      </DateTimeCell>
+                    )}
+                  </div>
+
+                  {/* All day toggle */}
+                  <CreamRow>
+                    <span style={{ fontSize: 15 }}>&#127774;</span>
+                    <div className="flex-1">
+                      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: CREAM.muted }}>{t('allDay')}</div>
+                      <div style={{ fontSize: 12, color: CREAM.muted }}>{t('allDayDesc', 'All-day events')}</div>
+                    </div>
+                    <CreamToggle checked={allDay} onChange={() => setAllDay(!allDay)} isRTL={isRTL} />
+                  </CreamRow>
+
+                  {/* Location */}
+                  <CreamRow>
+                    <span style={{ fontSize: 15 }}>&#128205;</span>
+                    <div className="flex-1">
+                      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: CREAM.muted }}>{t('location')}</div>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="..."
+                        style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 15, color: CREAM.ink, background: 'transparent', border: 'none', outline: 'none', width: '100%', marginTop: 1 }}
                       />
                     </div>
-                  </FormRow>
-                )}
+                    <span style={{ color: '#C7BCAA', fontSize: 16 }}>{isRTL ? '‹' : '›'}</span>
+                  </CreamRow>
 
-                {/* All-day toggle (event only) */}
-                {activeTab === 'event' && (
-                  <FormRow
-                    icon={<Calendar className="w-[18px] h-[18px] text-emerald-600" />}
-                    iconBg="bg-emerald-100 dark:bg-emerald-900/30"
-                    label={t('allDay')}
-                  >
-                    <button
-                      onClick={() => setAllDay(!allDay)}
-                      role="switch"
-                      aria-checked={allDay}
-                      aria-label={t('allDay')}
-                      className={cn(
-                        'w-11 h-6 rounded-full transition-colors flex items-center px-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
-                        allDay ? 'bg-primary' : 'bg-muted-foreground/30',
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          'w-5 h-5 rounded-full bg-white shadow transition-transform',
-                          allDay ? 'translate-x-5' : 'translate-x-0',
-                        )}
-                        style={isRTL && allDay ? { transform: 'translateX(-1.25rem)' } : isRTL ? { transform: 'translateX(0)' } : undefined}
-                      />
-                    </button>
-                  </FormRow>
-                )}
+                  {/* Reminder */}
+                  <CreamRow>
+                    <span style={{ fontSize: 15 }}>&#128276;</span>
+                    <div className="flex-1">
+                      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: CREAM.muted }}>{t('reminderLabel')}</div>
+                      <select
+                        value={reminder}
+                        onChange={(e) => setReminder(e.target.value)}
+                        style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 15, color: CREAM.ink, background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', appearance: 'none', width: '100%', marginTop: 1 }}
+                      >
+                        <option value="default">{t('reminderDefault')}</option>
+                        <option value="none">{t('reminderNone')}</option>
+                        <option value="0">{t('reminderAtTime')}</option>
+                        <option value="10">{`10 ${t('caloriMinutes')}`}</option>
+                        <option value="30">{`30 ${t('caloriMinutes')}`}</option>
+                        <option value="60">{`60 ${t('caloriMinutes')}`}</option>
+                        <option value="1440">{t('reminderDayBefore')}</option>
+                      </select>
+                    </div>
+                    <span style={{ color: '#C7BCAA', fontSize: 16 }}>{isRTL ? '‹' : '›'}</span>
+                  </CreamRow>
 
-                {/* Location (event only) */}
-                {activeTab === 'event' && (
-                  <FormRow
-                    icon={<MapPin className="w-[18px] h-[18px] text-rose-500" />}
-                    iconBg="bg-rose-100 dark:bg-rose-900/30"
-                    label={t('location')}
-                  >
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="..."
-                      className="text-sm bg-transparent text-foreground outline-none w-full text-end"
-                    />
-                  </FormRow>
-                )}
-
-                {/* Course selector — v3: OPTIONAL. Hidden until user clicks "+ צרף לקורס".
-                    Tasks/events can be personal (home, work, money, etc.) — no course required. */}
-                {activeTab !== 'note' && activeCourses.length > 0 && (
-                  courseId ? (
-                    <FormRow
-                      icon={<BookOpen className="w-[18px] h-[18px] text-blue-600" />}
-                      iconBg="bg-blue-100 dark:bg-blue-900/30"
-                      label={t('course')}
-                    >
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={courseId}
-                          onChange={(e) => setCourseId(e.target.value)}
-                          className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
-                        >
-                          {activeCourses.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
+                  {/* Event color */}
+                  <CreamRow>
+                    <span style={{ fontSize: 15 }}>&#127912;</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: CREAM.muted }}>{t('color', 'Color')}</span>
+                    <div className="flex gap-[7px]" style={{ marginInlineStart: 'auto' }}>
+                      {EVENT_COLORS.map((c) => (
                         <button
+                          key={c.id}
                           type="button"
-                          onClick={() => setCourseId('')}
-                          className="text-muted-foreground hover:text-foreground text-base leading-none px-1"
-                          aria-label={t('removeCourse', 'הסר קורס')}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </FormRow>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setCourseId(activeCourses[0]?.id || '')}
-                      className="w-full text-sm font-serif italic text-emerald-700 dark:text-emerald-400 py-3 px-4 border border-dashed border-emerald-700/30 dark:border-emerald-400/30 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition flex items-center justify-center gap-2"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      {t('attachCourseOptional', '+ צרף לקורס (אופציונלי)')}
-                    </button>
-                  )
-                )}
+                          onClick={() => setEventColor(c.id)}
+                          className="transition-all focus-visible:outline-none"
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            background: c.hex,
+                            cursor: 'pointer',
+                            boxShadow: eventColor === c.id ? `0 0 0 3px #fff, 0 0 0 5px ${c.hex}` : 'none',
+                            border: 'none',
+                          }}
+                          aria-label={c.id}
+                        />
+                      ))}
+                    </div>
+                  </CreamRow>
 
-                {/* Priority (task only) */}
-                {activeTab === 'task' && (
-                  <FormRow
-                    icon={<Flag className="w-[18px] h-[18px] text-red-500" />}
-                    iconBg="bg-red-100 dark:bg-red-900/30"
-                    label={t('priority')}
+                  {/* Category chips */}
+                  {data?.categories?.length > 0 && (
+                    <>
+                      <SectionLabel>{t('categoryLabel')}</SectionLabel>
+                      <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                        {data.categories.map((cat) => {
+                          const isSelected = categoryIds.includes(cat.id);
+                          return (
+                            <CatChip
+                              key={cat.id}
+                              active={isSelected}
+                              onClick={() => {
+                                if (isSelected) setCategoryIds(categoryIds.filter((id) => id !== cat.id));
+                                else setCategoryIds([...categoryIds, cat.id]);
+                              }}
+                              accentColor={CREAM.blue}
+                            >
+                              {cat.name}
+                            </CatChip>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Notes textarea */}
+                  <SectionLabel>{t('notes', 'Notes')}</SectionLabel>
+                  <div
+                    style={{
+                      background: '#fff',
+                      border: `1px solid ${CREAM.border}`,
+                      borderRadius: 14,
+                      padding: '12px 14px',
+                      minHeight: 60,
+                    }}
                   >
-                    <div className="flex items-center gap-2" role="radiogroup" aria-label={t('priority')}>
-                      {PRIORITY_OPTIONS.map((p) => (
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t('addNotesPlaceholder', 'Add notes, links, or attachments...')}
+                      rows={2}
+                      style={{
+                        fontFamily: serif,
+                        fontStyle: 'italic',
+                        fontSize: 14,
+                        color: CREAM.ink,
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        resize: 'none',
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* ════════ TASK TAB ════════ */}
+              {activeTab === 'task' && (
+                <>
+                  {/* Title input */}
+                  <input
+                    ref={activeTab === 'task' ? titleRef : undefined}
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder={t('taskTitlePlaceholder')}
+                    style={{
+                      background: '#fff',
+                      border: 'none',
+                      borderBottom: `2px solid ${CREAM.green}`,
+                      borderRadius: 0,
+                      padding: '8px 4px 10px',
+                      fontFamily: serif,
+                      fontSize: 22,
+                      fontStyle: 'italic',
+                      color: CREAM.ink,
+                      width: '100%',
+                      outline: 'none',
+                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                  />
+
+                  {/* Star + Recurring flags */}
+                  <div className="flex gap-2">
+                    <FlagButton
+                      active={starred}
+                      onClick={() => setStarred(!starred)}
+                      icon={<Star className="w-[18px] h-[18px]" fill={starred ? '#F59E0B' : 'none'} />}
+                      label={t('starred', 'Favorite')}
+                      activeColor="#B45309"
+                      activeBg="#FFFBEB"
+                      activeBorder="#F59E0B"
+                    />
+                    <FlagButton
+                      active={false}
+                      onClick={() => {}}
+                      icon={<Repeat className="w-[18px] h-[18px]" />}
+                      label={t('recurrence', 'Recurring')}
+                      activeColor="#6D28D9"
+                      activeBg="#F5F3FF"
+                      activeBorder="#7C3AED"
+                    />
+                  </div>
+
+                  {/* Priority */}
+                  <SectionLabel>{t('priority')}</SectionLabel>
+                  <div className="flex gap-2">
+                    {PRIORITY_OPTIONS.map((p) => {
+                      const isActive = priority === p.value;
+                      return (
                         <button
                           key={p.value}
+                          type="button"
                           onClick={() => setPriority(p.value)}
                           role="radio"
-                          aria-checked={priority === p.value}
-                          aria-label={
-                            p.value === 'high'
-                              ? t('priorityHigh')
-                              : p.value === 'med'
-                              ? t('priorityMed')
-                              : t('priorityLow')
-                          }
-                          className={cn(
-                            'w-7 h-7 rounded-full flex items-center justify-center transition-all border-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
-                            p.color,
-                            priority === p.value
-                              ? 'border-foreground scale-110 shadow-md'
-                              : 'border-transparent',
-                          )}
+                          aria-checked={isActive}
+                          className="flex-1 text-center py-3 transition-all focus-visible:ring-2 focus-visible:outline-none"
+                          style={{
+                            background: isActive ? p.bgActive : '#fff',
+                            border: `1.5px solid ${isActive ? p.borderActive : CREAM.border}`,
+                            borderRadius: 12,
+                            cursor: 'pointer',
+                          }}
                         >
-                          {priority === p.value && (
-                            <Check className="w-3.5 h-3.5 text-white" />
-                          )}
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: p.dotColor, margin: '0 auto 5px' }} />
+                          <div
+                            style={{
+                              fontSize: isActive ? 13 : 11,
+                              fontWeight: isActive ? 400 : 600,
+                              fontFamily: isActive ? serif : 'inherit',
+                              fontStyle: isActive ? 'italic' : 'normal',
+                              color: isActive ? CREAM.ink : CREAM.muted,
+                            }}
+                          >
+                            {t(p.label)}
+                          </div>
                         </button>
-                      ))}
-                      <span className="text-xs font-semibold text-primary ms-1">
-                        {priority === 'high'
-                          ? t('priorityHigh')
-                          : priority === 'med'
-                          ? t('priorityMed')
-                          : t('priorityLow')}
-                      </span>
-                    </div>
-                  </FormRow>
-                )}
+                      );
+                    })}
+                  </div>
 
-                {/* Reminder (event + task) */}
-                {activeTab !== 'note' && (
-                  <FormRow
-                    icon={<Bell className="w-[18px] h-[18px] text-primary" />}
-                    iconBg="bg-primary/10"
-                    label={t('reminderLabel')}
-                  >
+                  {/* Due date */}
+                  <SectionLabel>{t('dueDate')}</SectionLabel>
+                  <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                    <DueChip
+                      active={dueDate === new Date().toISOString().slice(0, 10)}
+                      onClick={() => setDueDate(new Date().toISOString().slice(0, 10))}
+                    >
+                      {t('today', 'Today')}
+                    </DueChip>
+                    <DueChip
+                      active={dueDate === new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                      onClick={() => setDueDate(new Date(Date.now() + 86400000).toISOString().slice(0, 10))}
+                    >
+                      {t('tomorrow', 'Tomorrow')}
+                    </DueChip>
+                    <DueChip active={false} onClick={() => {}}>
+                      {t('thisWeek', 'This week')}
+                    </DueChip>
+                    <div className="flex-shrink-0 relative">
+                      <DueChip active={!!dueDate && ![new Date().toISOString().slice(0, 10), new Date(Date.now() + 86400000).toISOString().slice(0, 10)].includes(dueDate)}>
+                        {dueDate && ![new Date().toISOString().slice(0, 10), new Date(Date.now() + 86400000).toISOString().slice(0, 10)].includes(dueDate) ? dueDate : t('pickDate', 'Pick date')}
+                      </DueChip>
+                      <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Optional course */}
+                  {activeCourses.length > 0 && (
+                    <>
+                      <SectionLabel>
+                        {t('course')} <span style={{ fontFamily: 'inherit', fontStyle: 'normal', fontSize: 10, letterSpacing: '.16em' }}> &middot; {t('optional', 'optional')}</span>
+                      </SectionLabel>
+                      {courseId ? (
+                        <CreamRow>
+                          <span style={{ fontSize: 14 }}>&#127891;</span>
+                          <select
+                            value={courseId}
+                            onChange={(e) => setCourseId(e.target.value)}
+                            style={{ flex: 1, fontFamily: serif, fontStyle: 'italic', fontSize: 14, color: CREAM.ink, background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', appearance: 'none' }}
+                          >
+                            {activeCourses.map((c) => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setCourseId('')}
+                            className="text-xs font-bold transition-opacity hover:opacity-70"
+                            style={{ color: CREAM.muted }}
+                          >
+                            &times;
+                          </button>
+                        </CreamRow>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setCourseId(activeCourses[0]?.id || '')}
+                          className="flex items-center gap-2.5 w-full transition-colors hover:bg-white/60"
+                          style={{
+                            background: '#fff',
+                            border: `1.5px dashed rgba(180,140,80,.3)`,
+                            borderRadius: 14,
+                            padding: '11px 14px',
+                          }}
+                        >
+                          <span style={{ fontSize: 14, color: CREAM.muted }}>&#127891;</span>
+                          <span style={{ flex: 1, fontFamily: serif, fontStyle: 'italic', fontSize: 14, color: CREAM.muted }}>
+                            {t('attachCourseOptional', '+ Attach to course')}
+                          </span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: CREAM.green }}>+ {t('add', 'Add')}</span>
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Category chips */}
+                  {data?.categories?.length > 0 && (
+                    <>
+                      <SectionLabel>{t('categoryLabel')}</SectionLabel>
+                      <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                        {data.categories.map((cat) => {
+                          const isSelected = categoryIds.includes(cat.id);
+                          return (
+                            <CatChip
+                              key={cat.id}
+                              active={isSelected}
+                              onClick={() => {
+                                if (isSelected) setCategoryIds(categoryIds.filter((id) => id !== cat.id));
+                                else setCategoryIds([...categoryIds, cat.id]);
+                              }}
+                              accentColor={CREAM.green}
+                            >
+                              {cat.name}
+                            </CatChip>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Reminder */}
+                  <SectionLabel>{t('reminderLabel')}</SectionLabel>
+                  <CreamRow>
+                    <span style={{ fontSize: 15 }}>&#128276;</span>
                     <select
                       value={reminder}
                       onChange={(e) => setReminder(e.target.value)}
-                      className="text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none text-end"
+                      style={{ flex: 1, fontFamily: serif, fontStyle: 'italic', fontSize: 14, color: CREAM.ink, background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', appearance: 'none' }}
                     >
                       <option value="default">{t('reminderDefault')}</option>
                       <option value="none">{t('reminderNone')}</option>
@@ -458,22 +816,39 @@ export const AddItemSheet = () => {
                       <option value="60">{`60 ${t('caloriMinutes')}`}</option>
                       <option value="1440">{t('reminderDayBefore')}</option>
                     </select>
-                  </FormRow>
-                )}
-              </div>
+                  </CreamRow>
 
-              {/* CTA */}
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-base shadow-lg shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60"
-              >
-                {activeTab === 'event'
-                  ? t('addEventBtn')
-                  : activeTab === 'task'
-                  ? t('addTaskBtn')
-                  : t('addNoteBtn')}
-              </button>
+                  {/* Notes */}
+                  <SectionLabel>{t('notes', 'Notes')}</SectionLabel>
+                  <div
+                    style={{
+                      background: '#fff',
+                      border: `1px solid ${CREAM.border}`,
+                      borderRadius: 14,
+                      padding: '12px 14px',
+                      minHeight: 50,
+                    }}
+                  >
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t('addNotesPlaceholder', 'Add notes or reminders...')}
+                      rows={2}
+                      style={{
+                        fontFamily: serif,
+                        fontStyle: 'italic',
+                        fontSize: 14,
+                        color: CREAM.ink,
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        resize: 'none',
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </>
@@ -482,17 +857,167 @@ export const AddItemSheet = () => {
   );
 };
 
-const FormRow = ({ icon, iconBg, label, children }) => (
-  <div className="flex items-center gap-3 py-3.5">
+/* ── Sub-components (cream v3 atoms) ─────────────────────── */
+
+/** Cream-styled row container */
+const CreamRow = ({ children, className }) => (
+  <div
+    className={cn('flex items-center gap-[11px]', className)}
+    style={{
+      background: '#fff',
+      border: `1px solid ${CREAM.border}`,
+      borderRadius: 14,
+      padding: '12px 14px',
+    }}
+  >
+    {children}
+  </div>
+);
+
+/** Section label with Instrument Serif italic */
+const SectionLabel = ({ children }) => (
+  <div
+    style={{
+      fontSize: 10,
+      fontWeight: 700,
+      color: CREAM.muted,
+      letterSpacing: '.16em',
+      textTransform: 'uppercase',
+      padding: '8px 4px 4px',
+    }}
+  >
+    <em style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: CREAM.ink, textTransform: 'none', letterSpacing: 0 }}>
+      {children}
+    </em>
+  </div>
+);
+
+/** Date/time cell used in event grid */
+const DateTimeCell = ({ label, children }) => (
+  <div
+    style={{
+      background: '#fff',
+      border: `1px solid ${CREAM.border}`,
+      borderRadius: 14,
+      padding: '11px 14px',
+    }}
+  >
+    <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: CREAM.muted }}>
+      {label}
+    </div>
+    <div style={{ marginTop: 3 }}>{children}</div>
+  </div>
+);
+
+/** Toggle switch (cream style) */
+const CreamToggle = ({ checked, onChange, isRTL }) => (
+  <button
+    type="button"
+    onClick={onChange}
+    role="switch"
+    aria-checked={checked}
+    className="flex-shrink-0 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+    style={{
+      width: 44,
+      height: 26,
+      borderRadius: 13,
+      background: checked ? CREAM.green : 'rgba(180,140,80,.2)',
+      position: 'relative',
+      border: 'none',
+      cursor: 'pointer',
+    }}
+  >
     <div
-      className={cn(
-        'w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0',
-        iconBg,
-      )}
-    >
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: '50%',
+        background: '#fff',
+        boxShadow: '0 1px 3px rgba(0,0,0,.15)',
+        position: 'absolute',
+        top: 2,
+        transition: 'transform .2s',
+        ...(isRTL
+          ? { right: checked ? 20 : 2, left: 'auto' }
+          : { left: checked ? 20 : 2 }),
+      }}
+    />
+  </button>
+);
+
+/** Flag button (star, recurring, pin, etc.) */
+const FlagButton = ({ active, onClick, icon, label, activeColor, activeBg, activeBorder }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex-1 text-center py-[11px] transition-all focus-visible:ring-2 focus-visible:outline-none"
+    style={{
+      background: active ? activeBg : '#fff',
+      border: `1.5px solid ${active ? (activeBorder || activeColor) : CREAM.border}`,
+      borderRadius: 12,
+      cursor: 'pointer',
+    }}
+  >
+    <div className="flex justify-center" style={{ color: active ? activeColor : CREAM.muted }}>
       {icon}
     </div>
-    <div className="flex-1 text-sm font-medium text-foreground">{label}</div>
-    <div className="shrink-0">{children}</div>
-  </div>
+    <div
+      style={{
+        marginTop: 3,
+        fontSize: active ? 13 : 11,
+        fontWeight: active ? 400 : 600,
+        fontFamily: active ? serif : 'inherit',
+        fontStyle: active ? 'italic' : 'normal',
+        color: active ? activeColor : CREAM.muted,
+      }}
+    >
+      {label}
+    </div>
+  </button>
+);
+
+/** Category chip */
+const CatChip = ({ active, onClick, accentColor, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex-shrink-0 transition-all focus-visible:ring-2 focus-visible:outline-none"
+    style={{
+      borderRadius: 999,
+      padding: active ? '5px 14px' : '6px 13px',
+      fontSize: active ? 14 : 12,
+      fontWeight: active ? 400 : 600,
+      fontFamily: active ? serif : 'inherit',
+      fontStyle: active ? 'italic' : 'normal',
+      background: active ? accentColor : '#fff',
+      border: `1px solid ${active ? accentColor : CREAM.border}`,
+      color: active ? '#fff' : CREAM.muted,
+      cursor: 'pointer',
+    }}
+  >
+    {children}
+  </button>
+);
+
+/** Due-date quick chip */
+const DueChip = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex-shrink-0 transition-all focus-visible:ring-2 focus-visible:outline-none"
+    style={{
+      borderRadius: 999,
+      padding: active ? '6px 14px' : '7px 13px',
+      fontSize: active ? 14 : 12,
+      fontWeight: active ? 400 : 600,
+      fontFamily: active ? serif : 'inherit',
+      fontStyle: active ? 'italic' : 'normal',
+      background: active ? CREAM.green : '#fff',
+      border: `1.5px solid ${active ? CREAM.green : CREAM.border}`,
+      color: active ? '#fff' : CREAM.muted,
+      cursor: 'pointer',
+    }}
+  >
+    {children}
+  </button>
 );

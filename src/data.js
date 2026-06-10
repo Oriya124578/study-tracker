@@ -86,10 +86,11 @@ export const generateInitialState = () => {
     profile: { displayName: "", academicYear: "שנה א'", semester: "סמסטר א'" },
     // Phase 2: unified life-manager item types
     events: [],         // { id, title, start, end, allDay, location, notes, color, source }
-    personalTasks: [],  // { id, title, dueDate, dueTime, done, doneAt, priority, list, notes, courseId?, subtasks[] }
+    personalTasks: [],  // { id, title, dueDate, dueTime, done, doneAt, priority, list, notes, courseId?, categoryIds: string[], subtasks[] }
     quickNotes: [],     // { id, title, content, createdAt, updatedAt, pinned, color }
     taskLists: [],
     noteCategories: [],
+    categories: [],
     // Phase 3: calori bridge (READ-ONLY mirror of calori_1300 data)
     calori: {
       meals: [],          // normalized meals for the selected day

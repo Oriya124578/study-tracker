@@ -20,9 +20,8 @@ const safeParse = (d) => {
   return isValid(dt) ? dt : null;
 };
 
-// ── Main: Bento Grid Command Center dashboard ──
 export const SmartDashboard = () => {
-  const { data, setActiveCategory, togglePersonalTask, draftSchedule } = useStore();
+  const { data, setActiveCategory, togglePersonalTask, draftSchedule, openAddSheet } = useStore();
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
   const locale = isRTL ? he : undefined;
@@ -38,8 +37,7 @@ export const SmartDashboard = () => {
     return t('goodNight');
   };
 
-
-  // ── 1. Nearest Exam ──
+  // ── Nearest Exam ──
   const nearestExam = useMemo(() => {
     let nearest = null;
     (data?.courses || []).forEach((course) => {
@@ -55,614 +53,382 @@ export const SmartDashboard = () => {
     return nearest;
   }, [data.courses]);
 
-  // ── 2. Today's Uncompleted Personal Tasks ──
-  const todayPersonalTasks = useMemo(() => {
+  // ── Today's tasks count ──
+  const todayTasksCount = useMemo(() => {
     const today = new Date();
-    return (data?.personalTasks || [])
-      .filter((task) => {
-        const dt = safeParse(task.dueDate);
-        return dt && isSameDay(dt, today) && !task.done;
-      })
-      .slice(0, 3); // Show top 3 tasks on the dashboard
+    return (data?.personalTasks || []).filter(
+      (task) => safeParse(task.dueDate) && isSameDay(safeParse(task.dueDate), today) && !task.done
+    ).length;
   }, [data.personalTasks]);
 
-  // ── Today's Chronological Schedule Blocks (AI Command Center Preview) ──
-  const todayScheduleBlocks = useMemo(() => {
-    // If there is an active draft, preview it! (excluding leisure/break blocks)
-    if (draftSchedule?.blocks?.length > 0) {
-      return draftSchedule.blocks
-        .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
-        .map((b) => ({
-          id: b.id,
-          type: b.type || 'event',
-          title: b.title,
-          time: b.startTime,
-          isCompleted: !!b.isCompleted,
-        }))
-        .sort((a, b) => a.time.localeCompare(b.time))
-        .slice(0, 3);
-    }
-
-    const blocks = [];
-    const dateStr = todayStr; // e.g. YYYY-MM-DD
-
-    // 1. Fixed Events
-    (data?.events || []).forEach((ev) => {
-      if (ev.start && ev.start.startsWith(dateStr)) {
-        const parsedTime = safeParse(ev.start);
-        blocks.push({
-          id: ev.id,
-          type: ev.type || 'event',
-          title: ev.title,
-          time: parsedTime ? format(parsedTime, 'HH:mm') : ev.start.substring(11, 16),
-          isCompleted: false,
-        });
-      }
-    });
-
-    // 2. Scheduled Tasks
-    (data?.personalTasks || []).forEach((t) => {
-      if (t.scheduledDate === dateStr && t.scheduledTime) {
-        blocks.push({
-          id: `task-${t.id}`,
-          type: 'study',
-          title: t.title,
-          time: t.scheduledTime,
-          isCompleted: !!t.done,
-        });
-      }
-    });
-
-    // 3. Logged Meals and Workouts
-    (data?.calori?.meals || []).forEach((meal) => {
-      if (meal.timestamp) {
-        const parsedTime = safeParse(meal.timestamp);
-        const mealDateStr = parsedTime ? format(parsedTime, 'yyyy-MM-dd') : '';
-        if (mealDateStr === dateStr) {
-          blocks.push({
-            id: `meal-${meal.id}`,
-            type: 'meal',
-            title: meal.name,
-            time: parsedTime ? format(parsedTime, 'HH:mm') : meal.timestamp.substring(11, 16),
-            isCompleted: true,
-          });
-        }
-      }
-    });
-
-    (data?.calori?.workouts || []).forEach((w) => {
-      if (w.timestamp) {
-        const parsedTime = safeParse(w.timestamp);
-        const wDateStr = parsedTime ? format(parsedTime, 'yyyy-MM-dd') : '';
-        if (wDateStr === dateStr) {
-          blocks.push({
-            id: `workout-${w.id}`,
-            type: 'workout',
-            title: w.name,
-            time: parsedTime ? format(parsedTime, 'HH:mm') : w.timestamp.substring(11, 16),
-            isCompleted: true,
-          });
-        }
-      }
-    });
-
-    return blocks
-      .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
-      .sort((a, b) => a.time.localeCompare(b.time))
-      .slice(0, 3);
-  }, [data, todayStr, draftSchedule]);
-
-  // ── 2b. Next Up Scheduled Item ──
-  const nextUpBlock = useMemo(() => {
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const upcoming = todayScheduleBlocks
-      .filter((block) => {
-        if (!block.time || block.isCompleted) return false;
-        const [h, m] = block.time.split(':').map(Number);
-        const blockMinutes = h * 60 + m;
-        return blockMinutes > nowMinutes;
-      })
-      .sort((a, b) => a.time.localeCompare(b.time));
-
-    return upcoming[0] || null;
-  }, [todayScheduleBlocks]);
-
-  const countdownText = useMemo(() => {
-    if (!nextUpBlock?.time) return null;
-    const now = new Date();
-    const [h, m] = nextUpBlock.time.split(':').map(Number);
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const blockMinutes = h * 60 + m;
-    const diffMinutes = blockMinutes - nowMinutes;
-
-    if (diffMinutes <= 0) return t('startsNow');
-    if (diffMinutes < 60) return t('startsInMinutes').replace('{n}', diffMinutes);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const remainingMin = diffMinutes % 60;
-    if (remainingMin === 0) return t('startsInHours').replace('{n}', diffHours);
-    return t('startsInHoursAndMinutes').replace('{h}', diffHours).replace('{m}', remainingMin);
-  }, [nextUpBlock]);
-
-  // ── 3. Next 7 Days Upcoming Items (For fallback empty timeline) ──
-  const upcomingItems = useMemo(() => {
-    const today = new Date();
-    const items = [];
-
-    // Exams
-    (data?.courses || []).forEach((course) => {
-      ['moedA', 'moedB', 'moedC'].forEach((moed) => {
-        const dt = safeParse(course[moed] || course.exams?.[moed]);
-        if (dt && differenceInDays(startOfDay(dt), startOfDay(today)) > 0 && differenceInDays(startOfDay(dt), startOfDay(today)) <= 7) {
-          items.push({
-            id: `exam-${course.id}-${moed}`, kind: 'exam',
-            title: `${course.name} — ${t(moed)}`, date: dt
-          });
-        }
-      });
-    });
-
-    // Events
-    (data?.events || []).forEach((ev) => {
-      const dt = safeParse(ev.start);
-      if (dt && differenceInDays(startOfDay(dt), startOfDay(today)) > 0 && differenceInDays(startOfDay(dt), startOfDay(today)) <= 7) {
-        items.push({
-          id: ev.id, kind: 'event', title: ev.title, date: dt
-        });
-      }
-    });
-
-    // Tasks due
-    (data?.personalTasks || []).forEach((task) => {
-      const dt = safeParse(task.dueDate);
-      if (dt && differenceInDays(startOfDay(dt), startOfDay(today)) > 0 && differenceInDays(startOfDay(dt), startOfDay(today)) <= 7 && !task.done) {
-        items.push({
-          id: task.id, kind: 'task', title: task.title, date: dt
-        });
-      }
-    });
-
-    return items.sort((a, b) => a.date - b.date).slice(0, 4);
-  }, [data, t]);
-
-  // ── 4. Smart Summary Sentence ──
+  // ── Smart summary ──
   const summaryText = useMemo(() => {
-    const tasksCount = (data?.personalTasks || []).filter(
-      (t) => safeParse(t.dueDate) && isSameDay(safeParse(t.dueDate), new Date()) && !t.done
-    ).length;
-
-    if (tasksCount > 0) return t('summaryTasksToday').replace('{n}', tasksCount);
+    if (todayTasksCount > 0) return t('summaryTasksToday').replace('{n}', todayTasksCount);
     if (nearestExam) {
       if (nearestExam.days === 0) return t('summaryExamToday').replace('{course}', nearestExam.name);
-      return t('summaryNextExam')
-        .replace('{course}', nearestExam.name)
-        .replace('{n}', nearestExam.days);
+      return t('summaryNextExam').replace('{course}', nearestExam.name).replace('{n}', nearestExam.days);
     }
     return t('summaryAllClear');
-  }, [data, nearestExam, t]);
+  }, [todayTasksCount, nearestExam, t]);
 
-  // ── 5. Calori Eten/Workout Aggregates ──
-  const { meals = [], workouts = [], dayHistory, dailyGoal: dbDailyGoal, proteinGoal, carbsGoal, fatsGoal } = data?.calori || {};
+  // ── Calori data ──
+  const { meals = [], workouts = [], dayHistory, dailyGoal: dbDailyGoal } = data?.calori || {};
   const hasMeals = meals.length > 0;
   const hasWorkouts = workouts.length > 0;
-
   const totalCalories = hasMeals ? meals.reduce((s, m) => s + (m.calories || 0), 0) : (dayHistory?.calories ?? 0);
   const totalProtein = hasMeals ? meals.reduce((s, m) => s + (m.protein || 0), 0) : (dayHistory?.protein ?? 0);
   const totalCarbs = hasMeals ? meals.reduce((s, m) => s + (m.carbs || 0), 0) : (dayHistory?.carbs ?? 0);
   const totalFats = hasMeals ? meals.reduce((s, m) => s + (m.fats || 0), 0) : (dayHistory?.fats ?? 0);
   const burned = hasWorkouts ? workouts.reduce((s, w) => s + (w.caloriesBurned || 0), 0) : (dayHistory?.workout_calories ?? 0);
   const workoutMin = hasWorkouts ? workouts.reduce((s, w) => s + (w.durationMinutes || 0), 0) : (dayHistory?.workout_minutes ?? 0);
-  const workoutCount = hasWorkouts ? workouts.length : (dayHistory?.workout_count ?? 0);
-
   const dailyGoal = dbDailyGoal || 1300;
-  const remainingCals = Math.max(0, dailyGoal - totalCalories);
   const calsPercentage = Math.min(100, Math.round((totalCalories / dailyGoal) * 100));
+  const weight = data?.calori?.weight || data?.calori?.dayHistory?.weight;
 
+  // ── Timeline blocks ──
+  const todayBlocks = useMemo(() => {
+    const blocks = [];
+    const ds = todayStr;
 
+    if (draftSchedule?.blocks?.length > 0) {
+      return draftSchedule.blocks
+        .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה'))
+        .map((b) => ({ id: b.id, type: b.type || 'event', title: b.title, time: b.startTime, sub: '' }))
+        .sort((a, b) => a.time.localeCompare(b.time))
+        .slice(0, 4);
+    }
 
-  const Chevron = isRTL ? ChevronLeft : ChevronRight;
+    (data?.events || []).forEach((ev) => {
+      if (ev.start?.startsWith(ds)) {
+        const p = safeParse(ev.start);
+        blocks.push({ id: ev.id, type: 'event', title: ev.title, time: p ? format(p, 'HH:mm') : '', sub: '' });
+      }
+    });
+    (data?.calori?.meals || []).forEach((meal) => {
+      const p = safeParse(meal.timestamp);
+      if (p && format(p, 'yyyy-MM-dd') === ds) {
+        blocks.push({ id: `m-${meal.id}`, type: 'meal', title: meal.name, time: format(p, 'HH:mm'), sub: `${meal.calories || 0} ${t('calories')} · ${t('caloriProtein')} ${meal.protein || 0}g` });
+      }
+    });
+    (data?.calori?.workouts || []).forEach((w) => {
+      const p = safeParse(w.timestamp);
+      if (p && format(p, 'yyyy-MM-dd') === ds) {
+        blocks.push({ id: `w-${w.id}`, type: 'workout', title: w.name, time: format(p, 'HH:mm'), sub: `${w.caloriesBurned || 0} ${t('calories')}` });
+      }
+    });
+
+    (data?.courses || []).forEach((course) => {
+      ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+        const dt = safeParse(course[moed] || course.exams?.[moed]);
+        if (dt && isSameDay(dt, new Date())) {
+          blocks.push({ id: `exam-${course.id}`, type: 'exam', title: `⏰ ${course.name}`, time: t('allDay'), sub: '' });
+        }
+      });
+    });
+
+    return blocks.sort((a, b) => a.time.localeCompare(b.time)).slice(0, 5);
+  }, [data, todayStr, draftSchedule, t]);
+
+  // ── Upcoming 7 days ──
+  const upcomingItems = useMemo(() => {
+    const today = new Date();
+    const items = [];
+    (data?.courses || []).forEach((course) => {
+      ['moedA', 'moedB', 'moedC'].forEach((moed) => {
+        const dt = safeParse(course[moed] || course.exams?.[moed]);
+        if (dt) {
+          const d = differenceInDays(startOfDay(dt), startOfDay(today));
+          if (d > 0 && d <= 7) items.push({ id: `e-${course.id}-${moed}`, kind: 'exam', title: `${course.name} — ${t(moed)}`, date: dt });
+        }
+      });
+    });
+    (data?.events || []).forEach((ev) => {
+      const dt = safeParse(ev.start);
+      if (dt) {
+        const d = differenceInDays(startOfDay(dt), startOfDay(today));
+        if (d > 0 && d <= 7) items.push({ id: ev.id, kind: 'event', title: ev.title, date: dt });
+      }
+    });
+    (data?.personalTasks || []).forEach((task) => {
+      const dt = safeParse(task.dueDate);
+      if (dt && !task.done) {
+        const d = differenceInDays(startOfDay(dt), startOfDay(today));
+        if (d > 0 && d <= 7) items.push({ id: task.id, kind: 'task', title: task.title, date: dt });
+      }
+    });
+    return items.sort((a, b) => a.date - b.date).slice(0, 4);
+  }, [data, t]);
+
+  const getTimeSegment = (time) => {
+    if (!time || time === t('allDay')) return t('evening', 'ערב');
+    const h = parseInt(time.split(':')[0], 10);
+    if (h < 12) return t('morning', 'בוקר');
+    if (h < 17) return t('afternoon', 'צהריים');
+    return t('evening', 'ערב');
+  };
 
   return (
-    <div
-      className="max-w-4xl mx-auto w-full px-4 py-5 sm:px-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
-      dir={isRTL ? 'rtl' : 'ltr'}
-    >
-      {/* ── Bento Grid Dashboard Layout ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
-        
-        {/* ── TILE 1: GREETING & STATUS CARD (Spans full width, includes Next Up Hero) ── */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3 relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm flex flex-col justify-between min-h-[140px]">
-          {/* Decorative Glow */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-[#059669]/5 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-[#7C3AED]/5 rounded-full blur-2xl pointer-events-none" />
+    <div className="max-w-lg mx-auto w-full px-3.5 py-3 space-y-2.5" dir={isRTL ? 'rtl' : 'ltr'}>
 
-          <div className="z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                {format(new Date(), 'EEEE, d MMMM', { locale })}
-              </span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight mt-1">
-                {getGreeting()}{displayName ? `, ${displayName}` : ''}! 👋
-              </h2>
+      {/* ══════ HERO CARD — cream v3 unified ══════ */}
+      <div
+        className="rounded-[22px] p-5 pb-4 relative overflow-hidden"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid rgba(180,140,80,.14)',
+          boxShadow: '0 4px 24px rgba(40,20,0,.07), 0 1px 0 rgba(255,255,255,.8) inset',
+        }}
+      >
+        {/* Green top accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: 'linear-gradient(90deg,#065F46,#059669 50%,#047857)' }} />
+        {/* Warm texture hint */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 60% at 100% 0%, rgba(255,245,220,.4) 0%, transparent 60%)' }} />
+
+        {/* Top: greeting + exam badge */}
+        <div className="flex justify-between items-start mb-4 relative">
+          <div>
+            <div className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: '#8A7A6A' }}>
+              {format(new Date(), 'EEEE · d MMMM yyyy', { locale })}
             </div>
-            <div className="flex items-center gap-2 bg-[#D1FAE5] dark:bg-[#059669]/20 px-4 py-2 rounded-2xl border border-[#059669]/10 shrink-0 self-start md:self-center">
-              <Sparkles className="w-4 h-4 text-[#059669] shrink-0" />
-              <span className="text-xs font-semibold text-[#059669] leading-none">{summaryText}</span>
+            <div className="mt-1.5" style={{ fontFamily: "'Instrument Serif', serif", fontSize: '27px', fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.04em', lineHeight: 1.05 }}>
+              {getGreeting()},<br />
+              <span style={{ color: '#059669', fontStyle: 'italic' }}>{displayName || t('user')} 👋</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-2">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#059669' }} />
+              <span className="text-xs font-semibold" style={{ color: '#8A7A6A' }}>{summaryText}</span>
             </div>
           </div>
-
-          {/* NEXT UP ITEM (Hero section inside banner) */}
-          <div className="mt-4 pt-4 border-t border-border/60 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            {nextUpBlock ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                  </span>
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t('nextUpInSchedule')}</span>
-                  <span className="text-xs font-extrabold text-foreground">{nextUpBlock.title}</span>
-                  <span className="text-xs text-muted-foreground">({nextUpBlock.time})</span>
-                </div>
-                <div className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full self-start sm:self-center">
-                  {countdownText}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground font-semibold">
-                <span>🌟</span>
-                <span>{t('scheduleCompleteForToday')}</span>
+          {nearestExam && (
+            <div className="text-center shrink-0 rounded-[14px] px-3 py-2.5" style={{ background: '#F0FDF4', border: '1px solid rgba(5,150,105,.2)' }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 600, fontStyle: 'italic', color: '#065F46', lineHeight: 1, letterSpacing: '-.04em' }}>
+                {nearestExam.days}
               </div>
-            )}
-          </div>
+              <div className="text-[9px] mt-0.5" style={{ color: 'rgba(6,95,70,.5)' }}>
+                {t('daysTo', 'ימים ל')}{nearestExam.name.length > 8 ? nearestExam.name.slice(0, 8) + '…' : nearestExam.name}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* ── TILE 2: NUTRITION & FITNESS SUMMARY (Apple Watch Style Rings - 2 columns) ── */}
-        <button
-          onClick={() => setActiveCategory('calori')}
-          className="col-span-1 md:col-span-2 text-start rounded-3xl border border-border bg-card p-5 hover:border-[#059669]/40 active:scale-[0.98] transition-all flex flex-row items-center justify-between min-h-[220px] relative overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]/40"
-        >
-          {/* Decorative Glow */}
-          <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-[#059669]/5 rounded-full blur-xl transition-all group-hover:scale-125" />
+        {/* Divider */}
+        <div style={{ borderTop: '1px solid rgba(180,140,80,.1)', marginBottom: '14px' }} />
 
-          {/* Left Details */}
-          <div className="flex flex-col justify-between h-full flex-1 pe-4">
-            {/* Title & External Link */}
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <img src="/logo-calori.jpg" alt="" className="w-8 h-8 rounded-xl object-contain" />
-                <span className="text-sm font-bold text-foreground">{t('nutritionAndFitnessToday')}</span>
-              </div>
-            </div>
-
-            {/* Calories and Weight details */}
-            <div className="my-3 flex flex-row items-center gap-6">
-              {/* Calories column */}
-              <div className="space-y-1">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[#059669]">{totalCalories}</span>
-                  <span className="text-[10px] text-muted-foreground">{t('ofGoalCaloriesEaten').replace('{goal}', dailyGoal)}</span>
+        {/* Nutrition row */}
+        <div className="flex items-center gap-3 relative">
+          <div className="flex-1">
+            <div className="flex gap-0 mb-2.5">
+              {/* Calories */}
+              <div className="flex-1 pe-2.5">
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '30px', fontWeight: 600, fontStyle: 'italic', color: '#059669', letterSpacing: '-.04em', lineHeight: 1 }}>
+                  {totalCalories}
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[#7C3AED]">+{burned}</span>
-                  <span className="text-[10px] text-muted-foreground">{t('ofGoalCaloriesBurned').replace('{goal}', 300).replace('{min}', workoutMin)}</span>
-                </div>
+                <div className="text-[10px] mt-1" style={{ color: '#8A7A6A' }}>{t('caloriesShort', 'קק"ל')} / {dailyGoal.toLocaleString()}</div>
               </div>
-
-              {/* Weight column */}
-              <div className="h-10 w-px bg-border/60" /> {/* divider */}
-              
-              <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{t('currentWeight')}</span>
-                <span className="text-xl font-black text-foreground">
-                  {data?.calori?.weight || '—'} <span className="text-[10px] font-bold text-muted-foreground">kg</span>
-                </span>
-                {data?.calori?.targetWeight && (
-                  <span className="text-[9px] text-muted-foreground font-semibold">
-                    Target: {data.calori.targetWeight} kg
-                  </span>
+              {/* Workout */}
+              <div className="flex-1 px-2.5" style={{ borderRight: '1px solid rgba(180,140,80,.1)' }}>
+                {burned > 0 ? (
+                  <>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: '#7C3AED', letterSpacing: '-.03em', lineHeight: 1 }}>
+                      +{burned}
+                    </div>
+                    <div className="text-[10px] mt-1" style={{ color: '#8A7A6A' }}>{t('caloriesBurned', 'נשרפו')} · {workoutMin}{t('min', 'ד׳')}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm leading-tight" style={{ color: '#8A7A6A' }}>{t('noWorkoutToday', 'לא היה')}<br />{t('noWorkoutToday2', 'אימון היום')}</div>
+                    <div className="text-[10px] mt-1" style={{ color: '#8A7A6A' }}>{t('trySoon', 'נסה בקרוב')}</div>
+                  </>
                 )}
               </div>
+              {/* Weight */}
+              <div className="flex-1 px-2.5" style={{ borderRight: '1px solid rgba(180,140,80,.1)' }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: '#2A1A0A', letterSpacing: '-.02em', lineHeight: 1 }}>
+                  {weight || '—'}
+                </div>
+                <div className="text-[10px] mt-1" style={{ color: '#8A7A6A' }}>{t('kg', 'ק"ג')} · {t('target', 'יעד')} {data?.calori?.targetWeight || 78}</div>
+              </div>
             </div>
-
-            {/* Macros strip */}
-            <div className="flex gap-3 pt-2 border-t border-border w-full items-end">
-              <div className="flex flex-col items-start">
-                <span className="text-[8px] font-bold text-muted-foreground uppercase">{t('caloriProtein')}</span>
-                <span className="text-xs font-extrabold text-[#059669]">{totalProtein}g</span>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[8px] font-bold text-muted-foreground uppercase">{t('caloriCarbs')}</span>
-                <span className="text-xs font-extrabold text-amber-500">{totalCarbs}g</span>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[8px] font-bold text-muted-foreground uppercase">{t('caloriFats')}</span>
-                <span className="text-xs font-extrabold text-rose-500">{totalFats}g</span>
-              </div>
+            {/* Macros pills */}
+            <div className="flex gap-1.5">
+              <span className="rounded-md px-2.5 py-1 text-[11px] font-bold" style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid rgba(5,150,105,.15)' }}>
+                {t('caloriProtein')} {totalProtein}g
+              </span>
+              <span className="rounded-md px-2.5 py-1 text-[11px] font-bold" style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid rgba(217,119,6,.15)' }}>
+                {totalCarbs}g
+              </span>
+              <span className="rounded-md px-2.5 py-1 text-[11px] font-bold" style={{ background: '#FFF5F5', color: '#DC2626', border: '1px solid rgba(220,38,38,.12)' }}>
+                {t('caloriFats', 'שומן')} {totalFats}g
+              </span>
             </div>
           </div>
 
-          {/* Right Progress Ring */}
-          <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-              {/* Outer track (Green) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="rgba(5, 150, 105, 0.1)"
-                strokeWidth="7.5"
-              />
-              {/* Outer progress (Green) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#059669"
-                strokeWidth="7.5"
-                strokeDasharray="238.8"
-                strokeDashoffset={238.8 - (238.8 * calsPercentage) / 100}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
-              {/* Inner track (Purple) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="27"
-                fill="transparent"
-                stroke="rgba(124, 58, 237, 0.1)"
-                strokeWidth="7.5"
-              />
-              {/* Inner progress (Purple) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="27"
-                fill="transparent"
-                stroke="#7C3AED"
-                strokeWidth="7.5"
-                strokeDasharray="169.6"
-                strokeDashoffset={169.6 - (169.6 * Math.min(100, Math.round((burned / 300) * 100))) / 100}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
+          {/* Progress rings */}
+          <div className="relative shrink-0">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <circle cx="44" cy="44" r="37" stroke="rgba(5,150,105,.1)" strokeWidth="10" />
+              <circle cx="44" cy="44" r="37" stroke="#059669" strokeWidth="10" strokeLinecap="round"
+                strokeDasharray="233" strokeDashoffset={233 - (233 * calsPercentage) / 100}
+                transform="rotate(-90 44 44)" className="transition-all duration-700" />
+              <circle cx="44" cy="44" r="26" stroke="rgba(124,58,237,.08)" strokeWidth="9" />
+              <circle cx="44" cy="44" r="26" stroke="#7C3AED" strokeWidth="9" strokeLinecap="round"
+                strokeDasharray="163" strokeDashoffset={163 - (163 * Math.min(100, burned > 0 ? Math.round((burned / 300) * 100) : 0)) / 100}
+                transform="rotate(-90 44 44)" className="transition-all duration-700" />
             </svg>
-            <div className="absolute text-center">
-              <span className="text-xs font-extrabold text-foreground">{calsPercentage}%</span>
-              <p className="text-[8px] text-muted-foreground font-bold">{t('completed')}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[15px] font-extrabold" style={{ color: '#2A1A0A' }}>{calsPercentage}%</span>
+              <span className="text-[9px]" style={{ color: '#8A7A6A' }}>{t('completed', 'הושלם')}</span>
             </div>
           </div>
-        </button>
+        </div>
 
-        {/* ── TILE 4: ACADEMIC / EXAMS BENTO TILE ── */}
+        {/* CTA: open calori */}
         <button
-          onClick={() => setActiveCategory('courses')}
-          className="col-span-1 text-start rounded-3xl border border-border bg-card p-5 hover:border-blue-500/40 active:scale-[0.98] transition-all flex flex-col justify-between min-h-[220px] relative overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+          onClick={() => setActiveCategory('calori')}
+          className="w-full mt-3.5 pt-3 flex items-center justify-between cursor-pointer"
+          style={{ borderTop: '1px solid rgba(180,140,80,.1)', fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: '13px', color: '#059669' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                <GraduationCap className="w-4 h-4 text-blue-500" />
-              </div>
-              <span className="text-sm font-bold text-foreground">{t('navStudies')}</span>
-            </div>
-            <Chevron className="w-4 h-4 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-          </div>
-
-          {/* Exam Status */}
-          <div className="mt-4 flex-1 flex flex-col justify-center">
-            {nearestExam ? (
-              <div className={cn(
-                'p-3 rounded-2xl border flex items-center justify-between gap-2 w-full',
-                nearestExam.days <= 7 ? 'border-destructive/30 bg-destructive/5 text-destructive' : 'border-blue-500/20 bg-blue-500/5 text-blue-600'
-              )}>
-                <div className="min-w-0">
-                  <p className="font-bold text-xs truncate text-foreground">{nearestExam.name}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{t('moed')} {nearestExam.moed}</p>
-                </div>
-                <div className="text-center shrink-0">
-                  <p className="text-lg font-black leading-none">{nearestExam.days}</p>
-                  <p className="text-[9px] uppercase tracking-wider">{t('days')}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-2">
-                <span className="text-3xl block">🌤️</span>
-                <span className="text-xs text-muted-foreground mt-1 block">{t('noUpcomingExams')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Academic Footer */}
-          <div className="mt-4 pt-3 border-t border-border w-full flex items-center justify-between text-xs text-muted-foreground">
-            <span>{t('semesterProgress')}</span>
-            <span className="font-bold text-foreground">
-              {(data?.courses || []).length} {t('coursesCount')}
-            </span>
-          </div>
+          <span>{t('openCaloriDetails', 'פתח קלורי · פרטי תזונה ואימונים מלאים')}</span>
+          <span style={{ fontFamily: "'Inter', sans-serif", fontStyle: 'normal', fontWeight: 700, fontSize: '18px' }}>›</span>
         </button>
-
-        {/* ── TILE 6: TODAY'S SCHEDULE TIMELINE PREVIEW BENTO TILE (Spans 2 columns on larger screens) ── */}
-        <button
-          onClick={() => setActiveCategory('commandCenter')}
-          className="col-span-1 md:col-span-2 text-start rounded-3xl border border-border bg-card p-5 hover:border-primary/40 active:scale-[0.99] transition-all flex flex-col justify-between min-h-[220px] relative overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-        >
-          {/* Subtle contextual glow */}
-          <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-primary/5 rounded-full blur-xl transition-all group-hover:scale-125" />
-
-          {/* Header */}
-          <div className="flex items-center justify-between w-full mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-sm font-bold text-foreground">{t('myDayScheduleCC')}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs font-bold text-primary hover:underline">
-              <span>{t('openAiPlanning')}</span>
-              <Chevron className="w-3.5 h-3.5" />
-            </div>
-          </div>
-
-          {/* Schedule Preview Content */}
-          <div className="flex-1 flex flex-col justify-start gap-2 w-full">
-            {todayScheduleBlocks.length > 0 ? (
-              <div className="space-y-2 w-full">
-                {todayScheduleBlocks.map((block) => {
-                  const blockColors = {
-                    study: 'border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400',
-                    event: 'border-slate-500/20 bg-card text-foreground',
-                    meal: 'border-[#059669]/20 bg-[#D1FAE5]/40 text-[#059669] dark:bg-[#059669]/10 dark:text-[#34D399]',
-                    workout: 'border-[#7C3AED]/20 bg-purple-100/40 text-[#7C3AED] dark:bg-purple-900/20 dark:text-[#A78BFA]',
-                    travel: 'border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400',
-                    leisure: 'border-rose-500/20 bg-rose-500/5 text-rose-500 dark:text-rose-400',
-                  };
-                  return (
-                    <div 
-                      key={block.id}
-                      className={cn(
-                        "flex items-center justify-between gap-3 p-2.5 rounded-2xl border text-xs font-semibold",
-                        blockColors[block.type] || 'border-border bg-muted/20'
-                      )}
-                    >
-                      <span className="truncate max-w-[70%]">{block.title}</span>
-                      <span className="shrink-0 font-bold opacity-80">{block.time}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground py-2 w-full">
-                <span className="text-2xl mb-1">🌤️</span>
-                <p className="text-xs">{t('noScheduledItemsToday')}</p>
-                <span className="mt-2 text-xs font-bold text-primary flex items-center gap-1 hover:underline">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {t('organizeScheduleWithAi')}
-                </span>
-              </div>
-            )}
-          </div>
-        </button>
-
       </div>
 
-      {/* ── QUICK SHORTCUTS STRIP ── */}
-      <section className="space-y-2">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-          {t('quickActions')}
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {/* Action 1: Auto Plan */}
+      {/* ══════ QA PILLS — cream v3 ══════ */}
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button
+          onClick={() => openAddSheet('task')}
+          className="shrink-0 flex items-center gap-2 rounded-[14px] px-4 py-2.5 active:scale-95 transition-transform"
+          style={{ background: '#059669', boxShadow: '0 4px 16px rgba(5,150,105,.28)' }}
+        >
+          <div className="w-[26px] h-[26px] rounded-lg flex items-center justify-center text-[13px]" style={{ background: 'rgba(255,255,255,.2)', color: '#fff' }}>＋</div>
+          <span className="text-xs font-bold text-white">{t('addNewItem', 'הוסף פריט')}</span>
+        </button>
+        {[
+          { label: t('myNotes', 'פתקים'), icon: '📒', bg: '#ECFDF5', cat: 'notes' },
+          { label: t('myTasks', 'משימות'), icon: '✓', bg: '#EFF4FF', cat: 'tasks' },
+          { label: t('navFocus', 'פומודורו'), icon: '⏱', bg: '#F3EFFB', cat: 'focus' },
+        ].map((pill) => (
           <button
-            onClick={() => setActiveCategory('commandCenter')}
-            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 active:scale-95 transition-all text-start"
+            key={pill.cat}
+            onClick={() => setActiveCategory(pill.cat)}
+            className="shrink-0 flex items-center gap-2 rounded-[14px] px-4 py-2.5 active:scale-95 transition-transform"
+            style={{ background: '#fff', border: '1px solid rgba(180,140,80,.18)', boxShadow: '0 2px 8px rgba(40,20,0,.06)' }}
           >
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-foreground">{t('organizeWithAi')}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{t('customDailyPlanning')}</p>
-            </div>
+            <div className="w-[26px] h-[26px] rounded-lg flex items-center justify-center text-[13px]" style={{ background: pill.bg }}>{pill.icon}</div>
+            <span className="text-xs font-bold" style={{ color: '#2A1A0A' }}>{pill.label}</span>
           </button>
+        ))}
+      </div>
 
-          {/* Action 2: Go to Focus */}
-          <button
-            onClick={() => setActiveCategory('focus')}
-            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 active:scale-95 transition-all text-start"
-          >
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <Target className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-foreground">{t('navFocus', 'פוקוס')}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{t('focusOnStudying', 'עבודה בריכוז עם שעון עצר')}</p>
-            </div>
-          </button>
-
-          {/* Action 3: Add Task/Event */}
-          <button
-            onClick={() => {
-              useStore.getState().openAddSheet('task');
-            }}
-            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-blue-500/40 hover:bg-blue-500/5 active:scale-95 transition-all text-start"
-          >
-            <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0">
-              <Plus className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-foreground">{t('addTaskOrEvent')}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{t('listsAndJournal')}</p>
-            </div>
-          </button>
-
-          {/* Action 4: Calori View */}
-          <button
-            onClick={() => setActiveCategory('calori')}
-            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-border bg-card hover:border-[#059669]/40 hover:bg-[#059669]/5 active:scale-95 transition-all text-start"
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#D1FAE5] dark:bg-[#059669]/20 flex items-center justify-center text-[#059669] shrink-0">
-              <UtensilsCrossed className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-foreground">{t('nutritionJournal')}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{t('viewDayDetails')}</p>
-            </div>
+      {/* ══════ TIMELINE — cream v3 ══════ */}
+      <div>
+        <div className="flex justify-between items-center px-0.5 pb-2">
+          <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '18px', fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+            {t('today', 'היום')}
+          </span>
+          <button onClick={() => setActiveCategory('calendar')} className="text-[11px] font-bold cursor-pointer" style={{ color: '#059669' }}>
+            {t('openCalendar', 'יומן')} ›
           </button>
         </div>
-      </section>
 
-      {/* ── TILE 7: AI QUICK LINKS (Spans full width) ── */}
+        {todayBlocks.length > 0 ? (
+          <div className="space-y-2">
+            {todayBlocks.map((block) => {
+              const dotColor = block.type === 'meal' ? '#059669' : block.type === 'workout' ? '#7C3AED' : block.type === 'exam' ? '#EF4444' : '#D6C8B8';
+              const cardStyle = block.type === 'meal'
+                ? { background: '#059669', color: '#fff' }
+                : block.type === 'exam'
+                ? { background: '#FEF2F2', border: '1px solid rgba(239,68,68,.1)', color: '#991B1B' }
+                : block.type === 'workout'
+                ? { background: '#7C3AED', color: '#fff' }
+                : { background: 'rgba(180,140,80,.05)', border: '1.5px dashed rgba(180,140,80,.2)', color: '#8A7A6A' };
+
+              return (
+                <div key={block.id} className="flex gap-2.5 items-stretch">
+                  <div className="w-[34px] text-center shrink-0 pt-2.5 text-[10px] font-semibold" style={{ color: '#8A7A6A' }}>{block.time}</div>
+                  <div className="flex flex-col items-center shrink-0 w-3.5">
+                    <div className="w-[9px] h-[9px] rounded-full mt-2.5" style={{ background: dotColor, boxShadow: dotColor !== '#D6C8B8' ? `0 0 0 2px ${dotColor}33` : 'none' }} />
+                    <div className="flex-1 w-[1.5px] mt-1" style={{ background: 'rgba(180,140,80,.15)' }} />
+                  </div>
+                  <div className="flex-1 rounded-[14px] px-3.5 py-2.5" style={cardStyle}>
+                    <div className="text-[13px] font-bold">{block.title}</div>
+                    {block.sub && <div className="text-[11px] mt-0.5" style={{ opacity: 0.65 }}>{block.sub}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[14px] px-3.5 py-4 text-center text-[12px]"
+            style={{ background: 'rgba(180,140,80,.05)', border: '1.5px dashed rgba(180,140,80,.2)', color: '#8A7A6A' }}
+          >
+            {t('noScheduledItemsToday', 'ריק · לחץ + להוסיף')}
+          </div>
+        )}
+      </div>
+
+      {/* ══════ 3 MINI STATS — cream v3 ══════ */}
+      <div className="flex gap-2">
+        <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: '#fff', border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 2px 10px rgba(40,20,0,.05)' }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 600, fontStyle: 'italic', color: '#059669', letterSpacing: '-.04em', lineHeight: 1 }}>
+            {nearestExam?.days ?? '—'}
+          </div>
+          <div className="text-[10px] font-semibold mt-1" style={{ color: '#8A7A6A' }}>{t('daysToExam', 'ימים לבחינה')}</div>
+        </div>
+        <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: '#fff', border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 2px 10px rgba(40,20,0,.05)' }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 600, fontStyle: 'italic', color: '#7C3AED', letterSpacing: '-.04em', lineHeight: 1 }}>
+            {data?.pomodoroSessions?.filter(s => { const d = safeParse(s.startedAt); return d && isSameDay(d, new Date()); }).length || 0}
+          </div>
+          <div className="text-[10px] font-semibold mt-1" style={{ color: '#8A7A6A' }}>{t('pomodoroSessions', 'פומודורו')}</div>
+        </div>
+        <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: '#fff', border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 2px 10px rgba(40,20,0,.05)' }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 600, fontStyle: 'italic', color: '#2A1A0A', letterSpacing: '-.04em', lineHeight: 1 }}>
+            {todayTasksCount}
+          </div>
+          <div className="text-[10px] font-semibold mt-1" style={{ color: '#8A7A6A' }}>{t('myTasks', 'משימות')}</div>
+        </div>
+      </div>
+
+      {/* ══════ AI QUICK LINKS ══════ */}
       <AiQuickLinks data={data} t={t} />
 
-      {/* ── UPCOMING 7 DAYS FALLBACK TIMELINE ── */}
-      {todayPersonalTasks.length === 0 && upcomingItems.length > 0 && (
-        <section className="space-y-3 pt-4 border-t border-border/60">
-          <div className="flex items-center justify-between px-0.5">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              {t('comingUp')} ({t('nextWeek')})
-            </h3>
-            <button
-              onClick={() => setActiveCategory('calendar')}
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5 focus-visible:outline-none"
-            >
-              {t('openCalendar')}
-              <Chevron className="w-3 h-3" />
+      {/* ══════ UPCOMING 7 DAYS ══════ */}
+      {upcomingItems.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between px-0.5 mb-2">
+            <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px', fontWeight: 400, color: '#2A1A0A' }}>
+              {t('comingUp', 'בקרוב')}
+            </span>
+            <button onClick={() => setActiveCategory('calendar')} className="text-[11px] font-bold cursor-pointer" style={{ color: '#059669' }}>
+              {t('openCalendar', 'יומן')} ›
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="space-y-1.5">
             {upcomingItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveCategory('calendar')}
-                aria-label={item.title}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 hover:border-primary/40 active:scale-[0.99] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="w-full flex items-center justify-between gap-3 rounded-[14px] px-3.5 py-2.5 active:scale-[0.99] transition-transform text-start"
+                style={{ background: '#fff', border: '1px solid rgba(180,140,80,.12)' }}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn(
-                    "w-2 h-2 rounded-full",
+                  <span className={cn("w-2 h-2 rounded-full shrink-0",
                     item.kind === 'exam' ? "bg-red-500" : item.kind === 'event' ? "bg-blue-500" : "bg-amber-500"
                   )} />
-                  <span className="text-sm font-semibold text-foreground truncate text-start">{item.title}</span>
+                  <span className="text-sm font-semibold truncate" style={{ color: '#2A1A0A' }}>{item.title}</span>
                 </div>
-                <span className="text-xs font-bold text-muted-foreground shrink-0">
+                <span className="text-xs font-bold shrink-0" style={{ color: '#8A7A6A' }}>
                   {isValid(item.date) && format(item.date, 'EEE d/M', { locale })}
                 </span>
               </button>
             ))}
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
 };
 
-// ── AI quick-links strip ──
 const AiQuickLinks = ({ data, t }) => {
   const courses = (data?.courses || []).filter((c) => !c.isArchived);
   const withLinks = courses
@@ -676,26 +442,26 @@ const AiQuickLinks = ({ data, t }) => {
   if (withLinks.length === 0) return null;
 
   return (
-    <section className="space-y-2">
-      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2 px-0.5">
-        <Bot className="w-4 h-4 text-primary shrink-0" />
-        {t('aiQuickLinks')}
-      </h3>
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+    <div>
+      <div className="flex items-center gap-2 px-0.5 mb-2">
+        <Bot className="w-4 h-4 shrink-0" style={{ color: '#059669' }} />
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#8A7A6A' }}>{t('aiQuickLinks', 'AI קישורים')}</span>
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
         {withLinks.map((c) => (
           <a
             key={c.id}
             href={c.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={c.name}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-card hover:border-primary/40 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-[14px] active:scale-95 transition-transform"
+            style={{ background: '#fff', border: '1px solid rgba(180,140,80,.12)' }}
           >
-            <Bot className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-xs font-semibold text-foreground whitespace-nowrap">{c.name}</span>
+            <Bot className="w-4 h-4 shrink-0" style={{ color: '#059669' }} />
+            <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#2A1A0A' }}>{c.name}</span>
           </a>
         ))}
       </div>
-    </section>
+    </div>
   );
 };

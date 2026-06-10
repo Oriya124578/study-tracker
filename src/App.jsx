@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { useStore } from './store/useStore';
@@ -12,6 +13,8 @@ import './index.css';
 function App() {
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const {
     theme,
@@ -20,8 +23,47 @@ function App() {
     dataLoaded,
     initFromAuth,
     cleanup,
+    setActiveCategory,
+    setCaloriDate,
   } = useStore();
   const { t } = useTranslation();
+
+  const activeCategory = useStore((s) => s.activeCategory);
+  const caloriDate = useStore((s) => s.caloriDate);
+
+  // Sync route with Zustand state
+  useEffect(() => {
+    // Route -> State
+    if (location.pathname.startsWith('/settings')) {
+      const activeCat = location.pathname.slice(1);
+      if (activeCategory !== activeCat) {
+        setActiveCategory(activeCat);
+      }
+    } else if (location.pathname.startsWith('/app/day/')) {
+      const parts = location.pathname.split('/');
+      if (parts.length === 4) {
+        if (caloriDate !== parts[3]) setCaloriDate(parts[3]);
+        if (activeCategory !== 'calori') setActiveCategory('calori');
+      }
+    }
+  }, [location.pathname, activeCategory, caloriDate, setActiveCategory, setCaloriDate]);
+
+  // State -> Route
+  useEffect(() => {
+    if (activeCategory.startsWith('settings')) {
+      const targetPath = `/${activeCategory}`;
+      if (location.pathname !== targetPath) {
+        navigate(targetPath, { replace: true });
+      }
+    } else if (activeCategory === 'calori') {
+      const targetPath = `/app/day/${caloriDate}`;
+      if (location.pathname !== targetPath) {
+        navigate(targetPath, { replace: true });
+      }
+    } else if (location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, [activeCategory, caloriDate, navigate]);
 
   // Firebase Auth listener. Drives subscribe/unsubscribe lifecycle on the store.
   useEffect(() => {

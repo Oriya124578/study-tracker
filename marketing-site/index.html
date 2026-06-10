@@ -110,9 +110,10 @@ a{color:inherit; text-decoration:none;}
   border-radius:calc(52px * var(--s)); overflow:hidden; position:relative; z-index:1;
   background:var(--canvas); box-shadow:var(--shadow-device); flex:none;
 }
-.device iframe{width:390px; height:844px; border:0; position:absolute; inset-block-start:0; inset-inline-start:0;
+/* iframe is always physically pinned top-left; the scale transforms from that same corner.
+   Must NOT use logical inset (it flips to the right edge in RTL and breaks the frame). */
+.device iframe{width:390px; height:844px; border:0; position:absolute; top:0; left:0; right:auto;
   transform:scale(var(--s)); transform-origin:top left;}
-[dir=ltr] .device iframe{inset-inline-start:auto; left:0;}
 .device.hero-dev{--s:.74;}
 .floats{animation:float 7s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
@@ -179,16 +180,22 @@ section{position:relative;}
 .chip .cd{width:8px; height:8px; border-radius:50%;}
 .tech-note{text-align:center; max-width:620px; margin:0 auto; color:var(--ink-soft); font-size:15px; line-height:1.7;}
 
-/* ============ DEMO / VIDEO ============ */
-.demo .video-shell{max-width:880px; margin:0 auto; border-radius:26px; overflow:hidden; position:relative;
-  box-shadow:0 30px 70px rgba(40,20,0,.22); border:1px solid var(--hairline); background:#0e0b07;}
-.demo video, .demo .video-ph{width:100%; display:block; aspect-ratio:16/9; object-fit:cover;}
-.video-ph{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
-  background:radial-gradient(60% 80% at 50% 0%, rgba(5,150,105,.25), transparent), #14100b; color:#fff; text-align:center; padding:30px;}
-.video-ph .play{width:74px; height:74px; border-radius:50%; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
-  display:flex; align-items:center; justify-content:center; font-size:26px;}
-.video-ph .vt{font-family:var(--font-display); font-style:italic; font-size:22px;}
-.video-ph .vs{font-size:13px; opacity:.7; max-width:42ch;}
+/* ============ DEMO / LIFESTYLE ============ */
+.life-grid{display:grid; grid-template-columns:1.45fr 1fr; gap:18px; max-width:1000px; margin:0 auto;}
+.life-card{border-radius:22px; overflow:hidden; position:relative; box-shadow:var(--shadow-card);
+  border:1px solid var(--hairline); transition:transform .35s var(--ease), box-shadow .35s;}
+.life-card:hover{transform:translateY(-5px); box-shadow:0 22px 50px rgba(40,20,0,.16);}
+.life-card img{width:100%; height:100%; object-fit:cover; display:block;}
+.life-card.big{grid-row:1 / span 2;}
+.life-side{display:flex; flex-direction:column; gap:18px;}
+.life-card.sm img{aspect-ratio:16/10;}
+.life-cap{position:absolute; inset-inline:0; inset-block-end:0; padding:20px;
+  background:linear-gradient(transparent, rgba(20,16,11,.78)); color:#fff;
+  font-family:var(--font-display); font-style:italic; font-size:19px; line-height:1.25;}
+.life-note{display:flex; align-items:center; justify-content:center; gap:8px; margin-block-start:22px;
+  font-size:12.5px; color:var(--ink-soft);}
+.life-note .ai-chip{display:inline-flex; align-items:center; gap:6px; background:var(--purple-softer);
+  color:var(--purple); border-radius:999px; padding:4px 11px; font-weight:700; font-size:11px;}
 
 /* ============ FINAL CTA ============ */
 .final{text-align:center; padding-block:110px;}
@@ -495,17 +502,27 @@ footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft
     <div class="sec-head reveal">
       <span class="eyebrow" data-he="הדגמה" data-en="Demo">הדגמה</span>
       <h2 data-he="רואים את זה <em>בפעולה</em>" data-en="See it <em>in action</em>">רואים את זה <em>בפעולה</em></h2>
-      <p data-he="הדגמת AI קצרה — דמות שמשתמשת ב-Calori Life ביום-יום." data-en="A short AI demo — a character using Calori Life in everyday life.">הדגמת AI קצרה — דמות שמשתמשת ב-Calori Life ביום-יום.</p>
+      <p data-he="ככה Calori Life נראה ביום-יום — שקט, חם, ובמקום אחד." data-en="This is Calori Life in everyday life — calm, warm, all in one place.">ככה Calori Life נראה ביום-יום — שקט, חם, ובמקום אחד.</p>
     </div>
-    <div class="video-shell reveal d1">
-      <video id="demoVideo" controls playsinline preload="none" poster="assets/demo-poster.jpg" style="display:none">
-        <source id="demoSrc" src="assets/demo.mp4" type="video/mp4">
-      </video>
-      <div class="video-ph" id="videoPh">
-        <div class="play">▶</div>
-        <div class="vt" data-he="הדגמת ה-AI בהכנה" data-en="AI demo in the works">הדגמת ה-AI בהכנה</div>
-        <div class="vs" data-he="קליפ קצר שנוצר ב-Higgsfield יוטמע כאן." data-en="A short clip generated with Higgsfield will be embedded here.">קליפ קצר שנוצר ב-Higgsfield יוטמע כאן.</div>
+    <div class="life-grid reveal d1">
+      <div class="life-card big">
+        <img loading="lazy" src="assets/lifestyle-1.png" alt="">
+        <div class="life-cap" data-he="היום שלך, בשליטה מלאה — מהספה." data-en="Your day, fully in hand — from the couch.">היום שלך, בשליטה מלאה — מהספה.</div>
       </div>
+      <div class="life-side">
+        <div class="life-card sm">
+          <img loading="lazy" src="assets/lifestyle-2.png" alt="">
+          <div class="life-cap" data-he="בין הרצאות, בבית קפה." data-en="Between lectures, at the cafe.">בין הרצאות, בבית קפה.</div>
+        </div>
+        <div class="life-card sm">
+          <img loading="lazy" src="assets/lifestyle-3.png" alt="">
+          <div class="life-cap" data-he="לוח שנה אחד לכל החיים." data-en="One calendar for your whole life.">לוח שנה אחד לכל החיים.</div>
+        </div>
+      </div>
+    </div>
+    <div class="life-note reveal d2">
+      <span class="ai-chip">✦ AI</span>
+      <span data-he="ויזואלים שנוצרו ב-Higgsfield. הדגמת וידאו מלאה תתווסף עם שדרוג חבילה." data-en="Concept visuals generated with Higgsfield. A full video demo will be added on a plan upgrade.">ויזואלים שנוצרו ב-Higgsfield. הדגמת וידאו מלאה תתווסף עם שדרוג חבילה.</span>
     </div>
   </div>
 </section>
@@ -564,17 +581,6 @@ var io = new IntersectionObserver(function(entries){
 }, { threshold:.12, rootMargin:'0px 0px -8% 0px' });
 document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
 
-// ---- nav shrink ----
-var nav = document.querySelector('.nav');
-addEventListener('scroll', function(){ nav.style.height = ''; }, {passive:true});
-
-// ---- show video if it exists (graceful) ----
-(function(){
-  var v = document.getElementById('demoVideo'), ph = document.getElementById('videoPh');
-  fetch('assets/demo.mp4', {method:'HEAD'}).then(function(r){
-    if(r.ok){ v.style.display='block'; ph.style.display='none'; }
-  }).catch(function(){});
-})();
 </script>
 </body>
 </html>

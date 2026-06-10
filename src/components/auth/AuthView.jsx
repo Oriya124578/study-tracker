@@ -116,98 +116,148 @@ export const AuthView = () => {
   const anyLoading = loading || googleLoading;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-in fade-in duration-500">
-      <Card className="w-full max-w-md shadow-xl border-primary/10">
-        <CardHeader className="text-center space-y-4">
-          <div
-            className="w-24 h-24 mx-auto mb-2 rounded-3xl p-[2px] flex items-center justify-center"
-            style={{ background: 'var(--gradient-brand)' }}
-          >
-            <div className="w-full h-full rounded-[22px] bg-background flex items-center justify-center">
-              <img src="/logo.svg" alt="Calori Life" className="w-16 h-16 object-contain drop-shadow-sm" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold">{t('loginTitle')}</CardTitle>
-          <CardDescription>
-            {isLogin ? t('loginDesc') : t('registerDesc')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4 text-start">
-            {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
-                {error}
-              </div>
-            )}
+    <div
+      className="min-h-screen flex items-center justify-center p-4 animate-in fade-in duration-500"
+      style={{ background: '#FAF7F2' }}
+      dir="rtl"
+    >
+      <div
+        className="w-full max-w-[360px] p-7 text-center"
+        style={{
+          background: '#FFFFFF',
+          borderRadius: '22px',
+          border: '1px solid rgba(180,140,80,.14)',
+          boxShadow: '0 4px 24px rgba(40,20,0,.07)',
+        }}
+      >
+        {/* Logo */}
+        <div
+          className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center"
+          style={{ background: '#065F46' }}
+        >
+          <img src="/logo.svg" alt="" className="w-9 h-9 object-contain brightness-0 invert" />
+        </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">{t('email')}</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder={t('emailPlaceholder')}
-                dir="ltr"
-                className="text-start h-11 md:h-10"
-              />
-            </div>
+        {/* Wordmark */}
+        <div className="mb-1" dir="ltr">
+          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '20px', color: '#2A1A0A' }}>
+            calori
+          </span>
+          <span style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontWeight: 400, fontSize: '22px', color: '#059669' }}>
+            {' '}life
+          </span>
+        </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">{t('password')}</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder={t('passwordPlaceholder')}
-                dir="ltr"
-                className="text-start h-11 md:h-10"
-              />
-            </div>
+        {/* Tagline */}
+        <p className="text-sm mb-5" style={{ color: '#8A7A6A', fontFamily: "'Inter', sans-serif" }}>
+          {isLogin ? t('loginDesc') : t('registerDesc')}
+        </p>
 
-            <Button type="submit" className="w-full h-11 text-base mt-2" disabled={anyLoading}>
-              {loading ? t('loading') : (isLogin ? t('loginBtn') : t('registerBtn'))}
-            </Button>
-          </form>
+        <form onSubmit={handleSubmit} className="space-y-4 text-start">
+          {error && (
+            <div className="text-sm p-3 rounded-xl" style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.15)' }}>
+              {error}
+            </div>
+          )}
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                {t('orDivider')}
-              </span>
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: '#2A1A0A' }}>{t('email')}</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder={t('emailPlaceholder')}
+              dir="ltr"
+              className="w-full h-11 px-4 text-sm outline-none transition-colors text-start"
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid rgba(180,140,80,.18)',
+                borderRadius: '12px',
+                color: '#2A1A0A',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#059669'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(180,140,80,.18)'}
+            />
           </div>
 
-          {/* Google Sign-In */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-11 text-base flex items-center justify-center gap-2"
-            onClick={handleGoogleSignIn}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: '#2A1A0A' }}>{t('password')}</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder={t('passwordPlaceholder')}
+              dir="ltr"
+              className="w-full h-11 px-4 text-sm outline-none transition-colors text-start"
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid rgba(180,140,80,.18)',
+                borderRadius: '12px',
+                color: '#2A1A0A',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#059669'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(180,140,80,.18)'}
+            />
+          </div>
+
+          <button
+            type="submit"
             disabled={anyLoading}
+            className="w-full h-12 text-[15px] font-bold text-white rounded-[14px] transition-all active:scale-[0.98] disabled:opacity-60"
+            style={{ background: '#059669', boxShadow: '0 4px 16px rgba(5,150,105,.28)' }}
           >
-            <GoogleIcon className="w-5 h-5" />
-            {googleLoading ? t('loading') : t('signInWithGoogle')}
-          </Button>
+            {loading ? t('loading') : (isLogin ? t('loginBtn') : t('registerBtn'))}
+          </button>
+        </form>
 
-          <div className="mt-6 flex flex-col gap-2">
-            <Button variant="ghost" className="w-full" onClick={() => setIsLogin(!isLogin)} disabled={anyLoading}>
-              {isLogin ? t('noAccount') : t('hasAccount')}
-            </Button>
-
-            {isLogin && (
-              <Button variant="link" className="w-full text-muted-foreground" onClick={handleResetPassword} disabled={anyLoading}>
-                {t('forgotPassword')}
-              </Button>
-            )}
+        {/* Divider */}
+        <div className="relative my-5">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full" style={{ borderTop: '1px solid rgba(180,140,80,.12)' }} />
           </div>
-        </CardContent>
-      </Card>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-3 text-xs" style={{ background: '#FFFFFF', color: '#8A7A6A' }}>
+              {t('orDivider')}
+            </span>
+          </div>
+        </div>
+
+        {/* Google Sign-In */}
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={anyLoading}
+          className="w-full h-12 text-[15px] font-semibold rounded-[14px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
+          style={{ background: '#FFFFFF', border: '1px solid rgba(180,140,80,.18)', color: '#2A1A0A' }}
+        >
+          <GoogleIcon className="w-5 h-5" />
+          {googleLoading ? t('loading') : t('signInWithGoogle')}
+        </button>
+
+        <div className="mt-5 flex flex-col gap-2">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            disabled={anyLoading}
+            className="w-full text-sm font-semibold py-2 cursor-pointer"
+            style={{ color: '#2A1A0A' }}
+          >
+            {isLogin ? t('noAccount') : t('hasAccount')}
+          </button>
+
+          {isLogin && (
+            <button
+              onClick={handleResetPassword}
+              disabled={anyLoading}
+              className="w-full text-sm py-1 cursor-pointer"
+              style={{ color: '#8A7A6A' }}
+            >
+              {t('forgotPassword')}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

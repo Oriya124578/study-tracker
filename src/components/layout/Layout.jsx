@@ -96,9 +96,15 @@ export const Layout = () => {
 
   return (
     <div className="flex flex-col min-h-[100dvh] w-full bg-background selection:bg-primary/20">
-      {/* Top header */}
+      {/* Top header — cream v3: warm blur, avatar→settings, serif title, wordmark */}
       <header
-        className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-background/70 backdrop-blur-xl pt-[max(env(safe-area-inset-top),16px)] z-20 shrink-0 sticky top-0 transition-all shadow-sm shadow-foreground/[0.01]"
+        className="flex items-center justify-between px-5 py-3 border-b z-20 shrink-0 sticky top-0 transition-all pt-[max(env(safe-area-inset-top),14px)]"
+        style={{
+          background: 'rgba(250,247,242,.94)',
+          backdropFilter: 'blur(22px)',
+          WebkitBackdropFilter: 'blur(22px)',
+          borderColor: 'rgba(180,140,80,.12)',
+        }}
         dir={language === 'he' ? 'rtl' : 'ltr'}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -111,26 +117,30 @@ export const Layout = () => {
             title={t('navSettings', 'הגדרות')}
             aria-label={t('navSettings', 'הגדרות')}
           >
-            {/* v3 cream: Avatar component with photoURL synced from Calori + italic-initial fallback. */}
             <Avatar
               src={data?.profile?.photoURL}
               initial={displayName ? displayName.trim().charAt(0).toUpperCase() : 'א'}
-              size={32}
+              size={34}
               alt={t('navSettings', 'הגדרות')}
             />
           </button>
           <h1
-            className="font-black text-xl tracking-tight bg-clip-text text-transparent truncate text-start select-none"
-            style={{ backgroundImage: 'var(--gradient-brand)' }}
+            className="text-[17px] tracking-tight truncate text-start select-none"
+            style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, color: '#2A1A0A' }}
           >
             {headerTitle}
           </h1>
         </div>
         <div className="flex items-center gap-3 shrink-0" dir="ltr">
-          {/* v3 cream wordmark: 'calori' Inter 800, ' life' Instrument Serif italic 400 green, slightly larger for prominence */}
-          <div className="flex flex-col items-end select-none">
-            <span className="text-[22px] font-extrabold tracking-tight text-foreground leading-none">
-              calori<span className="text-primary font-serif italic font-normal text-[24px] ms-0.5">life</span>
+          <div
+            className="flex flex-col items-end select-none cursor-pointer"
+            onClick={() => setActiveCategory('overview')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') setActiveCategory('overview'); }}
+          >
+            <span className="text-[19px] font-extrabold tracking-tight leading-none" style={{ color: '#2A1A0A', letterSpacing: '-.02em' }}>
+              calori<span style={{ color: '#059669', fontFamily: "'Instrument Serif', serif", fontStyle: 'normal', fontWeight: 400, fontSize: '21px' }}> life</span>
             </span>
           </div>
         </div>
@@ -143,10 +153,11 @@ export const Layout = () => {
         </ErrorBoundary>
       </main>
 
-      {/* Floating Action Button (FAB) on bottom right (3-dots toggle) */}
+      {/* FAB — cream v3: dark green (#065F46), positioned above nav */}
       <button
         onClick={() => setIsFanMenuOpen(!isFanMenuOpen)}
-        className="fixed right-6 bottom-24 sm:right-8 sm:bottom-28 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="fixed left-5 bottom-[88px] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        style={{ background: '#065F46', boxShadow: '0 6px 20px rgba(6,95,70,.35)' }}
         aria-label={isFanMenuOpen ? t('close') : t('navMore')}
       >
         <motion.div

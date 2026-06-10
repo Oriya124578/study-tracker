@@ -40,6 +40,9 @@ import {
   subscribeNoteCategories,
   setNoteCategory as fsSetNoteCategory,
   deleteNoteCategoryAndMigrateNotes as fsDeleteNoteCategoryAndMigrateNotes,
+  subscribeCategories,
+  setCategory as fsSetCategory,
+  deleteCategory as fsDeleteCategory,
   subscribeSchedule as fsSubscribeSchedule,
   setSchedule as fsSetSchedule,
   deleteSchedule as fsDeleteSchedule,
@@ -50,6 +53,8 @@ import {
   setRecurringTask as fsSetRecurringTask,
   deleteRecurringTask as fsDeleteRecurringTask,
   newId,
+  subscribeAiSuggestions,
+  updateAiSuggestion,
 } from '../lib/firestoreRepo';
 import { recurringInstancesForDate } from '../lib/recurrence';
 import {
@@ -319,6 +324,18 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, noteCategories: noteCategoriesDocs } }));
     });
 
+    const unsubCategories = subscribeCategories(uid, (categoriesDocs) => {
+      if (categoriesDocs.length === 0) {
+        const defaults = [
+          { id: 'studies', name: 'לימודים', color: 'var(--blue)', icon: 'Book', scope: 'global' },
+          { id: 'work', name: 'עבודה', color: 'var(--orange)', icon: 'Briefcase', scope: 'global' },
+          { id: 'personal', name: 'אישי', color: 'var(--green)', icon: 'User', scope: 'global' }
+        ];
+        defaults.forEach(cat => fsSetCategory(uid, cat.id, cat).catch(console.error));
+      }
+      set((state) => ({ data: { ...state.data, categories: categoriesDocs } }));
+    });
+
     // Phase 6d: recurring task rules.
     const unsubRecurringTasks = fsSubscribeRecurringTasks(uid, (recurringTasks) => {
       set((state) => ({ data: { ...state.data, recurringTasks } }));
@@ -328,6 +345,9 @@ export const useStore = create((set, get) => ({
       set((state) => ({ data: { ...state.data, recentDailyAnalytics } }));
     }, 3); // Only need last 3 days for AI
 
+    const unsubAiSuggestions = subscribeAiSuggestions(uid, (aiSuggestions) => {
+      set((state) => ({ data: { ...state.data, aiSuggestions } }));
+    });
 
     // ── Calori bridge (READ-ONLY) ──
     // Recent history is date-range independent; subscribe once here.
@@ -339,21 +359,28 @@ export const useStore = create((set, get) => ({
 
     const unsubCaloriProfile = subscribeCaloriProfile(uid, (caloriProfile) => {
       if (caloriProfile) {
-        set((state) => ({
-          data: {
-            ...state.data,
-            calori: {
-              ...state.data.calori,
-              dailyGoal: Number(caloriProfile.daily_goal) || 1300,
-              proteinGoal: Number(caloriProfile.protein_goal) || 0,
-              carbsGoal: Number(caloriProfile.carbs_goal) || 0,
-              fatsGoal: Number(caloriProfile.fats_goal) || 0,
-              stepsGoal: Number(caloriProfile.steps_goal) || 10000,
-              weight: caloriProfile.weight != null ? Number(caloriProfile.weight) : null,
-              targetWeight: caloriProfile.target_weight != null ? Number(caloriProfile.target_weight) : null,
+        set((state) => {
+          const photoURL = caloriProfile.profile?.photoURL || state.data.profile?.photoURL;
+          return {
+            data: {
+              ...state.data,
+              profile: {
+                ...state.data.profile,
+                ...(photoURL ? { photoURL } : {}),
+              },
+              calori: {
+                ...state.data.calori,
+                dailyGoal: Number(caloriProfile.daily_goal) || 1300,
+                proteinGoal: Number(caloriProfile.protein_goal) || 0,
+                carbsGoal: Number(caloriProfile.carbs_goal) || 0,
+                fatsGoal: Number(caloriProfile.fats_goal) || 0,
+                stepsGoal: Number(caloriProfile.steps_goal) || 10000,
+                weight: caloriProfile.weight != null ? Number(caloriProfile.weight) : null,
+                targetWeight: caloriProfile.target_weight != null ? Number(caloriProfile.target_weight) : null,
+              },
             },
-          },
-        }));
+          };
+        });
       }
     });
 
@@ -371,8 +398,10 @@ export const useStore = create((set, get) => ({
         unsubCaloriProfile,
         unsubTaskLists,
         unsubNoteCategories,
+        unsubCategories,
         unsubRecurringTasks,
         unsubRecentDailyAnalytics,
+        unsubAiSuggestions,
       ],
     });
 
@@ -641,6 +670,19 @@ export const useStore = create((set, get) => ({
 
     await fsSetProfile(uid, { ...profileData, hasCompletedOnboarding: true });
     set({ hasCompletedOnboarding: true });
+  },
+
+  // ---------- AI Suggestions ----------------------------------------------
+
+  setAiSuggestionStatus: async (suggestionId, status) => {
+    const { uid } = get();
+    if (!uid) return;
+    set((state) => {
+      // Optimistic remove if no longer pending
+      const suggestions = (state.data.aiSuggestions || []).filter(s => s.id !== suggestionId);
+      return { data: { ...state.data, aiSuggestions: suggestions } };
+    });
+    await updateAiSuggestion(uid, suggestionId, { status }).catch(console.error);
   },
 
   // ---------- Courses ----------------------------------------------------
@@ -1006,6 +1048,7 @@ export const useStore = create((set, get) => ({
       color: input.color || null,
       source: input.source || 'manual',
       courseId: input.courseId || null,
+      categoryIds: input.categoryIds || [],
       // Phase 5: per-item reminder override. null = use smart default,
       // -1 = no reminder, >=0 = minutes-before-start.
       reminderMinutes: input.reminderMinutes ?? null,
@@ -1048,6 +1091,7 @@ export const useStore = create((set, get) => ({
       starred: !!input.starred,
       notes: input.notes || '',
       courseId: input.courseId || null,
+      categoryIds: input.categoryIds || [],
       // Phase 5: per-item reminder override (minutes before due; null=default, -1=off).
       reminderMinutes: input.reminderMinutes ?? null,
       subtasks: [],
@@ -1203,6 +1247,18 @@ export const useStore = create((set, get) => ({
       .map((n) => n.id);
 
     await fsDeleteNoteCategoryAndMigrateNotes(uid, id, noteIds);
+  },
+
+  setCategory: async (id, catData) => {
+    const { uid } = get();
+    if (!uid) return;
+    await fsSetCategory(uid, id, catData).catch(console.error);
+  },
+
+  deleteCategory: async (id) => {
+    const { uid } = get();
+    if (!uid) return;
+    await fsDeleteCategory(uid, id).catch(console.error);
   },
 
   toggleStarPersonalTask: (id) => {
@@ -1471,7 +1527,7 @@ export const useStore = create((set, get) => ({
         });
         // Phase 6d: include today's recurring task instances as locked blocks
         // (only those with a fixed time and not already completed today).
-        recurringInstancesForDate(data?.recurringTasks || [], dateStr).forEach((inst) => {
+        recurringInstancesForDate(data?.personalTasks || [], dateStr).forEach((inst) => {
           fixedEvents.push({
             id: inst.id,
             title: inst.title,
@@ -1624,13 +1680,12 @@ export const useStore = create((set, get) => ({
     await fsDeleteRecurringTask(uid, id).catch(console.error);
   },
 
-  // Mark a specific date as completed for a recurring rule (dot-path merge
-  // write so we only touch the single map entry).
+  // Mark a specific date as completed for a recurring rule
   completeRecurringInstance: async (id, dateStr) => {
     const { uid } = get();
     if (!uid || !id || !dateStr) return;
-    await fsSetRecurringTask(uid, id, {
-      [`completions.${dateStr}`]: { done: true, doneAt: new Date().toISOString() },
+    await fsSetPersonalTask(uid, id, {
+      [`recurrence.completions.${dateStr}`]: { done: true, doneAt: new Date().toISOString() },
       updatedAt: new Date().toISOString(),
     }).catch(console.error);
   },
@@ -1639,9 +1694,21 @@ export const useStore = create((set, get) => ({
   skipRecurringInstance: async (id, dateStr) => {
     const { uid } = get();
     if (!uid || !id || !dateStr) return;
-    await fsSetRecurringTask(uid, id, {
-      [`skips.${dateStr}`]: true,
+    await fsSetPersonalTask(uid, id, {
+      [`recurrence.skips.${dateStr}`]: true,
       updatedAt: new Date().toISOString(),
     }).catch(console.error);
+  },
+
+  // Edit a specific date instance (e.g. change its time or duration).
+  editRecurringInstance: async (id, dateStr, overrides) => {
+    const { uid } = get();
+    if (!uid || !id || !dateStr) return;
+    const patch = {};
+    for (const [k, v] of Object.entries(overrides)) {
+      patch[`recurrence.exceptions.${dateStr}.${k}`] = v;
+    }
+    patch.updatedAt = new Date().toISOString();
+    await fsSetPersonalTask(uid, id, patch).catch(console.error);
   },
 }));

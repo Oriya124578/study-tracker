@@ -6,19 +6,19 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
 import { format, parseISO } from 'date-fns';
 
-// ── Color palette ─────────────────────────────────────────────────────────────
+// ── Cream v3 color palette ────────────────────────────────────────────────────
 
 const NOTE_COLORS = [
-  { id: null,     bg: 'bg-card',                                  swatch: 'bg-white border-2 border-border' },
-  { id: 'yellow', bg: 'bg-yellow-100  dark:bg-yellow-900/40',     swatch: 'bg-yellow-300' },
-  { id: 'green',  bg: 'bg-emerald-100 dark:bg-emerald-900/40',    swatch: 'bg-emerald-300' },
-  { id: 'pink',   bg: 'bg-pink-100    dark:bg-pink-900/40',       swatch: 'bg-pink-300' },
-  { id: 'purple', bg: 'bg-purple-100  dark:bg-purple-900/40',     swatch: 'bg-purple-300' },
-  { id: 'blue',   bg: 'bg-blue-100    dark:bg-blue-900/40',       swatch: 'bg-blue-300' },
+  { id: null,     bg: '',     style: { background: '#fff', border: '1px solid rgba(180,140,80,.15)' }, swatch: 'bg-white border-2 border-border',   catBg: 'rgba(5,150,105,.12)', catColor: '#059669', bodyColor: '#5A4A3A', titleAccent: '#059669' },
+  { id: 'yellow', bg: '',     style: { background: '#FEF3C7', border: '1px solid rgba(217,119,6,.15)' }, swatch: 'bg-yellow-300', catBg: 'rgba(146,64,14,.12)', catColor: '#78350F', bodyColor: '#78350F', titleAccent: '#92400E' },
+  { id: 'green',  bg: '',     style: { background: '#D1FAE5', border: '1px solid rgba(5,150,105,.15)' }, swatch: 'bg-emerald-300', catBg: 'rgba(6,95,70,.12)', catColor: '#065F46', bodyColor: '#064E3B', titleAccent: '#065F46' },
+  { id: 'pink',   bg: '',     style: { background: '#FEE2E2', border: '1px solid rgba(220,38,38,.15)' }, swatch: 'bg-pink-300',    catBg: 'rgba(127,29,29,.12)', catColor: '#7F1D1D', bodyColor: '#991B1B', titleAccent: '#7F1D1D' },
+  { id: 'purple', bg: '',     style: { background: '#F5F3FF', border: '1px solid rgba(124,58,237,.15)' }, swatch: 'bg-purple-300',  catBg: 'rgba(91,33,182,.12)', catColor: '#5B21B6', bodyColor: '#4C1D95', titleAccent: '#5B21B6' },
+  { id: 'blue',   bg: '',     style: { background: '#DBEAFE', border: '1px solid rgba(37,99,235,.15)' }, swatch: 'bg-blue-300',    catBg: 'rgba(30,58,138,.12)', catColor: '#1E3A8A', bodyColor: '#1E40AF', titleAccent: '#1E3A8A' },
 ];
 
-const getColorBg = (colorId) =>
-  NOTE_COLORS.find((c) => c.id === colorId)?.bg ?? 'bg-card';
+const getColorMeta = (colorId) =>
+  NOTE_COLORS.find((c) => c.id === colorId) ?? NOTE_COLORS[0];
 
 // ── Edit/Add Category Modal ──
 const EditCategoryModal = ({ onClose, onSave, onDelete, initialValue, isEdit = false, t, isRTL }) => {
@@ -37,7 +37,8 @@ const EditCategoryModal = ({ onClose, onSave, onDelete, initialValue, isEdit = f
         />
         {/* Card */}
         <motion.div
-          className="relative w-full max-w-sm overflow-hidden bg-card border border-border rounded-2xl p-5 shadow-xl z-10 space-y-4"
+          className="relative w-full max-w-sm overflow-hidden p-5 z-10 space-y-4"
+          style={{ background: '#fff', border: '1px solid rgba(180,140,80,.14)', borderRadius: 22, boxShadow: '0 4px 24px rgba(40,20,0,.07)' }}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -126,10 +127,8 @@ const NoteEditSheet = ({ note, onClose }) => {
 
       {/* Sheet */}
       <motion.div
-        className={cn(
-          'fixed bottom-0 inset-x-0 z-[61] rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] max-h-[90dvh] overflow-y-auto',
-          getColorBg(color),
-        )}
+        className="fixed bottom-0 inset-x-0 z-[61] rounded-t-2xl max-h-[90dvh] overflow-y-auto"
+        style={{ ...getColorMeta(color).style, boxShadow: '0 -10px 40px rgba(40,20,0,.12)' }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -247,36 +246,35 @@ const NoteCard = ({ note, onClick }) => {
   let dateLabel = '';
   try { dateLabel = format(parseISO(dateStr), 'd/M'); } catch { /* ignore */ }
   const cat = data?.noteCategories?.find((c) => c.id === note.categoryId);
+  const cm = getColorMeta(note.color);
 
   return (
     <button
       onClick={() => onClick(note)}
-      className={cn(
-        'w-full text-start rounded-2xl border border-border p-3.5 transition-all hover:border-primary/40 active:scale-[0.98] duration-200',
-        getColorBg(note.color),
-      )}
+      className="w-full text-start p-[13px_14px] transition-all hover:shadow-md active:scale-[0.98] duration-200"
+      style={{ ...cm.style, borderRadius: 14, boxShadow: '0 1px 4px rgba(40,20,0,.04)', position: 'relative' }}
     >
       {note.pinned && (
-        <Pin className="w-3.5 h-3.5 text-muted-foreground mb-1.5" />
+        <Pin className="w-3.5 h-3.5 mb-1.5" style={{ color: '#8A7A6A' }} />
       )}
       {note.title && (
-        <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">
+        <h3 className="mb-1 line-clamp-2" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 15, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em', lineHeight: 1.15 }}>
           {note.title}
         </h3>
       )}
       {note.content && (
-        <p className="text-xs text-foreground/70 line-clamp-4 leading-relaxed">
+        <p className="line-clamp-4 leading-relaxed" style={{ fontSize: 12, color: cm.bodyColor }}>
           {note.content}
         </p>
       )}
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-foreground/5">
-        {dateLabel && (
-          <p className="text-[11px] text-muted-foreground">{dateLabel}</p>
-        )}
+      <div className="flex items-center justify-between mt-1.5">
         {cat && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-foreground/10 text-muted-foreground select-none">
+          <span className="select-none" style={{ display: 'inline-block', borderRadius: 6, padding: '2px 7px', fontSize: 10, fontWeight: 700, background: cm.catBg, color: cm.catColor }}>
             {cat.name}
           </span>
+        )}
+        {dateLabel && (
+          <p style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 11, color: cm.bodyColor, opacity: 0.65 }}>{dateLabel}</p>
         )}
       </div>
     </button>
@@ -321,44 +319,46 @@ export const NotesView = () => {
       className="max-w-2xl mx-auto w-full px-4 py-5 sm:px-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-400"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* ── Dynamic Categories Scrollbar ── */}
-      <div className="flex items-center gap-1.5 pb-2 overflow-x-auto no-scrollbar border-b border-border/50">
+      {/* ── Cream v3 Categories Strip ── */}
+      <div className="flex items-center gap-1.5 pb-1 overflow-x-auto no-scrollbar">
         {categories.map((cat) => {
           const isActive = selectedCategoryId === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCategoryId(cat.id)}
-              className={cn(
-                "relative px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 shrink-0 select-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-                isActive ? "text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
-              )}
+              className="shrink-0 flex items-center gap-[5px] select-none transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              style={{
+                borderRadius: 999,
+                padding: isActive ? '5px 14px' : '6px 13px',
+                fontSize: isActive ? 14 : 12,
+                fontWeight: isActive ? 400 : 600,
+                fontFamily: isActive ? "'Instrument Serif', serif" : "'Inter', sans-serif",
+                fontStyle: isActive ? 'italic' : 'normal',
+                background: isActive ? '#D97706' : '#fff',
+                border: isActive ? '1px solid #D97706' : '1px solid rgba(180,140,80,.15)',
+                color: isActive ? '#fff' : '#8A7A6A',
+              }}
             >
-              <span className="relative z-10">{cat.name}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="activeNoteCategoryTab"
-                  className="absolute inset-0 bg-primary rounded-xl"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
+              {cat.name}
             </button>
           );
         })}
-        {/* "+" Button to add a new category */}
         <button
           onClick={() => setIsAddOpen(true)}
-          className="p-2.5 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="shrink-0 flex items-center gap-[5px] transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          style={{ borderRadius: 999, padding: '6px 13px', fontSize: 12, fontWeight: 600, background: 'transparent', border: '1px dashed rgba(180,140,80,.3)', color: '#8A7A6A' }}
           aria-label={t('addNewCategory')}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
+          {t('addNewCategory', '+ קטגוריה')}
         </button>
       </div>
 
       {/* ── Category Title + Options ── */}
       {selectedCategoryId !== 'all' && (
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-extrabold text-foreground">
+          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
             {currentCategory ? currentCategory.name : ''}
           </h2>
           {isCustomCategory && (
@@ -374,20 +374,22 @@ export const NotesView = () => {
       )}
 
       {/* ── Quick Note Creator Bar ── */}
-      <div 
-        onClick={() => openAddSheet('note', { 
-          categoryId: (selectedCategoryId === 'all' || selectedCategoryId === 'favorites') ? 'general' : selectedCategoryId, 
-          pinned: selectedCategoryId === 'favorites' 
+      <div
+        onClick={() => openAddSheet('note', {
+          categoryId: (selectedCategoryId === 'all' || selectedCategoryId === 'favorites') ? 'general' : selectedCategoryId,
+          pinned: selectedCategoryId === 'favorites'
         })}
-        className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-border bg-card cursor-pointer hover:border-primary/40 active:scale-[0.99] transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer active:scale-[0.99] transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        style={{ background: '#fff', borderRadius: 14, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 2px 10px rgba(40,20,0,.05)' }}
       >
         <button
-          className="shrink-0 w-6 h-6 rounded-full border border-primary/40 flex items-center justify-center bg-primary/5 text-primary"
+          className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
+          style={{ background: '#F0FDF4', border: '1px solid rgba(5,150,105,.2)', color: '#065F46' }}
           aria-label={t('addNewItem')}
         >
           <Plus className="w-3.5 h-3.5" />
         </button>
-        <span className="text-[14px] text-muted-foreground font-medium select-none">
+        <span className="select-none" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 14, color: '#8A7A6A' }}>
           {t('addNotePlaceholder')}
         </span>
       </div>
@@ -402,9 +404,14 @@ export const NotesView = () => {
           {/* Pinned section */}
           {pinnedNotes.length > 0 && (
             <div>
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-0.5">
-                {t('pinnedNotes')}
-              </p>
+              <div className="flex justify-between items-baseline px-0.5 pb-1">
+                <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+                  <em style={{ fontStyle: 'italic', color: '#D97706' }}>{t('pinnedNotes')}</em>
+                </span>
+                <span style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 13, color: '#8A7A6A' }}>
+                  {pinnedNotes.length} {t('items', 'פריטים')}
+                </span>
+              </div>
               <motion.div layout className="grid grid-cols-2 gap-2.5">
                 <AnimatePresence mode="popLayout">
                   {pinnedNotes.map((n) => (
@@ -428,9 +435,14 @@ export const NotesView = () => {
           {regularNotes.length > 0 && (
             <div>
               {pinnedNotes.length > 0 && (
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-0.5">
-                  {t('otherNotes')}
-                </p>
+                <div className="flex justify-between items-baseline px-0.5 pb-1">
+                  <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+                    {t('otherNotes', 'פתקים')} <em style={{ fontStyle: 'italic', color: '#D97706' }}>{t('recent', 'אחרונים')}</em>
+                  </span>
+                  <span style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 13, color: '#8A7A6A' }}>
+                    {regularNotes.length} {t('items', 'פריטים')}
+                  </span>
+                </div>
               )}
               <motion.div layout className="grid grid-cols-2 gap-2.5">
                 <AnimatePresence mode="popLayout">

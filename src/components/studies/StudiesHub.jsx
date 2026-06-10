@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BookOpen, Clock } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
+import { differenceInDays, parseISO } from 'date-fns';
 import { StudiesStats } from './StudiesStats';
+
+const COURSE_COLORS = ['#059669', '#2563EB', '#D97706', '#7C3AED', '#DC2626'];
+
+const creamCard = {
+  background: '#fff',
+  border: '1px solid rgba(180,140,80,.14)',
+  borderRadius: 18,
+  boxShadow: '0 2px 10px rgba(40,20,0,.05)',
+};
+
+const heroCard = {
+  background: '#fff',
+  border: '1px solid rgba(180,140,80,.14)',
+  borderRadius: 22,
+  boxShadow: '0 4px 24px rgba(40,20,0,.07)',
+  position: 'relative',
+  overflow: 'hidden',
+};
 
 export const StudiesHub = () => {
   const { data, setActiveCategory, setActiveCourse, setShowPomodoroModal } =
     useStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const isRTL = language === 'he';
   const courses = data?.courses?.filter((c) => !c.isArchived) || [];
 
   const openCourse = (course) => {
@@ -16,10 +36,177 @@ export const StudiesHub = () => {
     setActiveCategory('course');
   };
 
+  // Hebrew number words for editorial header
+  const hebrewNumbers = ['אפס', 'קורס אחד', 'שני קורסים', 'שלושה קורסים', 'ארבעה קורסים', 'חמישה קורסים', 'שישה קורסים', 'שבעה קורסים', 'שמונה קורסים', 'תשעה קורסים', 'עשרה קורסים'];
+  const courseCountText = isRTL
+    ? (hebrewNumbers[courses.length] || `${courses.length} קורסים`)
+    : `${courses.length} Courses`;
+
+  // Aggregate stats
+  const stats = useMemo(() => {
+    let totalTasks = 0;
+    let completedTasks = 0;
+    (data?.courses || []).forEach((course) => {
+      Object.values(data?.tasks?.[course.id] || {}).forEach((weekTasks) => {
+        (weekTasks || []).forEach((task) => {
+          totalTasks++;
+          if (task.checked) completedTasks++;
+        });
+      });
+    });
+    const pct = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+    // Find nearest exam
+    let nearestExamDays = null;
+    const now = new Date();
+    (data?.courses || []).forEach((c) => {
+      if (c.examDate) {
+        try {
+          const d = parseISO(c.examDate);
+          const diff = differenceInDays(d, now);
+          if (diff >= 0 && (nearestExamDays === null || diff < nearestExamDays)) {
+            nearestExamDays = diff;
+          }
+        } catch {}
+      }
+    });
+
+    return { pct, totalTasks, nearestExamDays };
+  }, [data]);
+
   return (
-    <div className="p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {courses.map((course) => {
+    <div
+      className="max-w-2xl mx-auto w-full px-4 py-5 sm:px-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {/* Editorial Hero Card */}
+      <div style={heroCard} className="p-5 relative overflow-hidden">
+        {/* Green gradient bar at top */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+          background: 'linear-gradient(90deg, #065F46, #059669, #047857)',
+        }} />
+
+        <div className="flex justify-between items-end mb-4">
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.14em', textTransform: 'uppercase' }}>
+              {isRTL ? 'סמסטר ב׳ · 2026' : 'Semester B · 2026'}
+            </div>
+            <h1 style={{
+              fontFamily: "'Instrument Serif', serif",
+              fontSize: 34,
+              fontWeight: 400,
+              color: '#2A1A0A',
+              letterSpacing: '-.03em',
+              lineHeight: .95,
+              marginTop: 2,
+            }}>
+              {courseCountText.split(' ')[0]}{' '}
+              <em style={{ fontStyle: 'italic', color: '#059669' }}>
+                {courseCountText.split(' ').slice(1).join(' ')}
+              </em>
+            </h1>
+          </div>
+
+          {stats.nearestExamDays !== null && (
+            <div style={{
+              background: '#F0FDF4',
+              border: '1px solid rgba(5,150,105,.2)',
+              borderRadius: 14,
+              padding: '9px 12px',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                fontFamily: "'Fraunces', serif",
+                fontSize: 24,
+                fontWeight: 600,
+                fontStyle: 'italic',
+                color: '#065F46',
+                lineHeight: 1,
+                letterSpacing: '-.04em',
+              }}>
+                {stats.nearestExamDays}
+              </div>
+              <div style={{ fontSize: 9, color: 'rgba(6,95,70,.55)', marginTop: 1 }}>
+                {isRTL ? 'ימים למבחן' : 'days to exam'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3 Stats Row */}
+        <div className="flex gap-0" style={{ paddingTop: 14, borderTop: '1px solid rgba(180,140,80,.1)' }}>
+          <div className="flex-1" style={{ paddingInlineEnd: 12 }}>
+            <div style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 28,
+              fontWeight: 600,
+              fontStyle: 'italic',
+              color: '#059669',
+              letterSpacing: '-.03em',
+              lineHeight: 1,
+            }}>
+              {stats.pct}%
+            </div>
+            <div style={{ fontSize: 10, color: '#8A7A6A', marginTop: 4, fontWeight: 500 }}>
+              {isRTL ? 'התקדמות ממוצעת' : 'Avg progress'}
+            </div>
+          </div>
+          <div className="flex-1" style={{ paddingInline: 12, borderInlineStart: '1px solid rgba(180,140,80,.1)' }}>
+            <div style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 28,
+              fontWeight: 600,
+              fontStyle: 'italic',
+              color: '#2A1A0A',
+              letterSpacing: '-.03em',
+              lineHeight: 1,
+            }}>
+              {stats.totalTasks}
+            </div>
+            <div style={{ fontSize: 10, color: '#8A7A6A', marginTop: 4, fontWeight: 500 }}>
+              {isRTL ? 'משימות שבועיות' : 'Weekly tasks'}
+            </div>
+          </div>
+          <div className="flex-1" style={{ paddingInlineStart: 12, borderInlineStart: '1px solid rgba(180,140,80,.1)' }}>
+            <div style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 28,
+              fontWeight: 600,
+              fontStyle: 'italic',
+              color: '#2563EB',
+              letterSpacing: '-.03em',
+              lineHeight: 1,
+            }}>
+              {courses.length}
+            </div>
+            <div style={{ fontSize: 10, color: '#8A7A6A', marginTop: 4, fontWeight: 500 }}>
+              {isRTL ? 'קורסים פעילים' : 'Active courses'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section Header */}
+      <div className="flex items-center justify-between px-0.5">
+        <h2 style={{
+          fontFamily: "'Instrument Serif', serif",
+          fontSize: 22,
+          fontWeight: 400,
+          color: '#2A1A0A',
+          letterSpacing: '-.02em',
+        }}>
+          {isRTL ? 'הקורסים ' : 'My '}
+          <em style={{ fontStyle: 'italic', color: '#059669' }}>
+            {isRTL ? 'שלי' : 'Courses'}
+          </em>
+        </h2>
+      </div>
+
+      {/* 2-Column Course Grid */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {courses.map((course, idx) => {
+          const color = COURSE_COLORS[idx % COURSE_COLORS.length];
           const taskCount = Object.values(data.tasks[course.id] || {}).reduce(
             (sum, week) => sum + week.length,
             0,
@@ -30,48 +217,101 @@ export const StudiesHub = () => {
           );
           const pct = taskCount > 0 ? Math.round((doneCount / taskCount) * 100) : 0;
 
+          // Find current week (rough estimate)
+          const totalWeeks = course.weeks || 14;
+          const currentWeek = Math.min(
+            totalWeeks,
+            Math.max(1, Math.ceil((doneCount / Math.max(taskCount, 1)) * totalWeeks))
+          );
+
           return (
             <button
               key={course.id}
               onClick={() => openCourse(course)}
-              className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all text-start group"
+              style={{
+                ...creamCard,
+                position: 'relative',
+                overflow: 'hidden',
+                padding: 14,
+                textAlign: 'start',
+              }}
+              className="block w-full transition-all hover:shadow-md active:scale-[0.98]"
             >
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                <BookOpen className="w-5 h-5 text-primary" />
+              {/* Colored side bar - RTL: right side, LTR: left side */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                [isRTL ? 'right' : 'left']: 0,
+                width: 3,
+                height: '100%',
+                background: color,
+              }} />
+
+              <div style={{
+                fontFamily: "'Instrument Serif', serif",
+                fontSize: 18,
+                fontWeight: 400,
+                color: '#2A1A0A',
+                lineHeight: 1.15,
+                letterSpacing: '-.02em',
+                marginBottom: 6,
+                minHeight: 42,
+              }}>
+                {course.name}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm text-foreground truncate">
-                  {course.name}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-medium">
-                    {pct}%
-                  </span>
-                </div>
+
+              <div style={{ fontSize: 10, color: '#8A7A6A', fontWeight: 500, marginBottom: 8 }}>
+                {isRTL ? 'שבוע ' : 'Week '}
+                <em style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontStyle: 'italic',
+                  fontSize: 12,
+                  color: '#2A1A0A',
+                }}>
+                  {currentWeek}
+                </em>
+                {isRTL ? ` מתוך ${totalWeeks}` : ` of ${totalWeeks}`}
+              </div>
+
+              {/* Progress bar */}
+              <div style={{
+                height: 5,
+                background: 'rgba(180,140,80,.12)',
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%',
+                  borderRadius: 3,
+                  background: color,
+                  width: `${pct}%`,
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+
+              <div className="flex justify-between" style={{ marginTop: 6, fontSize: 9, color: '#8A7A6A' }}>
+                <span>{pct}% {isRTL ? 'הושלם' : 'done'}</span>
+                {course.examDate && (() => {
+                  try {
+                    const days = differenceInDays(parseISO(course.examDate), new Date());
+                    if (days >= 0) return (
+                      <span style={{
+                        fontFamily: "'Instrument Serif', serif",
+                        fontStyle: 'italic',
+                        fontSize: 11,
+                        color: '#059669',
+                      }}>
+                        {days} {isRTL ? 'יום' : 'days'}
+                      </span>
+                    );
+                  } catch {}
+                  return null;
+                })()}
               </div>
             </button>
           );
         })}
       </div>
-
-      {/* Quick pomodoro access */}
-      <button
-        onClick={() => setShowPomodoroModal(true)}
-        className="w-full flex items-center gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all"
-      >
-        <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-          <Clock className="w-5 h-5 text-purple-600" />
-        </div>
-        <span className="font-semibold text-sm text-foreground">
-          {t('pomodoro')}
-        </span>
-      </button>
 
       {/* Academic stats (moved here from home in Phase 4) */}
       <StudiesStats />

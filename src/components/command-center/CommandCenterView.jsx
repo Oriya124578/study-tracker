@@ -45,7 +45,8 @@ export const CommandCenterView = () => {
     updateEvent,
     setProfile,
     googleCalendarToken,
-    setGoogleCalendarToken
+    setGoogleCalendarToken,
+    setAiSuggestionStatus
   } = useStore();
 
   const { t } = useTranslation();
@@ -750,7 +751,6 @@ export const CommandCenterView = () => {
 
   const blockIcons = {
     sleep: Clock,
-      sleep: Clock,
     study: CalendarIcon,
     event: CalendarIcon,
     meal: Utensils,
@@ -759,82 +759,79 @@ export const CommandCenterView = () => {
     leisure: Clock,
   };
 
+  // Cream v3 shared styles
+  const ccCard = { background: '#fff', borderRadius: 22, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 4px 24px rgba(40,20,0,.07)' };
+  const ccBlockCard = { background: '#fff', borderRadius: 14, border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 1px 6px rgba(40,20,0,.04)' };
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
-    <div className="max-w-6xl mx-auto px-4 py-5 sm:px-6 space-y-6 animate-in fade-in duration-300 pb-28" dir={isRTL ? 'rtl' : 'ltr'}>
-      
-      {/* Date Header Navigator */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-            <Bot className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-foreground">{t('ccTitle')}</h1>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <p className="text-xs text-muted-foreground">{t('ccSubtitle')}</p>
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground bg-muted/40 px-2.5 py-0.5 rounded-full border border-border/30">
-                {weather.loading ? (
-                  <span className="animate-pulse">מאתר מיקום...</span>
-                ) : weather.error ? (
-                  <span>מיקום לא זמין</span>
-                ) : (
-                  <>
-                    <MapPin className="w-3 h-3 text-primary/70" />
-                    <span className="max-w-[100px] truncate">{weather.city}</span>
-                    <span className="mx-0.5 opacity-60">•</span>
-                    <span>{weather.min}° - {weather.max}°</span>
-                    {weather.isNight ? <Moon className="w-3 h-3 text-indigo-400" /> : <Sun className="w-3 h-3 text-amber-500" />}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-6xl mx-auto px-4 py-5 sm:px-6 space-y-5 animate-in fade-in duration-300 pb-28" dir={isRTL ? 'rtl' : 'ltr'}>
 
-        {/* Date Selector (Only shown in 'schedule' tab) */}
+      {/* AI Hero — cream v3 */}
+      <div className="relative overflow-hidden" style={{ ...ccCard, padding: '22px 20px' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #065F46, #7C3AED 50%, #2563EB)' }} />
+        <div style={{ position: 'absolute', top: -60, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div className="flex items-center gap-[6px] mb-2" style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.14em', textTransform: 'uppercase' }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7C3AED', display: 'inline-block' }} className="animate-pulse" />
+          {t('ccTitle')} · {format(currentDate, 'EEEE, d MMMM', { locale })}
+        </div>
+        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 28, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.04em', lineHeight: 1.05, marginBottom: 10 }}>
+          {t('ccSubtitle')}
+        </h1>
+        <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: '#5A4A3A', lineHeight: 1.6 }}>
+          {!weather.loading && !weather.error && (
+            <>
+              <MapPin className="w-3.5 h-3.5" style={{ color: '#059669' }} />
+              <span>{weather.city}</span>
+              <span style={{ opacity: 0.5 }}>·</span>
+              <span>{weather.min}°–{weather.max}°</span>
+              {weather.isNight ? <Moon className="w-3.5 h-3.5" style={{ color: '#7C3AED' }} /> : <Sun className="w-3.5 h-3.5" style={{ color: '#D97706' }} />}
+            </>
+          )}
+        </div>
+        {/* Date nav + actions */}
         {activeSubTab === 'schedule' && (
-          <div className="flex flex-wrap items-center justify-center gap-3 animate-in fade-in duration-200">
-            <button onClick={prevDay} className="p-2 border rounded-full bg-card hover:bg-muted active:scale-95 transition-all">
-              <ChevronRight className="w-4 h-4" />
+          <div className="flex items-center gap-3 mt-3 pt-3" style={{ borderTop: '1px solid rgba(180,140,80,.1)' }}>
+            <button onClick={prevDay} className="p-2 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: '50%', background: '#fff', border: '1px solid rgba(180,140,80,.18)' }}>
+              <ChevronRight className="w-4 h-4" style={{ color: '#2A1A0A' }} />
             </button>
-            <button onClick={setToday} className="px-4 py-1.5 border rounded-2xl bg-card hover:bg-muted font-semibold text-xs active:scale-95 transition-all">
+            <button onClick={setToday} className="px-4 py-1.5 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 999, background: '#F0FDF4', border: '1px solid rgba(5,150,105,.2)', fontSize: 11, fontWeight: 600, color: '#065F46' }}>
               {t('today')}
             </button>
-            <span className="font-bold text-foreground text-sm min-w-[120px] text-center">
+            <span className="flex-1 text-center min-w-[100px]" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 15, fontWeight: 400, color: '#2A1A0A' }}>
               {format(currentDate, 'EEEE, d MMMM', { locale })}
             </span>
-            <button onClick={nextDay} className="p-2 border rounded-full bg-card hover:bg-muted active:scale-95 transition-all">
-              <ChevronLeft className="w-4 h-4" />
+            <button onClick={nextDay} className="p-2 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: '50%', background: '#fff', border: '1px solid rgba(180,140,80,.18)' }}>
+              <ChevronLeft className="w-4 h-4" style={{ color: '#2A1A0A' }} />
             </button>
           </div>
         )}
       </div>
 
-      {/* Sub-Tabs Switcher */}
-      <div className="flex bg-muted p-1 rounded-2xl gap-1 w-full sm:max-w-md mx-auto select-none border border-border/20">
-        <button
-          onClick={() => setActiveSubTab('schedule')}
-          className={cn(
-            "flex-1 text-center py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer",
-            activeSubTab === 'schedule'
-              ? "bg-background text-foreground shadow"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {t('ccHourlyTimeline', 'לוז יומי')}
-        </button>
-        <button
-          onClick={() => setActiveSubTab('calendar')}
-          className={cn(
-            "flex-1 text-center py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer",
-            activeSubTab === 'calendar'
-              ? "bg-background text-foreground shadow"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {t('navCalendar', 'לוח שנה')}
-        </button>
+      {/* Sub-Tabs — cream v3 pill */}
+      <div className="flex gap-[6px] justify-center select-none">
+        {[
+          { key: 'schedule', label: t('ccHourlyTimeline', 'לוז יומי') },
+          { key: 'calendar', label: t('navCalendar', 'לוח שנה') },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveSubTab(tab.key)}
+            className="transition-all cursor-pointer active:scale-95"
+            style={{
+              padding: activeSubTab === tab.key ? '5px 14px' : '6px 12px',
+              borderRadius: 999,
+              fontSize: activeSubTab === tab.key ? 13 : 11,
+              fontWeight: activeSubTab === tab.key ? 400 : 600,
+              fontFamily: activeSubTab === tab.key ? "'Instrument Serif', serif" : "'Inter', sans-serif",
+              fontStyle: activeSubTab === tab.key ? 'italic' : 'normal',
+              background: activeSubTab === tab.key ? '#7C3AED' : '#F5F0E8',
+              color: activeSubTab === tab.key ? '#fff' : '#8A7A6A',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Main Content: Conditional based on activeSubTab */}
@@ -844,21 +841,22 @@ export const CommandCenterView = () => {
         {/* Left/Middle: Timeline (Spans 2 columns) */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Coach Note Panel (Clickable to open Chat) */}
+          {/* Coach Note — cream v3 */}
           {coachNote && (
-            <div 
+            <div
               onClick={() => setIsChatOpen(true)}
-              className="relative overflow-hidden rounded-3xl border border-primary/20 bg-primary/5 p-4 animate-in slide-in-from-top-4 duration-500 cursor-pointer hover:bg-primary/10 transition-all select-none"
+              className="relative overflow-hidden animate-in slide-in-from-top-4 duration-500 cursor-pointer transition-all select-none"
+              style={{ ...ccBlockCard, padding: '14px 16px', borderColor: 'rgba(124,58,237,.15)', background: '#fff' }}
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
               <div className="flex gap-2.5 items-start">
-                <Bot className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <div className="flex-1">
+                <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', color: '#fff', fontSize: 14 }}>
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider">{t('ccCoachNote')}</h4>
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 animate-pulse">שיחה עם המאמן 💬</span>
+                    <h4 style={{ fontSize: 10, fontWeight: 600, color: '#7C3AED', letterSpacing: '.12em', textTransform: 'uppercase' }}>{t('ccCoachNote')}</h4>
                   </div>
-                  <p className="text-sm text-foreground/90 font-medium mt-1 leading-relaxed">{coachNote}</p>
+                  <p className="mt-1 leading-relaxed" style={{ fontSize: 13, color: '#5A4A3A' }}>{coachNote}</p>
                 </div>
               </div>
             </div>
@@ -866,70 +864,43 @@ export const CommandCenterView = () => {
 
           {/* Shabbat Warning */}
           {shabbatBlockIndicator && (
-            <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 p-4 flex gap-3 items-center">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+            <div className="flex gap-3 items-center" style={{ ...ccBlockCard, padding: '12px 14px', borderColor: 'rgba(217,119,6,.15)', background: '#FFFBEB' }}>
+              <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: '#D97706' }} />
               <div>
-                <h4 className="text-sm font-bold text-amber-600">{shabbatBlockIndicator.title}</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">{shabbatBlockIndicator.desc}</p>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>{shabbatBlockIndicator.title}</h4>
+                <p style={{ fontSize: 11, color: '#8A7A6A', marginTop: 2 }}>{shabbatBlockIndicator.desc}</p>
               </div>
             </div>
           )}
 
-          {/* Timeline Card */}
-          <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-4">
-            
+          {/* Timeline Card — cream v3 */}
+          <div className="space-y-4" style={{ ...ccCard, padding: '16px 16px' }}>
+
             {/* Header / Actions */}
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-foreground">{t('ccHourlyTimeline')}</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsChatOpen(true)}
-                  className="px-3 py-1.5 rounded-2xl bg-[#2563EB] text-white hover:bg-[#2563EB]/90 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer"
-                >
-                  <Bot className="w-3.5 h-3.5" />
-                  שיחה עם המאמן
-                </button>
+            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(180,140,80,.1)' }}>
+              <h3 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+                {t('ccHourlyTimeline')} <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{isRTL ? 'שלי' : 'my'}</em>
+              </h3>
+              <div className="flex gap-2 flex-wrap">
                 {draftSchedule?.blocks?.length > 0 ? (
                   <>
-                    <button
-                      onClick={handleSaveSchedule}
-                      className="px-3 py-1.5 rounded-2xl bg-[#059669] text-white hover:bg-[#059669]/90 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      {t('ccSaveSchedule')}
+                    <button onClick={handleSaveSchedule} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#059669', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                      <Save className="w-3.5 h-3.5" /> {t('ccSaveSchedule')}
                     </button>
-                    <button
-                      onClick={() => setDraftSchedule({ blocks: [], coachNote: '' })}
-                      className="px-3 py-1.5 rounded-2xl bg-secondary text-foreground hover:bg-muted active:scale-95 transition-all text-xs font-bold flex items-center gap-1 border border-border"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                      {t('ccDiscardDraft')}
+                    <button onClick={() => setDraftSchedule({ blocks: [], coachNote: '' })} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                      <X className="w-3.5 h-3.5" /> {t('ccDiscardDraft')}
                     </button>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={handleGoogleCalendarSync}
-                      disabled={loading}
-                      className="px-3 py-1.5 rounded-2xl bg-white text-slate-700 hover:bg-slate-50 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm border border-slate-200"
-                    >
-                      <CalendarIcon className="w-3.5 h-3.5 text-blue-500" />
-                      Google Calendar
+                    <button onClick={() => setIsChatOpen(true)} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                      <Bot className="w-3.5 h-3.5" /> {isRTL ? 'שיחה' : 'Chat'}
                     </button>
-                    <button
-                      onClick={handleAutoPlan}
-                      disabled={loading}
-                      className="px-3 py-1.5 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-sm"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      {loading ? t('ccPlanning') : t('ccOrganizeWithAi')}
+                    <button onClick={handleAutoPlan} disabled={loading} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                      <Sparkles className="w-3.5 h-3.5" /> {loading ? t('ccPlanning') : t('ccOrganizeWithAi')}
                     </button>
                     {timelineBlocks.length > 0 && (
-                      <button
-                        onClick={handleClearSchedule}
-                        className="p-1.5 rounded-xl border border-border bg-card text-muted-foreground hover:text-destructive active:scale-95 transition-all"
-                        title={t('ccClearDaySchedule')}
-                      >
+                      <button onClick={handleClearSchedule} className="p-1.5 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 8, background: '#F5F0E8', border: 'none', color: '#8A7A6A' }} title={t('ccClearDaySchedule')}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -938,9 +909,9 @@ export const CommandCenterView = () => {
               </div>
             </div>
 
-            {/* Time Slots Layout (Hourly Planner Grid) */}
+            {/* Time Slots Layout — cream v3 */}
             <div className="space-y-2 relative">
-              <div className="divide-y divide-border/40 border border-border/80 rounded-3xl overflow-hidden bg-background">
+              <div className="overflow-hidden" style={{ borderRadius: 18, border: '1px solid rgba(180,140,80,.12)', background: '#FAF7F2' }}>
                 {hoursRange.map((hour) => {
                   const isCovered = isHourCovered(hour);
                   if (isCovered) return null;
@@ -952,8 +923,8 @@ export const CommandCenterView = () => {
                       key={hour}
                       className="flex gap-4 p-3 sm:p-4 items-stretch min-h-[4.5rem] relative hover:bg-muted/10 transition-colors"
                     >
-                      {/* Hour Indicator */}
-                      <div className="w-12 flex items-center justify-start text-[11px] font-black text-muted-foreground/60 shrink-0 select-none border-e border-border/20 pe-2" dir="ltr">
+                      {/* Hour Indicator — Fraunces */}
+                      <div className="w-12 flex items-center justify-start shrink-0 select-none pe-2" style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 17, letterSpacing: '-.03em', color: '#8A7A6A', borderInlineEnd: '1px solid rgba(180,140,80,.1)' }} dir="ltr">
                         {hour}
                       </div>
 
@@ -1048,47 +1019,35 @@ export const CommandCenterView = () => {
             </div>
           </div>
 
-          {/* AI Tuner Chat Console */}
+          {/* AI Input — cream v3 */}
           {timelineBlocks.length > 0 && (
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
-              <h3 className="font-bold text-foreground flex items-center gap-1.5 text-sm">
-                <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                {t('ccTuneWithAi')}
-              </h3>
-              <div className="flex gap-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-[10px]" style={{ background: '#fff', border: '1.5px solid rgba(124,58,237,.2)', borderRadius: 16, padding: '13px 16px' }}>
+                <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', color: '#fff', fontSize: 14 }}>
+                  <Sparkles className="w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   value={tuneCommand}
                   onChange={(e) => setTuneCommand(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleTuneSchedule()}
                   placeholder={t('ccTunePlaceholder')}
-                  className="flex-1 rounded-2xl border border-border bg-secondary/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent text-start"
+                  className="flex-1 outline-none bg-transparent text-start"
+                  style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 15, color: '#2A1A0A' }}
                   disabled={loading}
                 />
                 <button
                   onClick={handleTuneSchedule}
                   disabled={loading || !tuneCommand.trim()}
-                  className="px-4 py-2 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all text-xs font-bold"
+                  className="shrink-0 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                  style={{ width: 30, height: 30, borderRadius: 8, background: tuneCommand.trim() ? '#7C3AED' : '#F5F0E8', color: tuneCommand.trim() ? '#fff' : '#8A7A6A', border: 'none' }}
                 >
-                  {t('ccSend')}
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Suggestion Quick Chips */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  t('ccChipTired'),
-                  t('ccChipStudyMorning'),
-                  t('ccChipWorkoutEvening'),
-                  t('ccChipSpreadTasks')
-                ].map((cmd) => (
-                  <button
-                    key={cmd}
-                    onClick={() => {
-                      setTuneCommand(cmd);
-                    }}
-                    className="px-3 py-1 rounded-full border border-border bg-muted/30 text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/45 transition-colors font-medium active:scale-95"
-                  >
+              <div className="flex flex-wrap gap-2">
+                {[t('ccChipTired'), t('ccChipStudyMorning'), t('ccChipWorkoutEvening'), t('ccChipSpreadTasks')].map((cmd) => (
+                  <button key={cmd} onClick={() => setTuneCommand(cmd)} className="active:scale-95 transition-colors cursor-pointer" style={{ borderRadius: 999, padding: '5px 11px', fontSize: 11, fontWeight: 600, background: '#F5F0E8', color: '#8A7A6A', border: 'none' }}>
                     {cmd}
                   </button>
                 ))}
@@ -1099,16 +1058,52 @@ export const CommandCenterView = () => {
 
         {/* Right: Sidebar - Unscheduled Tasks Tray */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
-            
-            {/* Header */}
+          {/* AI Suggestions — cream v3 */}
+          {data?.aiSuggestions && data.aiSuggestions.length > 0 && (
+            <div className="space-y-3" style={{ ...ccCard, padding: '16px 14px', borderColor: 'rgba(124,58,237,.15)' }}>
+              <div>
+                <h3 className="flex items-center gap-1.5" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 16, fontWeight: 400, color: '#2A1A0A' }}>
+                  <Sparkles className="w-4 h-4" style={{ color: '#7C3AED' }} />
+                  {isRTL ? 'הצעות' : 'Suggestions'} <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>AI</em>
+                </h3>
+              </div>
+              <div className="space-y-[6px]">
+                {data.aiSuggestions.map(suggestion => (
+                  <div key={suggestion.id} className="space-y-2" style={{ ...ccBlockCard, padding: '13px 14px', borderColor: 'rgba(124,58,237,.15)' }}>
+                    <div className="flex items-center gap-[10px] mb-2">
+                      <div className="shrink-0 flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, background: '#F5F3FF', color: '#6D28D9', fontSize: 16 }}>
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p style={{ fontSize: 13, fontWeight: 700, color: '#2A1A0A', lineHeight: 1.2 }}>{suggestion.suggestion}</p>
+                        {suggestion.context && <p style={{ fontSize: 10, color: '#8A7A6A', marginTop: 2, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 11 }}>{suggestion.context}</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setAiSuggestionStatus(suggestion.id, 'accepted')} className="flex-1 py-[7px] text-center cursor-pointer active:scale-95 transition-colors" style={{ borderRadius: 9, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                        {t('accept', 'אשר')}
+                      </button>
+                      <button onClick={() => setAiSuggestionStatus(suggestion.id, 'rejected')} className="flex-1 py-[7px] text-center cursor-pointer active:scale-95 transition-colors" style={{ borderRadius: 9, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                        {t('reject', 'דחה')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unscheduled Tasks — cream v3 */}
+          <div className="space-y-4" style={{ ...ccCard, padding: '16px 14px' }}>
             <div>
-              <h3 className="font-bold text-foreground">{t('ccUnscheduledTray')}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{t('ccUnscheduledTrayHint')}</p>
+              <h3 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+                {t('ccUnscheduledTray')}
+              </h3>
+              <p style={{ fontSize: 11, color: '#8A7A6A', marginTop: 2 }}>{t('ccUnscheduledTrayHint')}</p>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-1 border-b pb-1">
+            {/* Filter Tabs — cream v3 pills */}
+            <div className="flex gap-[6px]">
               {[
                 { key: 'all', label: t('ccFilterAll') },
                 { key: 'high', label: t('priorityHigh') },
@@ -1118,12 +1113,16 @@ export const CommandCenterView = () => {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTaskTab(tab.key)}
-                  className={cn(
-                    'flex-1 text-center py-1 text-xs font-bold rounded-lg transition-colors border border-transparent',
-                    activeTaskTab === tab.key
-                      ? 'bg-secondary text-foreground border-border'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
+                  className="flex-1 text-center transition-colors cursor-pointer active:scale-95"
+                  style={{
+                    padding: '5px 8px',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: activeTaskTab === tab.key ? 600 : 500,
+                    background: activeTaskTab === tab.key ? '#7C3AED' : '#F5F0E8',
+                    color: activeTaskTab === tab.key ? '#fff' : '#8A7A6A',
+                    border: 'none',
+                  }}
                 >
                   {tab.label}
                 </button>
@@ -1189,7 +1188,7 @@ export const CommandCenterView = () => {
         </div>
       </div>
       ) : activeSubTab === 'calendar' && (
-        <div className="animate-in fade-in duration-200 bg-card border border-border p-4 rounded-3xl shadow-sm">
+        <div className="animate-in fade-in duration-200" style={{ ...ccCard, padding: 16 }}>
           <CalendarView />
         </div>
       )}

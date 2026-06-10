@@ -1,13 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Instrument+Serif:ital,wght@0,400;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Heebo', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', 'Rubik', 'Heebo', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+  --font-display: 'Fraunces', serif;
 
-  /* Brand gradient — exact 4-stop palette from /logo.svg.
-     Single source of truth for headings, hero rings, brand chips. */
   --gradient-brand: linear-gradient(135deg, #10B981 0%, #059669 35%, #2563EB 65%, #7C3AED 100%);
   --gradient-brand-soft: linear-gradient(135deg, rgba(16,185,129,.10) 0%, rgba(5,150,105,.10) 35%, rgba(37,99,235,.10) 65%, rgba(124,58,237,.10) 100%);
+
+  --color-cream-warm: rgba(180,140,80,.12);
+  --color-cream-border: rgba(180,140,80,.14);
+  --color-cream-text: #2A1A0A;
+  --color-cream-sub: #5A4A3A;
+  --color-cream-muted: #8A7A6A;
+  --color-cream-highlight: rgba(255,245,220,.4);
+
+  --color-nutrition-primary: #059669;
+  --color-nutrition-secondary: #10B981;
+  --color-nutrition-soft: #D1FAE5;
+  --color-fitness-primary: #7C3AED;
+  --color-fitness-secondary: #8B5CF6;
+  --color-fitness-soft: #EDE9FE;
+
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -34,70 +49,69 @@
 
 @layer base {
   :root {
-    /* Calori Light Mode */
-    --background: 240 14% 96%; /* canvas #F5F5F7 */
-    --foreground: 240 3% 12%; /* ink #1D1D1F */
-    
+    /* Cream v3 Light Mode — warm scholarly palette */
+    --background: 36 47% 96%; /* cream canvas #FAF7F2 */
+    --foreground: 27 65% 10%; /* warm ink #2A1A0A */
+
     --card: 0 0% 100%; /* surface #FFFFFF */
-    --card-foreground: 240 3% 12%; /* ink #1D1D1F */
-    
-    --popover: 0 0% 100%; /* surface #FFFFFF */
-    --popover-foreground: 240 3% 12%; /* ink #1D1D1F */
-    
+    --card-foreground: 27 65% 10%; /* ink #2A1A0A */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 27 65% 10%;
+
     --primary: 161 94% 30%; /* green #059669 */
     --primary-foreground: 0 0% 100%;
-    
-    --secondary: 240 11% 93%; /* canvasDeep #ECECEF */
-    --secondary-foreground: 240 3% 30%; /* ink2 #4A4A4F */
-    
-    --muted: 240 25% 98%; /* surface2 #FAFAFB */
-    --muted-foreground: 240 2% 57%; /* ink3 #8E8E93 */
-    
+
+    --secondary: 36 30% 93%; /* warm canvas deep */
+    --secondary-foreground: 27 20% 30%;
+
+    --muted: 36 30% 97%; /* warm surface2 */
+    --muted-foreground: 27 12% 48%; /* warm muted #8A7A6A */
+
     --accent: 149 80% 90%; /* greenSoft #D1FAE5 */
-    --accent-foreground: 161 94% 30%; /* green #059669 */
-    
-    --destructive: 0 72% 51%; /* danger #DC2626 */
+    --accent-foreground: 161 94% 30%;
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 240 9% 91%; /* hairline #E5E5EA */
-    --input: 240 6% 83%; /* hairlineStrong #D2D2D7 */
-    --ring: 161 94% 30%; /* green #059669 */
-    
-    --radius: 1rem; /* 16px */
+
+    --border: 36 20% 88%; /* warm hairline rgba(180,140,80,.12) */
+    --input: 36 15% 80%;
+    --ring: 161 94% 30%;
+
+    --radius: 1rem;
   }
 
   .dark {
-    /* Calori Dark Mode */
-    --background: 240 5% 4%; /* canvas #0A0A0B */
-    --foreground: 240 8% 93%; /* ink #EDEDEF */
-    
-    --card: 240 5% 8%; /* surface #141416 */
-    --card-foreground: 240 8% 93%; /* ink #EDEDEF */
-    
-    --popover: 240 5% 8%; /* surface #141416 */
-    --popover-foreground: 240 8% 93%; /* ink #EDEDEF */
-    
-    --primary: 158 65% 52%; /* green #34D399 */
+    --background: 240 5% 4%;
+    --foreground: 240 8% 93%;
+
+    --card: 240 5% 8%;
+    --card-foreground: 240 8% 93%;
+
+    --popover: 240 5% 8%;
+    --popover-foreground: 240 8% 93%;
+
+    --primary: 158 65% 52%;
     --primary-foreground: 240 5% 4%;
-    
-    --secondary: 240 4% 11%; /* surface2 #1A1A1C */
-    --secondary-foreground: 240 2% 71%; /* ink2 #B4B4B8 */
-    
-    --muted: 240 4% 11%; /* surface2 #1A1A1C */
-    --muted-foreground: 219 7% 57%; /* ink3 #8A8F98 */
-    
-    --accent: 164 54% 9%; /* greenGlow approx */
-    --accent-foreground: 158 65% 52%; /* green #34D399 */
-    
-    --destructive: 0 72% 51%; /* danger #DC2626 */
+
+    --secondary: 240 4% 11%;
+    --secondary-foreground: 240 2% 71%;
+
+    --muted: 240 4% 11%;
+    --muted-foreground: 219 7% 57%;
+
+    --accent: 164 54% 9%;
+    --accent-foreground: 158 65% 52%;
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 240 3% 16%; /* hairline dark approx */
-    --input: 240 3% 22%; /* hairlineStrong dark approx */
-    --ring: 158 65% 52%; /* green #34D399 */
+
+    --border: 240 3% 16%;
+    --input: 240 3% 22%;
+    --ring: 158 65% 52%;
   }
 }
- 
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -105,7 +119,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Heebo', 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Rubik', 'Heebo', system-ui, sans-serif;
   }
 }
 

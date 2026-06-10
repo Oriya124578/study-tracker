@@ -60,6 +60,11 @@ const dailyAnalyticsDoc = (uid, date) => doc(db, 'users', uid, 'cl_dailyAnalytic
 // Phase 6d: recurring task rules.
 const recurringTasksCol = (uid) => collection(db, 'users', uid, 'cl_recurringTasks');
 const recurringTaskDoc = (uid, id) => doc(db, 'users', uid, 'cl_recurringTasks', id);
+const categoriesCol = (uid) => collection(db, 'users', uid, 'cl_categories');
+const categoryDoc = (uid, id) => doc(db, 'users', uid, 'cl_categories', id);
+// Phase 4: AI Manager Suggestions
+const aiSuggestionsCol = (uid) => collection(db, 'users', uid, 'cl_aiSuggestions');
+const aiSuggestionDoc = (uid, id) => doc(db, 'users', uid, 'cl_aiSuggestions', id);
 
 // New id helper for client-minted documents.
 export const newId = (uid, kind) => {
@@ -76,6 +81,8 @@ export const newId = (uid, kind) => {
       ? noteCategoriesCol(uid)
       : kind === 'recurringTask'
       ? recurringTasksCol(uid)
+      : kind === 'category'
+      ? categoriesCol(uid)
       : null;
   if (!col) throw new Error(`newId: unknown kind ${kind}`);
   return doc(col).id;
@@ -262,6 +269,19 @@ export const deleteNoteCategoryAndMigrateNotes = async (uid, categoryId, noteIds
   await commitInChunks(ops);
 };
 
+// --- Categories (cl_categories) ------------------------------------------
+
+export const subscribeCategories = (uid, cb) =>
+  onSnapshot(categoriesCol(uid), (snap) => cb(snapshotToArray(snap)));
+
+export const setCategory = async (uid, id, data) => {
+  await setDoc(categoryDoc(uid, id), data, { merge: true });
+};
+
+export const deleteCategory = async (uid, id) => {
+  await deleteDoc(categoryDoc(uid, id));
+};
+
 // --- Phase 6a: Daily schedule (cl_schedule) ------------------------------
 // Doc id = 'yyyy-MM-dd'. Single source of truth for one day's timeline.
 // Shape:
@@ -322,4 +342,13 @@ export const setRecurringTask = async (uid, id, data) => {
 
 export const deleteRecurringTask = async (uid, id) => {
   await deleteDoc(recurringTaskDoc(uid, id));
+};
+
+// --- Phase 4: AI Suggestions (cl_aiSuggestions) --------------------------
+
+export const subscribeAiSuggestions = (uid, cb) =>
+  onSnapshot(query(aiSuggestionsCol(uid), where('status', '==', 'pending')), (snap) => cb(snapshotToArray(snap)));
+
+export const updateAiSuggestion = async (uid, id, data) => {
+  await setDoc(aiSuggestionDoc(uid, id), data, { merge: true });
 };

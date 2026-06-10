@@ -24,7 +24,16 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur-md border-t border-border z-50 px-2 sm:px-4 flex justify-around items-center pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+    <nav
+      className="fixed bottom-0 inset-x-0 z-50 px-2 sm:px-4 flex justify-around items-center pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
+      style={{
+        background: 'rgba(250,247,242,.96)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(180,140,80,.12)',
+        height: '72px',
+      }}
+    >
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive =
@@ -38,10 +47,12 @@ export const BottomNav = () => {
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all min-w-[56px] rounded-xl hover:bg-muted/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
-              isActive ? item.activeColor || 'text-primary' : 'text-muted-foreground',
             )}
+            style={{
+              color: isActive ? '#059669' : 'rgba(42,26,10,.3)',
+            }}
           >
-            <Icon className={cn('w-5 h-5', isActive ? '' : 'opacity-50')} />
+            <Icon className="w-5 h-5" style={{ opacity: isActive ? 1 : 0.25 }} />
             <span className="text-[10px] font-bold leading-none mt-1">
               {t(item.labelKey)}
             </span>
