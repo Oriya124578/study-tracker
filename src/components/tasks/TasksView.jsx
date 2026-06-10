@@ -9,16 +9,22 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
 import { format, isToday, isTomorrow, isPast, parseISO } from 'date-fns';
 
+// ── Cream v3 constants ──────────────────────────────────────────────────────
+const creamCard = { background: '#fff', borderRadius: 12, border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 1px 3px rgba(40,20,0,.04)' };
+const creamSectionCard = { background: '#fff', borderRadius: 14, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 2px 10px rgba(40,20,0,.05)', overflow: 'hidden' };
+const serifFont = "'Instrument Serif', serif";
+const numbersFont = "'Fraunces', serif";
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const useDueDate = (dateStr, t) => {
   if (!dateStr) return null;
   try {
     const date = parseISO(dateStr);
-    if (isToday(date))    return { label: t('todayLabel'),    color: 'text-amber-500' };
-    if (isTomorrow(date)) return { label: t('tomorrowLabel'), color: 'text-blue-500' };
-    if (isPast(date))     return { label: format(date, 'd/M'), color: 'text-red-500' };
-    return { label: format(date, 'd MMM'), color: 'text-muted-foreground' };
+    if (isToday(date))    return { label: t('todayLabel'),    color: '#059669' };
+    if (isTomorrow(date)) return { label: t('tomorrowLabel'), color: '#2563EB' };
+    if (isPast(date))     return { label: format(date, 'd/M'), color: '#DC2626' };
+    return { label: format(date, 'd MMM'), color: '#8A7A6A' };
   } catch { return null; }
 };
 
@@ -29,7 +35,7 @@ const StarButton = ({ isStarred, onToggle, t }) => {
       whileTap={{ scale: 0.8 }}
       whileHover={{ scale: 1.15 }}
       onClick={(e) => { e.stopPropagation(); onToggle(); }}
-      className="p-1.5 rounded-full hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-colors shrink-0"
+      className="p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-colors shrink-0"
       aria-label={isStarred ? t('unstarTask') : t('starTask')}
     >
       <motion.div
@@ -40,12 +46,8 @@ const StarButton = ({ isStarred, onToggle, t }) => {
         transition={{ duration: 0.4, type: "spring", stiffness: 300, damping: 15 }}
       >
         <Star
-          className={cn(
-            "w-4 h-4 transition-colors duration-200",
-            isStarred 
-              ? "fill-amber-400 text-amber-400" 
-              : "text-muted-foreground/35 hover:text-amber-400"
-          )}
+          className="w-4 h-4 transition-colors duration-200"
+          style={{ color: isStarred ? '#F59E0B' : 'rgba(180,140,80,.3)', fill: isStarred ? '#F59E0B' : 'none' }}
         />
       </motion.div>
     </motion.button>
@@ -69,14 +71,15 @@ const EditListModal = ({ onClose, onSave, onDelete, initialValue, isEdit = false
         />
         {/* Card */}
         <motion.div
-          className="relative w-full max-w-sm overflow-hidden bg-card border border-border rounded-2xl p-5 shadow-xl z-10 space-y-4"
+          className="relative w-full max-w-sm overflow-hidden p-5 z-10 space-y-4"
+          style={{ background: '#fff', borderRadius: 22, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 4px 24px rgba(40,20,0,.07)' }}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <h3 className="text-base font-bold text-foreground">
+          <h3 style={{ fontFamily: serifFont, fontSize: 18, fontWeight: 400, color: '#2A1A0A' }}>
             {isEdit ? t('editListName') : t('addNewList')}
           </h3>
           <input
@@ -84,8 +87,11 @@ const EditListModal = ({ onClose, onSave, onDelete, initialValue, isEdit = false
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={t('listNamePlaceholder')}
-            className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-muted/30 text-foreground outline-none focus:border-primary"
+            className="w-full px-3 py-2 text-sm outline-none"
+            style={{ background: '#fff', border: '1px solid rgba(180,140,80,.18)', borderRadius: 12, color: '#2A1A0A' }}
             autoFocus
+            onFocus={(e) => e.target.style.borderColor = '#059669'}
+            onBlur={(e) => e.target.style.borderColor = 'rgba(180,140,80,.18)'}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 onSave(value.trim());
@@ -97,21 +103,24 @@ const EditListModal = ({ onClose, onSave, onDelete, initialValue, isEdit = false
             {isEdit && onDelete && (
               <button
                 onClick={() => { onDelete(); onClose(); }}
-                className="px-3 py-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors me-auto"
+                className="px-3 py-2 rounded-lg transition-colors me-auto"
+                style={{ color: '#DC2626' }}
               >
                 {t('delete')}
               </button>
             )}
             <button
               onClick={onClose}
-              className="px-3 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+              className="px-3 py-2 rounded-lg transition-colors"
+              style={{ color: '#8A7A6A' }}
             >
               {t('cancel')}
             </button>
             <button
               onClick={() => { onSave(value.trim()); onClose(); }}
               disabled={!value.trim()}
-              className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:brightness-110 disabled:opacity-50 transition-all"
+              className="px-3 py-2 rounded-lg transition-all disabled:opacity-50"
+              style={{ background: '#059669', color: '#fff', borderRadius: 10 }}
             >
               {t('save')}
             </button>
@@ -136,14 +145,19 @@ const SubtaskRow = ({ taskId, sub }) => {
         aria-checked={!!sub.done}
         aria-label={sub.title}
       >
-        {sub.done
-          ? <CheckCircle2 className="w-4 h-4 text-primary" />
-          : <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-primary transition-colors" />}
+        <div
+          className="flex items-center justify-center"
+          style={{
+            width: 18, height: 18, borderRadius: '50%',
+            border: sub.done ? 'none' : '1.5px solid rgba(5,150,105,.4)',
+            background: sub.done ? '#059669' : '#fff',
+            color: '#fff', fontSize: 10,
+          }}
+        >
+          {sub.done && '✓'}
+        </div>
       </button>
-      <span className={cn(
-        'flex-1 text-sm',
-        sub.done ? 'line-through text-muted-foreground' : 'text-foreground',
-      )}>
+      <span className="flex-1 text-sm" style={{ color: sub.done ? '#8A7A6A' : '#2A1A0A', textDecoration: sub.done ? 'line-through' : 'none' }}>
         {sub.title}
       </span>
       <button
@@ -151,7 +165,7 @@ const SubtaskRow = ({ taskId, sub }) => {
         className="opacity-0 group-hover/sub:opacity-100 transition-opacity p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:opacity-100"
         aria-label={t('delete')}
       >
-        <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive transition-colors" />
+        <X className="w-3.5 h-3.5" style={{ color: '#8A7A6A' }} />
       </button>
     </div>
   );
@@ -179,20 +193,33 @@ const TaskRow = ({ task }) => {
   };
 
   return (
-    <div className={cn('border-b border-border/60 last:border-0', task.done && 'opacity-55')}>
-      {/* ── Main row ── */}
-      <div className="flex items-center gap-3 px-4 py-3.5" dir={isRTL ? 'rtl' : 'ltr'}>
-        {/* Checkbox */}
+    <div style={{ marginBottom: 5, opacity: task.done ? 0.55 : 1 }}>
+      {/* ── Main row — cream task card ── */}
+      <div
+        className="flex items-center gap-[10px]"
+        style={{ ...creamCard, padding: '11px 13px' }}
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
+        {/* Checkbox — cream green circle */}
         <button
           onClick={(e) => { e.stopPropagation(); togglePersonalTask(task.id); }}
-          className="shrink-0 transition-transform active:scale-90 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="shrink-0 transition-transform active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           role="checkbox"
           aria-checked={!!task.done}
           aria-label={task.title}
+          style={{ borderRadius: '50%' }}
         >
-          {task.done
-            ? <CheckCircle2 className="w-5 h-5 text-primary" />
-            : <Circle className="w-5 h-5 text-muted-foreground/40 hover:text-primary transition-colors" />}
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 22, height: 22, borderRadius: '50%',
+              border: task.done ? 'none' : '1.5px solid rgba(5,150,105,.4)',
+              background: task.done ? '#059669' : '#fff',
+              color: '#fff', fontSize: 12,
+            }}
+          >
+            {task.done && '✓'}
+          </div>
         </button>
 
         {/* Title + meta — tap to expand */}
@@ -203,55 +230,64 @@ const TaskRow = ({ task }) => {
           aria-controls={!task.done ? `task-subtasks-${task.id}` : undefined}
         >
           <div className="flex flex-col items-start flex-1 min-w-0">
-            <span className={cn(
-              'text-[15px] font-medium text-foreground truncate w-full text-start',
-              task.done && 'line-through text-muted-foreground',
-            )}>
-              {task.title}
-            </span>
-            {task.categoryIds && task.categoryIds.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {task.categoryIds.map(catId => {
-                  const cat = data?.categories?.find(c => c.id === catId);
-                  if (!cat) return null;
-                  return (
-                    <span 
-                      key={catId} 
-                      className="px-1.5 py-0.5 rounded text-[10px] font-medium border" 
-                      style={{ backgroundColor: `${cat.color}15`, color: cat.color, borderColor: `${cat.color}30` }}
-                    >
-                      {cat.name}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+            <div className="flex items-center gap-[6px] w-full">
+              <span
+                className="truncate text-start"
+                style={{
+                  fontSize: 14, fontWeight: 600, color: task.done ? '#8A7A6A' : '#2A1A0A',
+                  textDecoration: task.done ? 'line-through' : 'none', lineHeight: 1.2, flex: 1,
+                }}
+              >
+                {task.title}
+              </span>
+            </div>
+            <div className="flex gap-[6px] mt-1 items-center flex-wrap">
+              {task.priority === 'high' && (
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#DC2626', flexShrink: 0 }} />
+              )}
+              {task.priority === 'med' && (
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#D97706', flexShrink: 0 }} />
+              )}
+              {task.priority === 'low' && (
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#9CA3AF', flexShrink: 0 }} />
+              )}
+              {dueDateInfo && (
+                <span style={{ fontFamily: serifFont, fontStyle: 'italic', fontSize: 12, color: dueDateInfo.color }}>
+                  {dueDateInfo.label}
+                </span>
+              )}
+              {task.categoryIds && task.categoryIds.length > 0 && task.categoryIds.map(catId => {
+                const cat = data?.categories?.find(c => c.id === catId);
+                if (!cat) return null;
+                return (
+                  <span
+                    key={catId}
+                    style={{ borderRadius: 6, padding: '2px 7px', fontSize: 10, fontWeight: 600, background: `${cat.color}15`, color: cat.color }}
+                  >
+                    {cat.name}
+                  </span>
+                );
+              })}
+              {task.recurrence && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 10, color: '#7C3AED', fontWeight: 700 }}>
+                  🔁 {task.recurrence.type === 'daily' ? t('freqDaily') : task.recurrence.type === 'weekly' ? t('freqWeekly') : t('freqMonthly')}
+                </span>
+              )}
+              {subtasks.length > 0 && (
+                <span style={{ fontFamily: numbersFont, fontSize: 11, color: '#8A7A6A' }}>{doneSubs}/{subtasks.length}</span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            {subtasks.length > 0 && (
-              <span className="text-xs text-muted-foreground">{doneSubs}/{subtasks.length}</span>
-            )}
-            {task.priority === 'high' && (
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-            )}
-            {task.priority === 'med' && (
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-            )}
-            {dueDateInfo && (
-              <span className={cn('text-xs font-medium', dueDateInfo.color)}>
-                {dueDateInfo.label}
-              </span>
-            )}
-            {!task.done && (
-              <motion.div
-                animate={{ rotate: expanded ? 180 : 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
-              </motion.div>
-            )}
-          </div>
+          {!task.done && (
+            <motion.div
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.18 }}
+              className="shrink-0"
+            >
+              <ChevronDown className="w-4 h-4" style={{ color: 'rgba(180,140,80,.4)' }} />
+            </motion.div>
+          )}
         </button>
 
         {/* Star icon */}
@@ -305,25 +341,26 @@ const TaskRow = ({ task }) => {
               </div>
 
               {/* Priority & Delete task */}
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
+              <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: '1px solid rgba(180,140,80,.1)' }}>
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-muted-foreground font-semibold me-1">{t('priority')}:</span>
+                  <span className="font-semibold me-1" style={{ color: '#8A7A6A' }}>{t('priority')}:</span>
                   {[
-                    { value: 'high', label: t('priorityHigh'), color: 'bg-red-500 text-white' },
-                    { value: 'med', label: t('priorityMed'), color: 'bg-amber-500 text-white' },
-                    { value: 'low', label: t('priorityLow', 'רגילה'), color: 'bg-emerald-500 text-white' },
+                    { value: 'high', label: t('priorityHigh'), bg: '#DC2626' },
+                    { value: 'med', label: t('priorityMed'), bg: '#D97706' },
+                    { value: 'low', label: t('priorityLow', 'רגילה'), bg: '#059669' },
                   ].map((p) => {
                     const isActive = task.priority === p.value || (p.value === 'low' && !task.priority);
                     return (
                       <button
                         key={p.value}
                         onClick={() => updatePersonalTask(task.id, { priority: p.value })}
-                        className={cn(
-                          "px-2.5 py-1 rounded-xl font-bold text-[10px] transition-all active:scale-95 border",
-                          isActive
-                            ? p.color + " border-transparent shadow-sm"
-                            : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
-                        )}
+                        className="px-2.5 py-1 font-bold text-[10px] transition-all active:scale-95"
+                        style={{
+                          borderRadius: 20,
+                          background: isActive ? p.bg : '#F5F0E8',
+                          color: isActive ? '#fff' : '#8A7A6A',
+                          border: isActive ? 'none' : '1px solid rgba(180,140,80,.12)',
+                        }}
                       >
                         {p.label}
                       </button>
@@ -333,7 +370,8 @@ const TaskRow = ({ task }) => {
 
                 <button
                   onClick={() => deletePersonalTask(task.id)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  className="flex items-center gap-1 text-xs transition-colors"
+                  style={{ color: '#8A7A6A' }}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   {t('deleteTask')}
@@ -402,17 +440,20 @@ const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+    <div className="p-4 space-y-3" style={{ ...creamSectionCard }}>
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder={t('addTaskPlaceholder')}
-        className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-muted/30 text-foreground outline-none focus:border-primary"
+        className="w-full px-3 py-2 text-sm outline-none"
+        style={{ background: '#fff', border: '1px solid rgba(180,140,80,.18)', borderRadius: 12, color: '#2A1A0A' }}
         autoFocus
+        onFocus={(e) => e.target.style.borderColor = '#059669'}
+        onBlur={(e) => e.target.style.borderColor = 'rgba(180,140,80,.18)'}
       />
       <div className="flex items-center gap-2 text-xs">
-        <span className="text-muted-foreground font-semibold">{t('recurring')}:</span>
+        <span className="font-semibold" style={{ color: '#8A7A6A' }}>{t('recurring')}:</span>
         {[
           { v: 'daily',   l: t('freqDaily') },
           { v: 'weekly',  l: t('freqWeekly') },
@@ -421,10 +462,13 @@ const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
           <button
             key={opt.v}
             onClick={() => setFreq(opt.v)}
-            className={cn(
-              'px-2.5 py-1 rounded-xl font-bold text-[11px] border transition',
-              freq === opt.v ? 'bg-primary text-primary-foreground border-transparent' : 'bg-muted text-muted-foreground border-border'
-            )}
+            className="px-2.5 py-1 font-bold text-[11px] transition"
+            style={{
+              borderRadius: 20,
+              background: freq === opt.v ? '#059669' : '#F5F0E8',
+              color: freq === opt.v ? '#fff' : '#8A7A6A',
+              border: freq === opt.v ? 'none' : '1px solid rgba(180,140,80,.12)',
+            }}
           >
             {opt.l}
           </button>
@@ -437,10 +481,13 @@ const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
             <button
               key={d}
               onClick={() => toggleWeekday(d)}
-              className={cn(
-                'w-8 h-8 rounded-full text-xs font-bold border transition',
-                byWeekday.includes(d) ? 'bg-primary text-primary-foreground border-transparent' : 'bg-muted text-muted-foreground border-border'
-              )}
+              className="text-xs font-bold transition"
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: byWeekday.includes(d) ? '#059669' : '#F5F0E8',
+                color: byWeekday.includes(d) ? '#fff' : '#8A7A6A',
+                border: byWeekday.includes(d) ? 'none' : '1px solid rgba(180,140,80,.12)',
+              }}
               aria-pressed={byWeekday.includes(d)}
               aria-label={lab}
             >
@@ -452,12 +499,13 @@ const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
 
       <div className="flex items-center gap-3 text-xs">
         <label className="flex items-center gap-2 flex-1">
-          <span className="text-muted-foreground">⏰</span>
+          <span style={{ color: '#8A7A6A' }}>⏰</span>
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="flex-1 px-2 py-1 border border-border rounded-lg bg-muted/30 text-foreground outline-none"
+            className="flex-1 px-2 py-1 outline-none"
+            style={{ border: '1px solid rgba(180,140,80,.15)', borderRadius: 8, background: '#fff', color: '#2A1A0A' }}
           />
         </label>
         <label className="flex items-center gap-2">
@@ -467,22 +515,25 @@ const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
             step="5"
             value={durationMinutes}
             onChange={(e) => setDuration(e.target.value)}
-            className="w-16 px-2 py-1 border border-border rounded-lg bg-muted/30 text-foreground outline-none"
+            className="w-16 px-2 py-1 outline-none"
+            style={{ border: '1px solid rgba(180,140,80,.15)', borderRadius: 8, background: '#fff', color: '#2A1A0A' }}
           />
-          <span className="text-muted-foreground">min</span>
+          <span style={{ color: '#8A7A6A' }}>min</span>
         </label>
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted rounded-lg"
+          className="px-3 py-1.5 text-xs font-bold rounded-lg"
+          style={{ color: '#8A7A6A' }}
         >
           {t('cancel')}
         </button>
         <button
           onClick={handleSave}
-          className="px-3 py-1.5 text-xs font-bold bg-primary text-primary-foreground rounded-lg active:scale-95"
+          className="px-3 py-1.5 text-xs font-bold rounded-lg active:scale-95"
+          style={{ background: '#059669', color: '#fff' }}
         >
           {t('save')}
         </button>
@@ -594,18 +645,20 @@ const RecurringTasksSection = ({ t, lang, isRTL }) => {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+    <div style={creamSectionCard}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
+        className="w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
         dir={isRTL ? 'rtl' : 'ltr'}
         aria-expanded={open}
       >
         <motion.div animate={{ rotate: open ? 0 : (isRTL ? 90 : -90) }} transition={{ duration: 0.18 }}>
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-4 h-4" style={{ color: '#8A7A6A' }} />
         </motion.div>
-        <Repeat className="w-4 h-4 text-primary" />
-        <span className="flex-1 text-start">🚩 {t('recurringTasks')} ({rules.length})</span>
+        <Repeat className="w-4 h-4" style={{ color: '#7C3AED' }} />
+        <span className="flex-1 text-start" style={{ fontFamily: serifFont, fontSize: 16, color: '#2A1A0A' }}>
+          {t('recurringTasks')} <span style={{ fontFamily: numbersFont, fontStyle: 'italic', fontSize: 13, color: '#8A7A6A' }}>({rules.length})</span>
+        </span>
       </button>
 
       <AnimatePresence initial={false}>
@@ -617,9 +670,9 @@ const RecurringTasksSection = ({ t, lang, isRTL }) => {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 py-3 space-y-2 border-t border-border/40">
+            <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid rgba(180,140,80,.1)' }}>
               {rules.length === 0 && !showForm && (
-                <div className="text-center text-muted-foreground text-xs py-4">
+                <div className="text-center text-xs py-4" style={{ color: '#8A7A6A' }}>
                   {t('noRecurring')}
                 </div>
               )}
@@ -627,21 +680,22 @@ const RecurringTasksSection = ({ t, lang, isRTL }) => {
               {rules.map((rule) => {
                 const rec = rule.recurrence;
                 return (
-                <div key={rule.id} className="flex flex-col gap-2 p-3 rounded-xl bg-muted/40 border border-border/40">
+                <div key={rule.id} className="flex flex-col gap-2 p-3" style={{ ...creamCard, borderRadius: 14 }}>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-foreground truncate">{rule.title}</div>
-                    <div className="text-xs text-muted-foreground">
+                      <div className="text-sm truncate" style={{ fontWeight: 600, color: '#2A1A0A' }}>{rule.title}</div>
+                    <div className="text-xs" style={{ color: '#8A7A6A' }}>
                       {freqSummary({ freq: rec.type, interval: rec.interval, byWeekday: rec.byWeekday }, t, lang)}
                       {rec.time ? ` · ⏰ ${rec.time}` : ''}
                     </div>
                   </div>
                   <button
-                    onClick={() => { 
-                      setEditing({ id: rule.id, title: rule.title, freq: rec.type, interval: rec.interval, byWeekday: rec.byWeekday, time: rec.time, durationMinutes: rec.durationMinutes, startDate: rec.startDate }); 
-                      setShowForm(true); 
+                    onClick={() => {
+                      setEditing({ id: rule.id, title: rule.title, freq: rec.type, interval: rec.interval, byWeekday: rec.byWeekday, time: rec.time, durationMinutes: rec.durationMinutes, startDate: rec.startDate });
+                      setShowForm(true);
                     }}
-                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground self-start mt-1"
+                    className="p-1.5 rounded-lg self-start mt-1"
+                    style={{ color: '#8A7A6A' }}
                     aria-label={t('edit')}
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -650,7 +704,8 @@ const RecurringTasksSection = ({ t, lang, isRTL }) => {
                     onClick={() => {
                       if (window.confirm(t('delete') + '?')) deletePersonalTask(rule.id);
                     }}
-                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 self-start mt-1"
+                    className="p-1.5 rounded-lg self-start mt-1"
+                    style={{ color: '#8A7A6A' }}
                     aria-label={t('delete')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -673,7 +728,8 @@ const RecurringTasksSection = ({ t, lang, isRTL }) => {
               ) : (
                 <button
                   onClick={() => { setEditing(null); setShowForm(true); }}
-                  className="w-full px-3 py-2 text-xs font-bold text-primary border border-dashed border-primary/40 rounded-xl hover:bg-primary/5 transition"
+                  className="w-full px-3 py-2 text-xs font-bold transition"
+                  style={{ color: '#059669', border: '1px dashed rgba(5,150,105,.4)', borderRadius: 12 }}
                 >
                   {t('addRecurring')}
                 </button>
@@ -738,49 +794,54 @@ export const TasksView = () => {
       className="max-w-2xl mx-auto w-full px-4 py-5 sm:px-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-400"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* ── Top Tabs Slider Navigation ── */}
-      <div className="flex items-center gap-1.5 pb-2 overflow-x-auto no-scrollbar border-b border-border/50">
+      {/* ── Categories row — cream pills ── */}
+      <div className="flex items-center gap-[6px] pb-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {lists.map((list) => {
           const isActive = activeTab === list.id;
           return (
             <button
               key={list.id}
               onClick={() => setActiveTab(list.id)}
-              className={cn(
-                "relative px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 shrink-0 select-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-                isActive ? "text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
-              )}
+              className="shrink-0 select-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-all"
+              style={{
+                borderRadius: 999,
+                padding: isActive ? '5px 14px' : '6px 13px',
+                fontSize: isActive ? 14 : 12,
+                fontWeight: isActive ? 400 : 600,
+                fontFamily: isActive ? serifFont : 'inherit',
+                fontStyle: isActive ? 'italic' : 'normal',
+                background: isActive ? '#059669' : '#fff',
+                color: isActive ? '#fff' : '#8A7A6A',
+                border: isActive ? '1px solid #059669' : '1px solid rgba(180,140,80,.15)',
+              }}
             >
-              <span className="relative z-10">{list.name}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="activeTaskListTab"
-                  className="absolute inset-0 bg-primary rounded-xl"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
+              {list.name}
             </button>
           );
         })}
-        {/* "+" Button to add a new list */}
         <button
           onClick={() => setIsAddOpen(true)}
-          className="p-2.5 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          style={{
+            borderRadius: 999, padding: '6px 13px', fontSize: 12, fontWeight: 600,
+            background: 'transparent', border: '1px dashed rgba(180,140,80,.3)', color: '#8A7A6A',
+          }}
           aria-label={t('addNewList')}
         >
-          <Plus className="w-4 h-4" />
+          + {t('addNewList')}
         </button>
       </div>
 
       {/* ── List Title + Options ── */}
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-extrabold text-foreground">
+        <h2 style={{ fontFamily: serifFont, fontSize: 20, fontWeight: 400, color: '#2A1A0A' }}>
           {currentList ? currentList.name : ''}
         </h2>
         {isCustomList && (
           <button
             onClick={() => setIsEditOpen(true)}
-            className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="p-2 rounded-full transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            style={{ color: '#8A7A6A' }}
             aria-label={t('editListName')}
           >
             <Edit3 className="w-4 h-4" />
@@ -788,14 +849,18 @@ export const TasksView = () => {
         )}
       </div>
 
-      {/* ── Quick-add bar ── */}
-      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-border bg-card">
+      {/* ── Quick-add bar — cream green border ── */}
+      <div
+        className="flex items-center gap-[10px]"
+        style={{ background: '#fff', border: '1.5px solid rgba(5,150,105,.18)', borderRadius: 14, padding: '11px 14px' }}
+      >
         <button
           onClick={() => openAddSheet('task', { list: activeTab === 'favorites' ? 'personal' : activeTab, starred: activeTab === 'favorites' })}
-          className="shrink-0 w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="shrink-0 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          style={{ width: 22, height: 22, borderRadius: 6, background: '#059669', color: '#fff', fontSize: 16, fontWeight: 300 }}
           aria-label={t('addNewItem')}
         >
-          <Plus className="w-3.5 h-3.5" />
+          +
         </button>
         <input
           ref={inputRef}
@@ -803,12 +868,14 @@ export const TasksView = () => {
           onChange={(e) => setNewTaskTitle(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
           placeholder={t('addTaskPlaceholder')}
-          className="flex-1 text-[15px] text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
+          className="flex-1 bg-transparent outline-none"
+          style={{ fontFamily: serifFont, fontStyle: 'italic', fontSize: 15, color: '#2A1A0A' }}
         />
         {newTaskTitle.trim() && (
           <button
             onClick={handleAddTask}
-            className="shrink-0 px-3 py-1.5 text-xs font-bold bg-primary text-primary-foreground rounded-xl active:scale-95 transition-transform"
+            className="shrink-0 px-3 py-1.5 text-xs font-bold active:scale-95 transition-transform"
+            style={{ background: '#059669', color: '#fff', borderRadius: 10 }}
           >
             {t('add')}
           </button>
@@ -818,19 +885,31 @@ export const TasksView = () => {
       {/* ── Recurring tasks (Phase 6d) ── */}
       <RecurringTasksSection t={t} lang={language} isRTL={isRTL} />
 
+      {/* ── Section header ── */}
+      {(pendingTasks.length > 0 || completedTasks.length > 0) && (
+        <div className="flex justify-between items-baseline" style={{ padding: '6px 2px 4px', marginTop: 4 }}>
+          <div style={{ fontFamily: serifFont, fontSize: 18, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+            <em style={{ color: '#059669' }}>{t('todayLabel')}</em>
+          </div>
+          <div style={{ fontFamily: serifFont, fontStyle: 'italic', fontSize: 13, color: '#8A7A6A' }}>
+            {pendingTasks.length} {t('items', 'פריטים')}
+          </div>
+        </div>
+      )}
+
       {/* ── Pending tasks ── */}
       {pendingTasks.length === 0 && completedTasks.length === 0 ? (
-        <div className="py-20 text-center text-muted-foreground text-sm">
+        <div className="py-20 text-center text-sm" style={{ color: '#8A7A6A' }}>
           {t('noPersonalTasks')}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <div className="flex flex-col gap-[5px]">
           {pendingTasks.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground text-sm">
+            <div className="py-10 text-center text-sm" style={{ color: '#8A7A6A' }}>
               🎉 {t('completedSection')}!
             </div>
           ) : (
-            <motion.div layout className="divide-y divide-border/60">
+            <motion.div layout className="flex flex-col gap-[5px]">
               <AnimatePresence mode="popLayout">
                 {pendingTasks.map((task) => (
                   <motion.div
@@ -850,23 +929,29 @@ export const TasksView = () => {
         </div>
       )}
 
-      {/* ── Completed section ── */}
+      {/* ── Completed section — cream toggle ── */}
       {completedTasks.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <div>
           <button
             onClick={() => setShowCompleted((v) => !v)}
-            className="w-full flex items-center gap-2 px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-muted/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
+            className="w-full flex items-center justify-between transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            style={{ padding: '10px 6px 4px', color: '#8A7A6A', fontSize: 12, fontWeight: 600, marginTop: 6 }}
             dir={isRTL ? 'rtl' : 'ltr'}
             aria-expanded={showCompleted}
             aria-controls="completed-tasks-section"
           >
+            <span>
+              <em style={{ fontFamily: serifFont, fontStyle: 'italic', fontSize: 14 }}>{t('completedSection')}</em>
+              {' · '}
+              <span style={{ fontFamily: numbersFont, fontStyle: 'italic' }}>{completedTasks.length}</span>
+              {' '}{t('items', 'פריטים')}
+            </span>
             <motion.div
               animate={{ rotate: showCompleted ? 0 : (isRTL ? 90 : -90) }}
               transition={{ duration: 0.18 }}
             >
               <ChevronDown className="w-4 h-4" />
             </motion.div>
-            {t('completedSection')} ({completedTasks.length})
           </button>
 
           <AnimatePresence initial={false}>
@@ -879,7 +964,7 @@ export const TasksView = () => {
                 className="overflow-hidden"
                 id="completed-tasks-section"
               >
-                <div className="divide-y divide-border/60">
+                <div className="flex flex-col gap-[5px] pt-2">
                   <AnimatePresence mode="popLayout">
                     {completedTasks.map((task) => (
                       <motion.div

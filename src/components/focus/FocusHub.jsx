@@ -23,15 +23,10 @@ const blockIcons = {
   leisure: Coffee,
 };
 
-const blockColors = {
-  sleep: 'border-slate-500/20 bg-slate-500/5 text-slate-400',
-  study: 'border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400',
-  event: 'border-slate-500/20 bg-card text-foreground',
-  meal: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400',
-  workout: 'border-purple-500/20 bg-purple-500/5 text-purple-600 dark:text-purple-400',
-  travel: 'border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400',
-  leisure: 'border-rose-500/20 bg-rose-500/5 text-rose-600 dark:text-rose-400',
-};
+// Cream v3 warm card styles
+const creamCard = { background: '#fff', borderRadius: 18, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 2px 10px rgba(40,20,0,.05)' };
+const creamTimerCard = { background: '#fff', borderRadius: 32, border: '1px solid rgba(180,140,80,.14)', boxShadow: '0 8px 32px rgba(40,20,0,.08)', position: 'relative', overflow: 'hidden' };
+const creamStatCard = { background: '#fff', borderRadius: 16, border: '1px solid rgba(180,140,80,.12)', boxShadow: '0 1px 6px rgba(40,20,0,.04)' };
 
 export const FocusHub = () => {
   const { t, language } = useTranslation();
@@ -250,82 +245,99 @@ export const FocusHub = () => {
 
   const activeIsTrackable = isTrackableBlock(activeBlockToDisplay);
 
-  // Render block content
+  // Render block content — cream v3 timer stage
   const renderBlockDetails = (block, label, isLive) => {
     const Icon = blockIcons[block.type] || Target;
-    const colorClass = blockColors[block.type] || 'border-border bg-card';
 
     return (
-      <div className={cn(
-        "rounded-3xl border p-6 bg-card transition-all relative overflow-hidden select-none",
-        isLive ? "shadow-md shadow-primary/5 border-primary/20" : "border-border"
-      )}>
-        {/* Glow effect for active block */}
-        {isLive && (
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
-        )}
-        
+      <div
+        className="transition-all select-none"
+        style={{
+          ...creamTimerCard,
+          padding: '32px 20px 30px',
+        }}
+      >
+        {/* Purple accent bar at top */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #7C3AED)' }} />
+
         <div className="flex justify-between items-center mb-4 relative z-10">
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              "px-3 py-1 text-[11px] font-black tracking-wider uppercase rounded-full select-none",
-              isLive ? "bg-primary/10 text-primary" : "bg-secondary text-secondary-foreground"
-            )}>
-              {label}
-            </span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground font-semibold">
+          <span
+            className="select-none"
+            style={{
+              padding: isLive ? '5px 14px' : '6px 12px',
+              borderRadius: 999,
+              fontSize: isLive ? 13 : 11,
+              fontWeight: isLive ? 400 : 600,
+              fontFamily: isLive ? "'Instrument Serif', serif" : "'Inter', sans-serif",
+              fontStyle: isLive ? 'italic' : 'normal',
+              background: isLive ? '#059669' : '#F5F0E8',
+              color: isLive ? '#fff' : '#8A7A6A',
+            }}
+          >
+            {label}
+          </span>
+          <div className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: '#8A7A6A' }}>
             <Clock className="w-3.5 h-3.5 opacity-60" />
             <span>{block.startTime} – {block.endTime}</span>
           </div>
         </div>
 
         <div className="flex items-start gap-4 mb-6 relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center border border-border/40 shrink-0">
-            <Icon className="w-5 h-5 text-foreground" />
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: '#F5F0E8', border: '1px solid rgba(180,140,80,.12)' }}>
+            <Icon className="w-5 h-5" style={{ color: '#2A1A0A' }} />
           </div>
           <div className="min-w-0 text-start">
-            <h2 className="text-xl font-bold text-foreground leading-tight truncate">{block.title}</h2>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em', lineHeight: 1.15 }} className="truncate">
+              {block.title}
+            </h2>
             {block.notes && (
-              <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+              <p className="mt-1.5 line-clamp-2 leading-relaxed" style={{ fontSize: 12, color: '#8A7A6A', fontFamily: "'Instrument Serif', serif", fontStyle: 'italic' }}>
                 {block.notes}
               </p>
             )}
           </div>
         </div>
 
-        {/* Stopwatch & Action Area */}
+        {/* Stopwatch & Action Area — cream v3 giant timer */}
         {isLive && isTrackableBlock(block) && (
-          <div className="relative z-10 flex flex-col items-center border-t border-border/40 pt-6">
+          <div className="relative z-10 flex flex-col items-center pt-6" style={{ borderTop: '1px solid rgba(180,140,80,.12)' }}>
             {focusTracking.isTracking ? (
               <div className="w-full text-center space-y-5 animate-in fade-in duration-300">
-                <div className="text-5xl font-black font-mono tracking-widest text-foreground select-none">
-                  {formatStopwatch(focusTracking.elapsed)}
+                {/* Giant timer — Fraunces 78px with purple accent */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 6 }}>
+                    {isRTL ? 'סשן פוקוס' : 'Focus Session'}
+                  </div>
+                  <div className="select-none" style={{ fontFamily: "'Fraunces', serif", fontSize: 78, fontWeight: 600, color: '#2A1A0A', letterSpacing: '-.05em', lineHeight: 0.9, fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}>
+                    {formatStopwatch(focusTracking.elapsed).split(':')[0]}
+                    <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>:{formatStopwatch(focusTracking.elapsed).split(':').slice(1).join(':')}</em>
+                  </div>
                 </div>
-                <div className="flex gap-3 justify-center w-full max-w-sm mx-auto">
+                {/* Controls */}
+                <div className="flex gap-[14px] justify-center">
                   <button
                     onClick={handleFinishClick}
-                    className="flex-1 py-3 px-4 rounded-2xl bg-[#059669] text-white hover:bg-[#059669]/90 active:scale-95 transition-all text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm shadow-[#059669]/10 cursor-pointer"
+                    className="flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    style={{ width: 54, height: 54, borderRadius: '50%', background: '#059669', color: '#fff', border: 'none', boxShadow: '0 4px 16px rgba(5,150,105,.3)', fontSize: 18 }}
                   >
-                    <Check className="w-4 h-4 stroke-[3]" />
-                    {t('completed', 'סיימתי')}
+                    <Check className="w-5 h-5 stroke-[3]" />
                   </button>
                   <button
                     onClick={handleInterrupt}
-                    className="flex-1 py-3 px-4 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 active:scale-95 transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    style={{ width: 54, height: 54, borderRadius: '50%', background: '#fff', color: '#2A1A0A', border: '1px solid rgba(180,140,80,.18)', boxShadow: '0 2px 8px rgba(40,20,0,.06)', fontSize: 18 }}
                   >
-                    <AlertTriangle className="w-4 h-4" />
-                    {t('interrupted', 'הופרעתי')}
+                    <AlertTriangle className="w-5 h-5" style={{ color: '#DC2626' }} />
                   </button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={() => handleStart(block.id)}
-                className="w-full py-3.5 px-6 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/95 active:scale-95 transition-all text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 cursor-pointer animate-in fade-in duration-300"
+                className="flex items-center justify-center active:scale-95 transition-all cursor-pointer animate-in fade-in duration-300"
+                style={{ width: 68, height: 68, borderRadius: '50%', background: '#7C3AED', color: '#fff', border: 'none', boxShadow: '0 8px 24px rgba(124,58,237,.4)', fontSize: 24 }}
               >
-                <Play className="w-4 h-4 fill-primary-foreground stroke-none" />
-                {t('startFocus', 'התחל עבודה')}
+                <Play className="w-7 h-7 fill-white stroke-none" />
               </button>
             )}
           </div>
@@ -335,33 +347,42 @@ export const FocusHub = () => {
   };
 
   return (
-    <div 
-      className="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-28"
+    <div
+      className="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-[14px] animate-in fade-in slide-in-from-bottom-4 duration-500 pb-28"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Dynamic Greetings */}
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-foreground">{greetingText}</h1>
-        <p className="text-sm text-muted-foreground mt-1 select-none">
-          {isRTL ? 'מסך מיקוד נטול הסחות דעת לעשייה בלעדית.' : 'Distraction-free cockpit for execution.'}
-        </p>
+      {/* Context card — cream v3 */}
+      <div className="flex items-center justify-between" style={creamCard}>
+        <div style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 2 }}>
+            {isRTL ? 'עובד כעת על' : 'Currently working on'}
+          </div>
+          <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
+            {activeBlockToDisplay ? (
+              <><em style={{ fontStyle: 'italic', color: '#059669' }}>{activeBlockToDisplay.title}</em></>
+            ) : (
+              <span>{greetingText}</span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* AI Smart Feed Banner */}
-      <div className={cn(
-        "rounded-2xl border p-4 flex gap-3 items-start select-none",
-        focusTracking.isTracking 
-          ? "bg-primary/5 border-primary/20 text-primary" 
-          : focusTracking.wasInterrupted 
-          ? "bg-amber-500/5 border-amber-500/20 text-amber-600 dark:text-amber-400"
-          : "bg-secondary/40 border-border text-muted-foreground"
-      )}>
+      {/* AI Smart Feed Banner — cream v3 */}
+      <div
+        className="flex gap-3 items-start select-none"
+        style={{
+          ...creamCard,
+          padding: '12px 16px',
+          borderColor: focusTracking.isTracking ? 'rgba(5,150,105,.2)' : focusTracking.wasInterrupted ? 'rgba(217,119,6,.2)' : 'rgba(180,140,80,.14)',
+          background: focusTracking.isTracking ? '#F0FDF4' : focusTracking.wasInterrupted ? '#FFFBEB' : '#fff',
+        }}
+      >
         {rescheduling ? (
-          <RefreshCw className="w-4.5 h-4.5 text-primary shrink-0 mt-0.5 animate-spin" />
+          <RefreshCw className="w-4 h-4 shrink-0 mt-0.5 animate-spin" style={{ color: '#7C3AED' }} />
         ) : (
-          <Sparkles className="w-4.5 h-4.5 shrink-0 mt-0.5" />
+          <Sparkles className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#7C3AED' }} />
         )}
-        <p className="text-xs font-semibold leading-relaxed text-start">{aiFeedMessage}</p>
+        <p className="text-start leading-relaxed" style={{ fontSize: 12, fontWeight: 600, color: '#5A4A3A' }}>{aiFeedMessage}</p>
       </div>
 
       {/* Active block displaying area */}
@@ -369,19 +390,19 @@ export const FocusHub = () => {
         <div className="space-y-6">
           {renderBlockDetails(activeBlockToDisplay, isRTL ? 'עכשיו' : 'Now', true)}
 
-          {/* Secondary helper: If the active block is not trackable, show the next upcoming trackable task */}
+          {/* Secondary helper */}
           {!activeIsTrackable && nextTrackableTask && (
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-start">
+              <h3 className="text-start" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 16, fontWeight: 400, color: '#2A1A0A' }}>
                 {isRTL ? 'המשימה הבאה לביצוע' : 'Next Task to Focus'}
               </h3>
               {renderBlockDetails(nextTrackableTask, isRTL ? 'הבא' : 'Next', false)}
               
-              {/* Quick direct start for next task even if current block is running */}
               {!focusTracking.isTracking && (
                 <button
                   onClick={() => handleStart(nextTrackableTask.id)}
-                  className="w-full py-2.5 rounded-xl border border-dashed border-border hover:border-primary text-xs font-bold text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  className="w-full py-2.5 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  style={{ borderRadius: 11, background: '#F0FDF4', border: '1px solid rgba(5,150,105,.2)', fontSize: 11, fontWeight: 700, color: '#065F46' }}
                 >
                   <Play className="w-3.5 h-3.5" />
                   {isRTL ? `התחל את "${nextTrackableTask.title}" כעת` : `Start "${nextTrackableTask.title}" now`}
@@ -391,27 +412,26 @@ export const FocusHub = () => {
           )}
         </div>
       ) : nextTrackableTask ? (
-        // No active block right now, but there's a scheduled task later today
         <div className="space-y-3">
           <div className="text-start mb-2">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <h3 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 16, fontWeight: 400, color: '#8A7A6A' }}>
               {isRTL ? 'אין משימה פעילה כרגע' : 'No active block'}
             </h3>
           </div>
           {renderBlockDetails(nextTrackableTask, isRTL ? 'הבא' : 'Next', true)}
         </div>
       ) : (
-        // Empty State: No tasks scheduled for today or they are all done
-        <div className="rounded-3xl border border-border bg-card p-12 text-center select-none space-y-4">
-          <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto text-primary border border-border/30">
-            <Target className="w-6 h-6" />
+        <div className="p-12 text-center select-none space-y-4" style={{ ...creamTimerCard, padding: '48px 20px' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #7C3AED)' }} />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: '#F5F0E8', border: '1px solid rgba(180,140,80,.12)' }}>
+            <Target className="w-6 h-6" style={{ color: '#7C3AED' }} />
           </div>
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-foreground">
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18, fontWeight: 400, color: '#2A1A0A' }}>
               {isRTL ? 'אין משימות מתוכננות להיום' : 'No scheduled tasks today'}
             </h2>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              {isRTL 
+            <p className="max-w-sm mx-auto" style={{ fontSize: 12, color: '#8A7A6A', lineHeight: 1.5 }}>
+              {isRTL
                 ? 'הלו"ז שלך פנוי לחלוטין. מצא משימות בקומנד סנטר ושבץ אותן בלו"ז השעתי כדי להתחיל למידה.'
                 : 'Your schedule is clear. Add and schedule tasks from the Command Center to start focusing.'}
             </p>
@@ -421,7 +441,7 @@ export const FocusHub = () => {
 
       {/* Completion Status Selector Dialog */}
       <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
-        <DialogContent className="sm:max-w-md bg-card border border-border shadow-xl rounded-3xl" dir={isRTL ? 'rtl' : 'ltr'}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#fff', border: '1px solid rgba(180,140,80,.14)', borderRadius: 22, boxShadow: '0 4px 24px rgba(40,20,0,.07)' }} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle className="text-start text-foreground font-black text-lg">
               {isRTL ? 'איך עבר עליך זמן הלמידה?' : 'How did the focus session go?'}

@@ -6,10 +6,6 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../../lib/firebase';
-import { BookOpen } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { useTranslation } from '../../hooks/useTranslation';
 import { toast } from '../../store/useToast';
 

@@ -19,7 +19,7 @@ import {
   getHours,
   getMinutes,
 } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import styles from './CalendarView.module.css';
 
 function safeParse(d) {
@@ -37,46 +37,8 @@ export const CalendarView = () => {
   const [viewMode, setViewMode] = useState('week'); // 'day', '3days', 'week', 'month', 'list'
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const [mockEvents, setMockEvents] = useState([]);
-
-  useEffect(() => {
-    const hasData = (data?.events?.length > 0) || (data?.courses?.length > 0) || (data?.personalTasks?.length > 0) || (data?.pomodoroSessions?.length > 0);
-    if (!hasData) {
-      const today = new Date();
-      setMockEvents([
-        {
-          id: 'mock-1',
-          kind: 'event',
-          title: 'משקה חלבון אייס קפה',
-          date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 54),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 30),
-          allDay: false,
-        },
-        {
-          id: 'mock-2',
-          kind: 'study',
-          title: 'הרצאה אינפי 2',
-          date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 15, 54),
-          location: 'בניין 9 · חדר 305',
-          allDay: false,
-        },
-        {
-          id: 'mock-3',
-          kind: 'exam',
-          title: 'אינפי 2 30 ימים לבחינה',
-          date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 19, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 19, 48),
-          allDay: false,
-        }
-      ]);
-    } else {
-      setMockEvents([]);
-    }
-  }, [data]);
-
   const allItems = useMemo(() => {
-    const items = [...mockEvents];
+    const items = [];
 
     data?.courses?.forEach((course) => {
       ['moedA', 'moedB', 'moedC'].forEach((moed) => {
@@ -135,7 +97,7 @@ export const CalendarView = () => {
 
     items.sort((a, b) => a.date - b.date);
     return items;
-  }, [data, mockEvents]);
+  }, [data]);
 
   const getDateRange = () => {
     if (viewMode === 'day') return [selectedDate];
@@ -283,7 +245,7 @@ export const CalendarView = () => {
 
     let lastDateStr = '';
     return (
-      <div className={styles.content}>
+      <div className={`${styles.content} schedule-view-list`}>
         {upcoming.map((item) => {
           const dateStr = format(item.date, 'EEEE', { locale });
           const showHeader = dateStr !== lastDateStr;
@@ -302,7 +264,7 @@ export const CalendarView = () => {
                   <div className={styles.dLine}></div>
                 </div>
               )}
-              <div className={`${styles.item} ${getEventClass(item.kind)}`}>
+              <div role="listitem" className={`${styles.item} ${getEventClass(item.kind)}`}>
                 <div className={styles.itemTime}>{item.allDay ? 'כל היום' : format(item.date, 'HH:mm')}</div>
                 <div className={styles.itemBody}>
                   <div className={styles.itemName}>{item.title}</div>
@@ -389,7 +351,7 @@ export const CalendarView = () => {
 
     return (
       <>
-        <div className={styles.dayStrip}>
+        <div className={`${styles.dayStrip} day-view-container`}>
           {eachDayOfInterval({
             start: startOfWeek(selectedDate, { weekStartsOn: 0 }),
             end: addDays(startOfWeek(selectedDate, { weekStartsOn: 0 }), 6),
@@ -474,11 +436,13 @@ export const CalendarView = () => {
     const days = getDateRange();
     return (
       <>
-        <div className={styles.dayHdrWeek}>
+        <div className={`${styles.dayHdrWeek} week-view-container`}>
           <div></div>
           {days.map((d) => (
             <div
               key={d.toISOString()}
+              role="columnheader"
+              aria-label={format(d, 'EEEE', { locale: enUS })}
               className={`${styles.dhDay} ${isToday(d) ? styles.today : ''}`}
               onClick={() => setSelectedDate(d)}
             >
@@ -521,14 +485,16 @@ export const CalendarView = () => {
         )}
         <div className={styles.seg}>
           {[
-            { id: 'day', label: 'יום' },
-            { id: '3days', label: '3 ימים' },
-            { id: 'week', label: 'שבוע' },
-            { id: 'month', label: 'חודש' },
-            { id: 'list', label: 'לוח זמנים' },
+            { id: 'day', label: 'יום', ariaLabel: 'Day View' },
+            { id: '3days', label: '3 ימים', ariaLabel: '3 Days View' },
+            { id: 'week', label: 'שבוע', ariaLabel: 'Week View' },
+            { id: 'month', label: 'חודש', ariaLabel: 'Month View' },
+            { id: 'list', label: 'לוח זמנים', ariaLabel: 'Schedule View' },
           ].map((m) => (
             <div
               key={m.id}
+              role="button"
+              aria-label={m.ariaLabel}
               className={`${styles.segI} ${viewMode === m.id ? styles.active : ''}`}
               onClick={() => setViewMode(m.id)}
             >
