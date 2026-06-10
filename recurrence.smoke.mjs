@@ -1,5 +1,5 @@
 // Phase 6d smoke test for recurrence helpers. Run: `node recurrence.smoke.mjs`
-import { recurrenceMatches, recurringInstancesForDate } from './src/lib/recurrence.js';
+import { recurrenceMatches, recurringInstancesForDate, generateFutureInstances } from './src/lib/recurrence.js';
 
 let pass = 0, fail = 0;
 const ok = (name, cond) => {
@@ -43,12 +43,21 @@ const rules = [
   { id: 'r1', title: 'Meds', time: '08:00', durationMinutes: 15, ...daily },
   { id: 'r2', title: 'Run',  time: null,    durationMinutes: 30, ...daily }, // skipped: no time
   { id: 'r3', title: 'Done', time: '09:00', durationMinutes: 15, completions: { '2026-01-02': { done: true } }, ...daily },
+  { id: 'r4', title: 'Exceptions', time: '10:00', durationMinutes: 30, exceptions: { '2026-01-02': { time: '11:00', durationMinutes: 45 } }, ...daily },
 ];
 const insts = recurringInstancesForDate(rules, '2026-01-02');
-ok('only timed, uncompleted rules produce instances', insts.length === 1);
+ok('only timed, uncompleted rules produce instances', insts.length === 2);
 ok('instance is locked',          insts[0].isLocked === true);
 ok('instance source is recurring',insts[0].source === 'recurring');
 ok('instance id is deterministic',insts[0].id === 'recur-r1-2026-01-02');
+ok('exception overrides time',    insts[1].startTime === '11:00');
+ok('exception overrides duration',insts[1].duration === 45);
+
+console.log('-- generate future instances --');
+const futureRules = { ...daily, startDate: '2026-01-01' };
+const futures = generateFutureInstances(futureRules, 3, d('2026-01-02'));
+ok('generates count instances', futures.length === 3);
+ok('generates correct dates', futures[0] === '2026-01-02' && futures[1] === '2026-01-03' && futures[2] === '2026-01-04');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
