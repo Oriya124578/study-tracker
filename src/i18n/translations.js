@@ -586,6 +586,10 @@ export const translations = {
     editProduct: 'ערוך מוצר',
     completedItems: 'הושלמו',
     shoppingEmptyParse: 'לא זוהו מוצרים — נסה להדביק שוב',
+    categoryLabel: 'קטגוריה',
+    shareList: 'שתף רשימה',
+    listCopied: 'הרשימה הועתקה',
+    uncheckedFirst: 'להשלים',
   },
   en: {
     // General
@@ -1174,5 +1178,9 @@ export const translations = {
     editProduct: 'Edit product',
     completedItems: 'done',
     shoppingEmptyParse: 'No items detected — try pasting again',
+    categoryLabel: 'Category',
+    shareList: 'Share list',
+    listCopied: 'List copied',
+    uncheckedFirst: 'to get',
   }
 };

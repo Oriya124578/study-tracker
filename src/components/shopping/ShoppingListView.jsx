@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingCart, Plus, ClipboardPaste, Wand2, Check, Trash2, Edit3,
-  ChevronDown, X, History, ArrowRight, Loader2, Sparkles,
+  ChevronDown, X, History, ArrowRight, Loader2, Sparkles, Share2,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -10,6 +10,7 @@ import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
 import {
   parseShoppingText, categorizeWithAI, groupByCategory, getCategoryMeta, parseQuantity,
+  getAllCategories, learnCategory,
 } from '../../lib/groceryCategories';
 import { format, parseISO, isValid } from 'date-fns';
 import { he as heLocale } from 'date-fns/locale';
@@ -213,16 +214,21 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
 };
 
 /* ── Edit Item Modal ──────────────────────────────────────── */
-const EditItemModal = ({ item, onClose, onSave, t, isRTL }) => {
+const EditItemModal = ({ item, onClose, onSave, t, isRTL, language }) => {
   const [name, setName] = useState(item.name || '');
   // Show the full "qty unit" so editing is intuitive; re-parse on save.
   const [qty, setQty] = useState(item.qty ? `${item.qty}${item.unit ? ' ' + item.unit : ''}` : '');
+  const [category, setCategory] = useState(item.category || 'other');
+  const allCats = getAllCategories();
 
   const handleSave = () => {
     if (!name.trim()) return;
     const trimmedQty = qty.trim();
     const parsed = trimmedQty ? parseQuantity(trimmedQty) : { qty: null, unit: null };
-    onSave({ name: name.trim(), qty: parsed.qty, unit: parsed.unit });
+    onSave(
+      { name: name.trim(), qty: parsed.qty, unit: parsed.unit, category },
+      category !== item.category, // categoryChanged → learn it
+    );
     onClose();
   };
 
@@ -261,6 +267,33 @@ const EditItemModal = ({ item, onClose, onSave, t, isRTL }) => {
           className="w-full px-3.5 py-3 rounded-xl outline-none text-sm"
           style={{ border: `1.5px solid ${CREAM.border}`, color: CREAM.ink, background: 'rgba(250,247,242,.5)' }}
         />
+
+        {/* Category picker — correcting it teaches the dictionary */}
+        <div>
+          <div className="text-xs font-semibold mb-2 px-0.5" style={{ color: CREAM.muted }}>{t('categoryLabel')}</div>
+          <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto no-scrollbar">
+            {allCats.map((c) => {
+              const active = category === c.key;
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setCategory(c.key)}
+                  className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-[13px] transition-colors text-start focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                  style={{
+                    border: `1.5px solid ${active ? CREAM.green : CREAM.borderLight}`,
+                    background: active ? CREAM.greenLight : 'transparent',
+                    color: active ? CREAM.green : CREAM.sub,
+                    fontWeight: active ? 600 : 400,
+                  }}
+                >
+                  <span className="text-base shrink-0">{c.emoji}</span>
+                  <span className="truncate">{language === 'he' ? c.he : c.en}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <button
           onClick={handleSave}
           className="w-full py-3 rounded-xl text-white text-sm font-semibold"
@@ -420,6 +453,7 @@ export const ShoppingListView = () => {
   const clearShoppingList = useStore((s) => s.clearShoppingList);
   const reopenShoppingList = useStore((s) => s.reopenShoppingList);
   const deleteShoppingList = useStore((s) => s.deleteShoppingList);
+  const learnGroceryItems = useStore((s) => s.learnGroceryItems);
 
   const [mode, setMode] = useState('view'); // 'view' | 'paste'
   const [editItem, setEditItem] = useState(null);
@@ -449,6 +483,29 @@ export const ShoppingListView = () => {
     setMode('view');
     setOpenOverrides({});
     toast.success(t('addedSuccessfully'));
+  };
+
+  const handleShare = async () => {
+    if (!activeList) return;
+    const lines = [`🛒 ${activeList.name}`, ''];
+    groups.forEach((g) => {
+      const meta = getCategoryMeta(g.key);
+      lines.push(`${meta.emoji} ${language === 'he' ? meta.he : meta.en}`);
+      g.items.forEach((it) => {
+        const q = it.qty ? ` (${it.qty}${it.unit ? ' ' + it.unit : ''})` : '';
+        lines.push(`${it.checked ? '✓' : '▢'} ${it.name}${q}`);
+      });
+      lines.push('');
+    });
+    const text = lines.join('\n').trim();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: activeList.name, text });
+      } else {
+        await navigator.clipboard.writeText(text);
+        toast.success(t('listCopied'));
+      }
+    } catch { /* user cancelled share */ }
   };
 
   const handleClear = () => {
@@ -521,6 +578,14 @@ export const ShoppingListView = () => {
           <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg,#10B981,#059669)' }} animate={{ width: `${pct}%` }} transition={{ duration: 0.4 }} />
         </div>
         <div className="text-base font-semibold min-w-9 text-center" style={{ fontFamily: display, color: CREAM.green }}>{pct}%</div>
+        <button
+          onClick={handleShare}
+          aria-label={t('shareList')}
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors hover:bg-[rgba(5,150,105,.08)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          style={{ color: CREAM.green }}
+        >
+          <Share2 className="w-[18px] h-[18px]" />
+        </button>
       </div>
 
       {/* Categories */}
@@ -583,8 +648,16 @@ export const ShoppingListView = () => {
             item={editItem}
             t={t}
             isRTL={isRTL}
+            language={language}
             onClose={() => setEditItem(null)}
-            onSave={(patch) => updateShoppingItem(activeList.id, editItem.id, patch)}
+            onSave={(patch, categoryChanged) => {
+              updateShoppingItem(activeList.id, editItem.id, patch);
+              // A manual category correction teaches the dictionary (local +
+              // Firestore) so the same product auto-files correctly next time.
+              if (categoryChanged && patch.name) {
+                learnGroceryItems(learnCategory(patch.name, patch.category));
+              }
+            }}
           />
         )}
       </AnimatePresence>
