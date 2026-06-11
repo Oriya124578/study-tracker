@@ -173,7 +173,7 @@ export const Layout = () => {
       {/* Main content — keyed motion wrapper gives every tab/page switch a
           gentle rise+fade entrance (enter-only: no AnimatePresence around
           Suspense, which is glitch-prone with lazy chunks). */}
-      <main className="flex-1 relative scroll-smooth min-w-0 pb-24 pt-2">
+      <main className="flex-1 relative scroll-smooth min-w-0 pb-28 pt-2">
         <ErrorBoundary>
           <Suspense fallback={<ViewFallback />}>
             <motion.div
@@ -192,7 +192,7 @@ export const Layout = () => {
           so it always floats clearly above the nav and is never clipped by it. */}
       <button
         onClick={() => setIsFanMenuOpen(!isFanMenuOpen)}
-        className="fixed right-4 bottom-[calc(64px+env(safe-area-inset-bottom))] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="fixed right-4 bottom-[calc(92px+env(safe-area-inset-bottom))] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         style={{ background: '#065F46', boxShadow: '0 6px 20px rgba(6,95,70,.35)', transform: 'translateZ(0)', willChange: 'transform' }}
         aria-label={isFanMenuOpen ? t('close') : t('navMore')}
       >
