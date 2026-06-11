@@ -899,13 +899,26 @@ export const useStore = create((set, get) => ({
     fsSetShoppingList(uid, listId, { isActive: false, updatedAt: now }).catch(console.error);
   },
 
-  // Persist a new within-category item order. Items of other categories keep
-  // their positions; the reordered category's slots are filled in the new order.
-  reorderShoppingItems: (listId, categoryKey, orderedIds) =>
+  // Move an item to `toCategory` at position `toIndex` within that category
+  // (also handles same-category reordering). Group order is derived from the
+  // category enum; within-group order is the array order, so we just splice the
+  // item into the right spot among its destination-category siblings.
+  moveShoppingItem: (listId, itemId, toCategory, toIndex) =>
     get()._patchShoppingItems(listId, (items) => {
-      const inCat = orderedIds.map((id) => items.find((it) => it.id === id)).filter(Boolean);
-      let ci = 0;
-      return items.map((it) => (it.category === categoryKey ? inCat[ci++] || it : it));
+      const moved = items.find((i) => i.id === itemId);
+      if (!moved) return items;
+      const without = items.filter((i) => i.id !== itemId);
+      const updated = { ...moved, category: toCategory };
+      const destItems = without.filter((i) => i.category === toCategory);
+      const target = destItems[toIndex] || null; // the item `updated` should precede
+      const out = [];
+      let inserted = false;
+      for (const it of without) {
+        if (target && it.id === target.id) { out.push(updated); inserted = true; }
+        out.push(it);
+      }
+      if (!inserted) out.push(updated);
+      return out;
     }),
 
   resetShoppingChecks: (listId) =>

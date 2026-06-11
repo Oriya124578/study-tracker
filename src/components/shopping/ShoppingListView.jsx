@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   ShoppingCart, Plus, ClipboardPaste, Wand2, Check, Trash2, Edit3,
   ChevronDown, X, ArrowRight, Loader2, Sparkles, Share2, GripVertical,
@@ -100,34 +101,67 @@ const ItemRow = ({ item, onToggle, onEdit, onDelete, t, isRTL }) => {
   );
 };
 
-/* ── Reorderable Item (reorder mode: drag from handle only) ── */
-const ReorderableItem = ({ item, t }) => {
-  const controls = useDragControls();
-  const meta = item.qty ? `${item.qty}${item.unit ? ' ' + item.unit : ''}` : null;
+/* ── Reorder category (drag items, incl. across categories) ── */
+// Long-press (touch) or press-drag (mouse) anywhere on the row drags it; drop
+// into another category's zone to re-file it. All categories render as drop
+// targets — even empty ones — so an item can move into any category.
+const ReorderCategory = ({ cat, items, language, t }) => {
+  const name = language === 'he' ? cat.he : cat.en;
   return (
-    <Reorder.Item
-      value={item}
-      dragListener={false}
-      dragControls={controls}
-      className="relative flex items-center gap-3 py-3 px-3 bg-white"
-      style={{ borderBottom: `1px solid rgba(180,140,80,.06)` }}
-    >
-      <button
-        onPointerDown={(e) => { e.preventDefault(); controls.start(e); }}
-        aria-label={t('reorder')}
-        className="cursor-grab active:cursor-grabbing p-1 -m-1 shrink-0"
-        style={{ touchAction: 'none', color: CREAM.muted }}
-      >
-        <GripVertical className="w-[18px] h-[18px]" />
-      </button>
-      <span className="flex-1 min-w-0 text-sm truncate" style={{ color: CREAM.ink }}>{item.name}</span>
-      {meta && <span className="text-[11px] font-medium shrink-0" style={{ color: CREAM.muted }}>{meta}</span>}
-    </Reorder.Item>
+    <div style={{ ...card, overflow: 'hidden' }}>
+      <div className="flex items-center gap-2.5 px-4 py-3">
+        <span className="text-xl w-7 text-center shrink-0">{cat.emoji}</span>
+        <span className="flex-1 text-sm font-semibold text-start" style={{ color: CREAM.ink }}>{name}</span>
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: items.length ? CREAM.greenSoft : 'rgba(180,140,80,.08)', color: items.length ? CREAM.green : CREAM.muted }}>
+          {items.length}
+        </span>
+      </div>
+      <Droppable droppableId={cat.key}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            style={{ borderTop: `1px solid ${CREAM.borderLight}`, minHeight: items.length ? undefined : 40, background: snapshot.isDraggingOver ? CREAM.greenLight : 'transparent', transition: 'background .15s' }}
+          >
+            {items.length === 0 && (
+              <div className="px-4 py-2.5 text-[12px]" style={{ color: CREAM.muted }}>{t('dragHere')}</div>
+            )}
+            {items.map((item, index) => {
+              const meta = item.qty ? `${item.qty}${item.unit ? ' ' + item.unit : ''}` : null;
+              return (
+                <Draggable key={item.id} draggableId={item.id} index={index}>
+                  {(prov, snap) => (
+                    <div
+                      ref={prov.innerRef}
+                      {...prov.draggableProps}
+                      {...prov.dragHandleProps}
+                      className="flex items-center gap-3 py-3 px-3"
+                      style={{
+                        borderBottom: `1px solid rgba(180,140,80,.06)`,
+                        background: '#fff',
+                        boxShadow: snap.isDragging ? '0 8px 24px rgba(40,20,0,.15)' : 'none',
+                        borderRadius: snap.isDragging ? 10 : 0,
+                        ...prov.draggableProps.style,
+                      }}
+                    >
+                      <GripVertical className="w-[18px] h-[18px] shrink-0" style={{ color: CREAM.muted }} />
+                      <span className="flex-1 min-w-0 text-sm truncate" style={{ color: CREAM.ink, textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.6 : 1 }}>{item.name}</span>
+                      {meta && <span className="text-[11px] font-medium shrink-0" style={{ color: CREAM.muted }}>{meta}</span>}
+                    </div>
+                  )}
+                </Draggable>
+              );
+            })}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
   );
 };
 
 /* ── Category Accordion ───────────────────────────────────── */
-const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem, onDeleteItem, onAddItem, onReorderItems, t, language, isRTL, reorderMode, sinkChecked }) => {
+const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem, onDeleteItem, onAddItem, t, language, isRTL, sinkChecked }) => {
   const meta = getCategoryMeta(group.key);
   const done = group.items.filter((i) => i.checked).length;
   const total = group.items.length;
@@ -136,8 +170,7 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
   const [draft, setDraft] = useState('');
   const name = language === 'he' ? meta.he : meta.en;
   const panelId = `shop-cat-${group.key}`;
-  const open = reorderMode || isOpen; // forced open while reordering
-  const displayItems = sortForDisplay(group.items, sinkChecked && !reorderMode);
+  const displayItems = sortForDisplay(group.items, sinkChecked);
 
   const submitAdd = () => {
     const v = draft.trim();
@@ -147,62 +180,49 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
   };
 
   return (
-    <motion.div layout style={{ ...card, overflow: 'hidden', opacity: allDone && !open ? 0.65 : 1 }}>
+    <motion.div layout style={{ ...card, overflow: 'hidden', opacity: allDone && !isOpen ? 0.65 : 1 }}>
       <button
-        onClick={reorderMode ? undefined : onToggleOpen}
-        aria-expanded={open}
+        onClick={onToggleOpen}
+        aria-expanded={isOpen}
         aria-controls={panelId}
-        disabled={reorderMode}
-        className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors hover:bg-[rgba(180,140,80,.04)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset disabled:cursor-default"
+        className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors hover:bg-[rgba(180,140,80,.04)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
       >
         <span className="text-xl w-7 text-center shrink-0">{meta.emoji}</span>
         <span className="flex-1 text-sm font-semibold text-start" style={{ color: CREAM.ink }}>{name}</span>
         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={allDone ? { background: 'rgba(180,140,80,.08)', color: CREAM.muted, textDecoration: 'line-through' } : { background: CREAM.greenSoft, color: CREAM.green }}>
           {done}/{total}
         </span>
-        {!reorderMode && (
-          <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-            <ChevronDown className="w-[18px] h-[18px]" style={{ color: CREAM.muted }} />
-          </motion.div>
-        )}
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="w-[18px] h-[18px]" style={{ color: CREAM.muted }} />
+        </motion.div>
       </button>
 
       <AnimatePresence initial={false}>
-        {open && (
+        {isOpen && (
           <motion.div
             id={panelId}
             role="region"
-            initial={reorderMode ? false : { height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.22 }}
             style={{ borderTop: `1px solid ${CREAM.borderLight}` }}
           >
-            {reorderMode ? (
-              <Reorder.Group axis="y" values={group.items} onReorder={(next) => onReorderItems(group.key, next.map((i) => i.id))}>
-                {group.items.map((item) => (
-                  <ReorderableItem key={item.id} item={item} t={t} />
-                ))}
-              </Reorder.Group>
+            {displayItems.map((item) => (
+              <ItemRow key={item.id} item={item} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
+            ))}
+            {adding ? (
+              <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
+                <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submitAdd(); if (e.key === 'Escape') { setAdding(false); setDraft(''); } }} onBlur={submitAdd} placeholder={t('productName')} className="flex-1 bg-transparent outline-none text-sm" style={{ color: CREAM.ink }} />
+                <button onClick={submitAdd} className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: CREAM.greenLight, color: CREAM.green }}>{t('add')}</button>
+              </div>
             ) : (
-              <>
-                {displayItems.map((item) => (
-                  <ItemRow key={item.id} item={item} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
-                ))}
-                {adding ? (
-                  <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
-                    <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submitAdd(); if (e.key === 'Escape') { setAdding(false); setDraft(''); } }} onBlur={submitAdd} placeholder={t('productName')} className="flex-1 bg-transparent outline-none text-sm" style={{ color: CREAM.ink }} />
-                    <button onClick={submitAdd} className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: CREAM.greenLight, color: CREAM.green }}>{t('add')}</button>
-                  </div>
-                ) : (
-                  <button onClick={() => setAdding(true)} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-[rgba(180,140,80,.04)] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
-                    <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center" style={{ border: `2px dashed rgba(5,150,105,.3)`, color: CREAM.green }}>
-                      <Plus className="w-3 h-3" strokeWidth={2.5} />
-                    </span>
-                    <span className="text-[13px] font-medium" style={{ color: CREAM.green }}>{t('addProduct')}</span>
-                  </button>
-                )}
-              </>
+              <button onClick={() => setAdding(true)} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-[rgba(180,140,80,.04)] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
+                <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center" style={{ border: `2px dashed rgba(5,150,105,.3)`, color: CREAM.green }}>
+                  <Plus className="w-3 h-3" strokeWidth={2.5} />
+                </span>
+                <span className="text-[13px] font-medium" style={{ color: CREAM.green }}>{t('addProduct')}</span>
+              </button>
             )}
           </motion.div>
         )}
@@ -448,7 +468,7 @@ export const ShoppingListView = () => {
   const renameShoppingList = useStore((s) => s.renameShoppingList);
   const setActiveShoppingList = useStore((s) => s.setActiveShoppingList);
   const unsetActiveShoppingList = useStore((s) => s.unsetActiveShoppingList);
-  const reorderShoppingItems = useStore((s) => s.reorderShoppingItems);
+  const moveShoppingItem = useStore((s) => s.moveShoppingItem);
   const resetShoppingChecks = useStore((s) => s.resetShoppingChecks);
   const duplicateShoppingList = useStore((s) => s.duplicateShoppingList);
   const learnGroceryItems = useStore((s) => s.learnGroceryItems);
@@ -467,6 +487,31 @@ export const ShoppingListView = () => {
   const activeList = useMemo(() => shoppingLists.find((l) => l.isActive), [shoppingLists]);
   const viewingList = useMemo(() => shoppingLists.find((l) => l.id === viewingListId), [shoppingLists, viewingListId]);
   const groups = useMemo(() => (viewingList ? groupByCategory(viewingList.items || []) : []), [viewingList]);
+
+  // Reorder mode shows ALL categories (even empty) as drop targets so an item
+  // can move into any category. Categories with items come first.
+  const reorderGroups = useMemo(() => {
+    const items = viewingList?.items || [];
+    const byCat = {};
+    items.forEach((it) => { (byCat[it.category] || (byCat[it.category] = [])).push(it); });
+    const all = getAllCategories();
+    return [
+      ...all.filter((c) => byCat[c.key]).map((c) => ({ ...c, items: byCat[c.key] })),
+      ...all.filter((c) => !byCat[c.key]).map((c) => ({ ...c, items: [] })),
+    ];
+  }, [viewingList]);
+
+  const handleDragEnd = (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    moveShoppingItem(viewingList.id, draggableId, destination.droppableId, destination.index);
+    // Moving across categories teaches the dictionary (like the edit picker).
+    if (source.droppableId !== destination.droppableId) {
+      const it = (viewingList.items || []).find((i) => i.id === draggableId);
+      if (it) learnGroceryItems(learnCategory(it.name, destination.droppableId));
+    }
+  };
 
   // Guard: if the viewed list disappears (deleted / listener drop), fall back.
   useEffect(() => {
@@ -577,7 +622,7 @@ export const ShoppingListView = () => {
         {/* Reorder hint */}
         {reorderMode && (
           <div className="flex items-center gap-1.5 text-xs px-1" style={{ color: CREAM.muted }}>
-            <GripVertical className="w-3.5 h-3.5 opacity-60" />{t('reorderHint')}
+            <GripVertical className="w-3.5 h-3.5 opacity-60" />{t('reorderHintCross')}
           </div>
         )}
 
@@ -587,6 +632,14 @@ export const ShoppingListView = () => {
             <ShoppingCart className="w-12 h-12" style={{ color: 'rgba(180,140,80,.3)' }} strokeWidth={1.5} />
             <p className="text-sm max-w-xs" style={{ color: CREAM.muted }}>{t('emptyListPrompt')}</p>
           </div>
+        ) : reorderMode ? (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="flex flex-col gap-2.5">
+              {reorderGroups.map((g) => (
+                <ReorderCategory key={g.key} cat={g} items={g.items} language={language} t={t} />
+              ))}
+            </div>
+          </DragDropContext>
         ) : (
           <div className="flex flex-col gap-2.5">
             {groups.map((g) => (
@@ -599,11 +652,9 @@ export const ShoppingListView = () => {
                 onEditItem={(item) => setEditItem(item)}
                 onDeleteItem={(itemId) => removeShoppingItem(viewingList.id, itemId)}
                 onAddItem={(nameVal, catKey) => addShoppingItem(viewingList.id, { name: nameVal, category: catKey })}
-                onReorderItems={(catKey, ids) => reorderShoppingItems(viewingList.id, catKey, ids)}
                 t={t}
                 language={language}
                 isRTL={isRTL}
-                reorderMode={reorderMode}
                 sinkChecked={sinkChecked}
               />
             ))}

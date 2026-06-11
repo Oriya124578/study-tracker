@@ -606,6 +606,8 @@ export const translations = {
     listOptions: 'אפשרויות',
     emptyListPrompt: 'הרשימה ריקה — הוסף פריט או הדבק רשימה',
     noLists: 'אין רשימות עדיין',
+    dragHere: 'גרור לכאן',
+    reorderHintCross: 'לחיצה ארוכה וגרירה — גם בין קטגוריות',
   },
   en: {
     // General
@@ -1214,5 +1216,7 @@ export const translations = {
     listOptions: 'Options',
     emptyListPrompt: 'List is empty — add an item or paste a list',
     noLists: 'No lists yet',
+    dragHere: 'Drag here',
+    reorderHintCross: 'Long-press and drag — across categories too',
   }
 };
