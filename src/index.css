@@ -143,6 +143,53 @@
   animation-delay: 0.4s;
 }
 
+/* ── Global interaction polish ──────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  touch-action: manipulation;
+}
+
+/* Soft rise-in entrance for cards/sections (enter-only, GPU-friendly) */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise-in {
+  animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Staggered children — first 8 get an incremental delay */
+.rise-in-stagger > * {
+  animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-in-stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.rise-in-stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.rise-in-stagger > *:nth-child(3) { animation-delay: 0.11s; }
+.rise-in-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.rise-in-stagger > *:nth-child(5) { animation-delay: 0.19s; }
+.rise-in-stagger > *:nth-child(6) { animation-delay: 0.23s; }
+.rise-in-stagger > *:nth-child(7) { animation-delay: 0.27s; }
+.rise-in-stagger > *:nth-child(8) { animation-delay: 0.31s; }
+
+/* Thin warm scrollbars on pointer devices */
+@media (pointer: fine) {
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(180, 140, 80, 0.22); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(180, 140, 80, 0.35); }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Hide scrollbars but keep functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

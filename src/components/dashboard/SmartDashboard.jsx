@@ -168,7 +168,7 @@ export const SmartDashboard = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto w-full px-3.5 py-3 space-y-2.5" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="max-w-lg mx-auto w-full px-3.5 py-3 space-y-2.5 rise-in-stagger" dir={isRTL ? 'rtl' : 'ltr'}>
 
       {/* ══════ HERO CARD — cream v3 unified ══════ */}
       <div

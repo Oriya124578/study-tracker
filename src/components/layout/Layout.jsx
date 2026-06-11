@@ -169,10 +169,21 @@ export const Layout = () => {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content — keyed motion wrapper gives every tab/page switch a
+          gentle rise+fade entrance (enter-only: no AnimatePresence around
+          Suspense, which is glitch-prone with lazy chunks). */}
       <main className="flex-1 relative scroll-smooth min-w-0 pb-24 pt-2">
         <ErrorBoundary>
-          <Suspense fallback={<ViewFallback />}>{renderContent()}</Suspense>
+          <Suspense fallback={<ViewFallback />}>
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {renderContent()}
+            </motion.div>
+          </Suspense>
         </ErrorBoundary>
       </main>
 
@@ -212,10 +223,10 @@ export const Layout = () => {
               
               {/* 1. Add Button */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 480, damping: 28 }}
                 className="flex items-center gap-3"
               >
                 <span className="whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm">
@@ -232,10 +243,10 @@ export const Layout = () => {
 
               {/* 2. Tasks Button */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.15, delay: 0.05 }}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 480, damping: 28, delay: 0.04 }}
                 className="flex items-center gap-3"
               >
                 <span className="whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm">
@@ -252,10 +263,10 @@ export const Layout = () => {
 
               {/* 3. Notes Button */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.15, delay: 0.1 }}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 480, damping: 28, delay: 0.08 }}
                 className="flex items-center gap-3"
               >
                 <span className="whitespace-nowrap bg-background border text-foreground text-xs font-bold px-3 py-1 rounded-full shadow-sm">

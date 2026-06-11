@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Calendar, BookOpen, Sparkles, ShoppingCart } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -46,14 +47,29 @@ export const BottomNav = () => {
             onClick={() => handleNavClick(item.key)}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center gap-0.5 py-1 px-2 transition-all min-w-[48px] rounded-xl hover:bg-muted/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
+              'relative flex flex-col items-center gap-0.5 py-1 px-2 transition-colors min-w-[52px] rounded-xl active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
             )}
             style={{
               color: isActive ? '#059669' : 'rgba(42,26,10,.3)',
             }}
           >
-            <Icon className="w-[18px] h-[18px]" style={{ opacity: isActive ? 1 : 0.25 }} />
-            <span className="text-[9px] font-bold leading-none mt-0.5">
+            {/* Sliding pill behind the active tab (shared layoutId = spring slide) */}
+            {isActive && (
+              <motion.span
+                layoutId="bottomNavPill"
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                className="absolute inset-0 rounded-xl"
+                style={{ background: 'rgba(5,150,105,.09)' }}
+              />
+            )}
+            <motion.span
+              animate={{ scale: isActive ? 1.12 : 1, y: isActive ? -1 : 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              className="relative flex items-center justify-center"
+            >
+              <Icon className="w-[18px] h-[18px]" style={{ opacity: isActive ? 1 : 0.3 }} />
+            </motion.span>
+            <span className="relative text-[9px] font-bold leading-none mt-0.5">
               {t(item.labelKey)}
             </span>
           </button>

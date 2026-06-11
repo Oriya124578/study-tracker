@@ -819,7 +819,7 @@ export const ShoppingListView = () => {
             </div>
           </DragDropContext>
         ) : (
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5 rise-in-stagger">
             {groups.map((g) => (
               <CategorySection
                 key={g.key}
@@ -913,7 +913,7 @@ export const ShoppingListView = () => {
       ) : (
         <>
           {activeList && <ListCard list={activeList} hero t={t} locale={locale} onOpen={() => setViewingListId(activeList.id)} />}
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5 rise-in-stagger">
             {shoppingLists.filter((l) => !l.isActive).map((l) => (
               <ListCard key={l.id} list={l} t={t} locale={locale} onOpen={() => setViewingListId(l.id)} onMenu={() => setMenuListId(l.id)} />
             ))}
