@@ -26,13 +26,12 @@ export const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 px-1 sm:px-3 flex justify-around items-center pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+      className="fixed bottom-0 inset-x-0 z-50 px-1 sm:px-3 flex justify-around items-center pt-1.5 pb-[calc(.4rem+env(safe-area-inset-bottom))]"
       style={{
         background: 'rgba(250,247,242,.96)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(180,140,80,.12)',
-        minHeight: '72px',
       }}
     >
       {NAV_ITEMS.map((item) => {
@@ -47,14 +46,14 @@ export const BottomNav = () => {
             onClick={() => handleNavClick(item.key)}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center gap-0.5 py-1.5 px-2 transition-all min-w-[48px] rounded-xl hover:bg-muted/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
+              'flex flex-col items-center gap-0.5 py-1 px-2 transition-all min-w-[48px] rounded-xl hover:bg-muted/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset',
             )}
             style={{
               color: isActive ? '#059669' : 'rgba(42,26,10,.3)',
             }}
           >
             <Icon className="w-[18px] h-[18px]" style={{ opacity: isActive ? 1 : 0.25 }} />
-            <span className="text-[10px] font-bold leading-none mt-1">
+            <span className="text-[9px] font-bold leading-none mt-0.5">
               {t(item.labelKey)}
             </span>
           </button>
