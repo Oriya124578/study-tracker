@@ -7,6 +7,7 @@ export const translations = {
     edit: 'ערוך',
     delete: 'מחק',
     add: 'הוסף',
+    back: 'חזרה',
     notSet: 'לא הוגדר',
     days: 'ימים',
     
@@ -617,6 +618,7 @@ export const translations = {
     edit: 'Edit',
     delete: 'Delete',
     add: 'Add',
+    back: 'Back',
     notSet: 'Not Set',
     days: 'days',
 

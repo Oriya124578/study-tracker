@@ -28,10 +28,19 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     console.error('Uncaught error in UI:', error, info);
+    // A failed lazy-chunk import after a deploy throws a MIME/import error. Self-
+    // heal by reloading once (guarded) to fetch the fresh index + chunk hashes.
+    const msg = String(error?.message || '');
+    const isChunkError = /MIME type|dynamically imported module|Importing a module script failed|Failed to fetch dynamically/i.test(msg);
+    if (isChunkError && !sessionStorage.getItem('cl_chunk_reloaded')) {
+      sessionStorage.setItem('cl_chunk_reloaded', '1');
+      window.location.reload();
+    }
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    // Hard reload so a fresh index + chunks are fetched, not just a re-render.
+    window.location.reload();
   };
 
   render() {

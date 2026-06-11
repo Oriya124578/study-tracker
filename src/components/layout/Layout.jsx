@@ -10,7 +10,7 @@ import { Toaster } from '../ui/Toaster';
 import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useNotificationScheduler } from '../../hooks/useNotificationScheduler';
-import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User } from 'lucide-react';
+import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
@@ -37,10 +37,15 @@ const ViewFallback = () => (
   </div>
 );
 
+// Top-level bottom-nav tabs — everything else is a sub-page that gets a back button.
+const NAV_TABS = ['overview', 'calendar', 'courses', 'commandCenter', 'shopping'];
+
 export const Layout = () => {
-  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory } = useStore();
+  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory, goBack } = useStore();
   const displayName = data?.profile?.displayName || '';
   const { t, language } = useTranslation();
+  const isRTL = language === 'he';
+  const isSubPage = !NAV_TABS.includes(activeCategory);
   const [isFanMenuOpen, setIsFanMenuOpen] = useState(false);
 
   // Phase 5: drive local reminders while the app is open.
@@ -113,22 +118,35 @@ export const Layout = () => {
         dir={language === 'he' ? 'rtl' : 'ltr'}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <button
-            onClick={() => setActiveCategory('settings')}
-            className={cn(
-              "rounded-full transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer shrink-0",
-              activeCategory.startsWith('settings') && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-            )}
-            title={t('navSettings', 'הגדרות')}
-            aria-label={t('navSettings', 'הגדרות')}
-          >
-            <Avatar
-              src={data?.profile?.photoURL}
-              initial={displayName ? displayName.trim().charAt(0).toUpperCase() : 'א'}
-              size={34}
-              alt={t('navSettings', 'הגדרות')}
-            />
-          </button>
+          {isSubPage ? (
+            <button
+              onClick={goBack}
+              className="w-9 h-9 -ms-1 rounded-full flex items-center justify-center transition-all hover:bg-[rgba(180,140,80,.08)] active:scale-95 shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              title={t('back', 'חזרה')}
+              aria-label={t('back', 'חזרה')}
+            >
+              {isRTL
+                ? <ChevronRight className="w-6 h-6" style={{ color: '#2A1A0A' }} />
+                : <ChevronLeft className="w-6 h-6" style={{ color: '#2A1A0A' }} />}
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveCategory('settings')}
+              className={cn(
+                "rounded-full transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer shrink-0",
+                activeCategory.startsWith('settings') && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+              )}
+              title={t('navSettings', 'הגדרות')}
+              aria-label={t('navSettings', 'הגדרות')}
+            >
+              <Avatar
+                src={data?.profile?.photoURL}
+                initial={displayName ? displayName.trim().charAt(0).toUpperCase() : 'א'}
+                size={34}
+                alt={t('navSettings', 'הגדרות')}
+              />
+            </button>
+          )}
           <h1
             className="text-[17px] tracking-tight truncate text-start select-none"
             style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, color: '#2A1A0A' }}

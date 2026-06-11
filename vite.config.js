@@ -140,7 +140,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: false, // We'll manage manifest.json in public/ manually
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       }
     })
   ],

@@ -213,6 +213,7 @@ export const useStore = create((set, get) => ({
   // --- UI-only state ------------------------------------------------------
   activeCourse: null,
   activeCategory: 'overview',
+  categoryHistory: [],
   theme: localStorage.getItem('theme') || 'light',
   language: localStorage.getItem('language') || 'he',
   pomodoro: { active: false, timeLeft: 25 * 60, mode: 'work', courseId: null },
@@ -443,6 +444,7 @@ export const useStore = create((set, get) => ({
       dataLoaded: false,
       activeCourse: null,
       activeCategory: 'overview',
+      categoryHistory: [],
       caloriDate: dateKey(),
       scheduleDate: dateKey(),
     });
@@ -574,7 +576,24 @@ export const useStore = create((set, get) => ({
   setData: (newData) => set({ data: newData }),
   setHasCompletedOnboarding: (val) => set({ hasCompletedOnboarding: val }),
   setActiveCourse: (course) => set({ activeCourse: course }),
-  setActiveCategory: (category) => set({ activeCategory: category }),
+  setActiveCategory: (category) =>
+    set((state) => ({
+      activeCategory: category,
+      // Track navigation so sub-pages (settings/calori/tasks/…) get a real back
+      // button. Skip no-op repeats; cap depth.
+      categoryHistory:
+        category === state.activeCategory
+          ? state.categoryHistory
+          : [...state.categoryHistory, state.activeCategory].slice(-25),
+    })),
+
+  // Pop the last screen; default to the home overview when history is empty.
+  goBack: () =>
+    set((state) => {
+      if (state.categoryHistory.length === 0) return { activeCategory: 'overview' };
+      const prev = state.categoryHistory[state.categoryHistory.length - 1];
+      return { activeCategory: prev, categoryHistory: state.categoryHistory.slice(0, -1) };
+    }),
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   setIsUploading: (status) => set({ isUploading: status }),
