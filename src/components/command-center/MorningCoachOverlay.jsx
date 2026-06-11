@@ -1,65 +1,88 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Sun, ArrowLeft, ArrowRight, Moon } from 'lucide-react';
+import {
+  X, Sparkles, Sun, Moon, Car, Flame, Leaf, GraduationCap, PenLine,
+  BatteryFull, BatteryMedium, BatteryLow, Dumbbell, Sunrise, Sunset,
+  CalendarCheck, ChevronRight, ChevronLeft, Check,
+} from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { cn } from '../../lib/utils';
 import { parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 
-// Build the "day directive" string injected into context.dayProfile
-const DAY_TYPES = (t) => [
-  {
-    key: 'regular',
-    label: t('dayRegular'),
-    directive: 'יום סטנדרטי — אזן בין לימודים, אימון וארוחות לפי ההעדפות הרגילות.',
-  },
-  {
-    key: 'travel',
-    label: t('dayTravel'),
-    directive: 'היום כולל נסיעות מרובות — השאר חלונות מעבר.',
-  },
-  {
-    key: 'light',
-    label: t('dayLight'),
-    directive: 'הקל על היום — פחות בלוקי לימוד, בלוקים קצרים יותר.',
-  },
-  {
-    key: 'busy',
-    label: t('dayBusy'),
-    directive: 'יום עמוס — מקסם ניצול זמן, צפף בלוקים פרודוקטיביים.',
-  },
-  {
-    key: 'custom',
-    label: t('daySomethingElse'),
-    directive: null, // free text
-  },
+/* ── cream v3 tokens ─────────────────────────────────────────── */
+const C = {
+  ink: '#2A1A0A',
+  sub: '#5A4A3A',
+  muted: '#8A7A6A',
+  border: 'rgba(180,140,80,.16)',
+  green: '#059669',
+  greenDark: '#065F46',
+  greenSoft: 'rgba(5,150,105,.08)',
+  purple: '#7C3AED',
+  purpleSoft: 'rgba(124,58,237,.08)',
+};
+const serif = "'Instrument Serif', serif";
+
+/* Answer options — each contributes a sentence to the day directive. */
+const DAY_TYPES = [
+  { key: 'regular', icon: Sun,           he: 'יום רגיל',     directive: 'יום סטנדרטי — אזן בין לימודים, אימון וארוחות לפי ההעדפות הרגילות.' },
+  { key: 'exam',    icon: GraduationCap, he: 'יום מבחן',     directive: null /* computed with nearest exam */ },
+  { key: 'busy',    icon: Flame,         he: 'יום עמוס',     directive: 'יום עמוס — מקסם ניצול זמן, צפף בלוקים פרודוקטיביים.' },
+  { key: 'light',   icon: Leaf,          he: 'יום קל',       directive: 'הקל על היום — פחות בלוקי לימוד, בלוקים קצרים יותר.' },
+  { key: 'travel',  icon: Car,           he: 'יום נסיעות',   directive: 'היום כולל נסיעות מרובות — השאר חלונות מעבר בין פעילויות.' },
+  { key: 'custom',  icon: PenLine,       he: 'משהו אחר',     directive: null /* free text */ },
 ];
 
-const WORKOUT_OPTIONS = (t) => [
-  { key: 'morning', label: t('workoutMorning'), directive: 'שבץ אימון בשעות הבוקר (07:00-10:00).' },
-  { key: 'noon', label: t('workoutNoon'), directive: 'שבץ אימון בשעות הצהריים (12:00-15:00).' },
-  { key: 'evening', label: t('workoutEvening'), directive: 'שבץ אימון בשעות הערב (18:00-21:00).' },
-  { key: 'skip', label: t('workoutSkip'), directive: 'אין צורך באימון היום.' },
-  { key: 'auto', label: t('workoutAuto'), directive: 'שבץ את האימון בזמן שאתה רואה לנכון.' },
+const ENERGY_LEVELS = [
+  { key: 'high', icon: BatteryFull,   he: 'מלא אנרגיה', color: '#059669', directive: 'רמת אנרגיה גבוהה — אפשר בלוקי לימוד ארוכים ומאתגרים.' },
+  { key: 'mid',  icon: BatteryMedium, he: 'בסדר גמור',  color: '#D97706', directive: 'רמת אנרגיה בינונית — בלוקים סטנדרטיים עם רווחים נדיבים.' },
+  { key: 'low',  icon: BatteryLow,    he: 'עייף היום',  color: '#DC2626', directive: 'עייף היום — בלוקים קצרים (עד 45 דק׳), הרבה מרווח, בלי עומס.' },
 ];
 
-// Hour-based greeting mirroring FocusHub.greetingText
-const buildGreeting = (displayName, isRTL) => {
+const WORKOUT_TIMES = [
+  { key: 'morning', icon: Sunrise,  he: 'בוקר',   directive: 'שבץ אימון בשעות הבוקר (07:00-10:00).' },
+  { key: 'noon',    icon: Sun,      he: 'צהריים', directive: 'שבץ אימון בשעות הצהריים (12:00-15:00).' },
+  { key: 'evening', icon: Sunset,   he: 'ערב',    directive: 'שבץ אימון בשעות הערב (18:00-21:00).' },
+  { key: 'auto',    icon: Sparkles, he: 'תחליט אתה', directive: 'שבץ את האימון בזמן האופטימלי לדעתך.' },
+  { key: 'skip',    icon: X,        he: 'בלי אימון', directive: 'אין צורך באימון היום.' },
+];
+
+const STEPS = ['greeting', 'dayType', 'energy', 'workout', 'confirm'];
+
+const buildGreeting = (displayName) => {
   const hour = new Date().getHours();
-  let greet = '';
-  if (isRTL) {
-    if (hour < 12) greet = 'בוקר טוב';
-    else if (hour < 17) greet = 'צהריים טובים';
-    else if (hour < 21) greet = 'ערב טוב';
-    else greet = 'לילה טוב';
-    return displayName ? `${greet}, ${displayName}` : greet;
-  }
-  if (hour < 12) greet = 'Good morning';
-  else if (hour < 17) greet = 'Good afternoon';
-  else if (hour < 21) greet = 'Good evening';
-  else greet = 'Good night';
+  let greet = 'לילה טוב';
+  if (hour >= 5 && hour < 12) greet = 'בוקר טוב';
+  else if (hour >= 12 && hour < 17) greet = 'צהריים טובים';
+  else if (hour >= 17 && hour < 21) greet = 'ערב טוב';
   return displayName ? `${greet}, ${displayName}` : greet;
 };
+
+/* Selectable option card with spring feedback */
+const OptionCard = ({ icon: Icon, label, selected, onClick, accent = C.green, sub = null }) => (
+  <motion.button
+    whileTap={{ scale: 0.95 }}
+    onClick={onClick}
+    aria-pressed={selected}
+    className="flex flex-col items-center justify-center gap-2 px-2 py-4 rounded-2xl transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+    style={{
+      border: `1.5px solid ${selected ? accent : C.border}`,
+      background: selected ? `${accent}14` : '#fff',
+      boxShadow: selected ? `0 4px 16px ${accent}2e` : 'none',
+    }}
+  >
+    <motion.span
+      animate={selected ? { scale: [1, 1.25, 1.1] } : { scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex items-center justify-center"
+      style={{ width: 38, height: 38, borderRadius: 13, background: selected ? accent : 'rgba(180,140,80,.08)', color: selected ? '#fff' : C.muted }}
+    >
+      <Icon className="w-5 h-5" strokeWidth={2.2} />
+    </motion.span>
+    <span className="text-[12px] font-bold leading-tight text-center" style={{ color: selected ? accent : C.sub }}>{label}</span>
+    {sub && <span className="text-[10px] leading-tight text-center" style={{ color: C.muted }}>{sub}</span>}
+  </motion.button>
+);
 
 export const MorningCoachOverlay = ({
   isOpen,
@@ -73,31 +96,33 @@ export const MorningCoachOverlay = ({
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
 
-  const [screen, setScreen] = useState(1); // 1 greeting, 2 day-type, 3 workout, 4 confirm
-  const [selectedDayType, setSelectedDayType] = useState(null);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [direction, setDirection] = useState(1); // 1 forward, -1 back
+  const [dayType, setDayType] = useState(null);
   const [customText, setCustomText] = useState('');
-  const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [energy, setEnergy] = useState(null);
+  const [workout, setWorkout] = useState(null);
 
-  // Reset state whenever overlay re-opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
-      setScreen(1);
-      setSelectedDayType(null);
+      setStepIdx(0);
+      setDirection(1);
+      setDayType(null);
       setCustomText('');
-      setSelectedWorkout(null);
+      setEnergy(null);
+      setWorkout(null);
     }
   }, [isOpen]);
 
   const displayName = data?.profile?.displayName || '';
-  const greeting = useMemo(() => buildGreeting(displayName, isRTL), [displayName, isRTL]);
+  const greeting = useMemo(() => buildGreeting(displayName), [displayName]);
 
-  // Summary: # fixed events today + nearest upcoming exam
-  const summaryLine = useMemo(() => {
+  // Today's context: fixed events count + nearest exam (used in greeting AND
+  // in the exam directive).
+  const context = useMemo(() => {
     const eventsToday = (data?.events || []).filter(
       (ev) => ev.start && ev.start.startsWith(dateStr)
     ).length;
-
-    // Mirror CommandCenterView pattern for upcoming exams
     let nearestExam = null;
     let nearestDays = Infinity;
     const now = new Date();
@@ -114,68 +139,68 @@ export const MorningCoachOverlay = ({
         }
       });
     });
+    return { eventsToday, nearestExam };
+  }, [data?.events, data?.courses, dateStr]);
 
+  const goTo = (idx) => {
+    setDirection(idx > stepIdx ? 1 : -1);
+    setStepIdx(Math.max(0, Math.min(STEPS.length - 1, idx)));
+  };
+  const next = () => goTo(stepIdx + 1);
+  const back = () => goTo(stepIdx - 1);
+
+  const examDirective = context.nearestExam
+    ? `יום מבחן — מקד את כל בלוקי הלמידה בקורס "${context.nearestExam.name}" (המבחן ${context.nearestExam.days === 0 ? 'היום' : context.nearestExam.days === 1 ? 'מחר' : `בעוד ${context.nearestExam.days} ימים`}). מותר עד 5 בלוקים עם הפסקות אמיתיות ביניהם.`
+    : 'יום מבחן — מקד את כל בלוקי הלמידה בקורס עם המבחן הקרוב ביותר.';
+
+  const composeDirective = () => {
     const parts = [];
-    if (isRTL) {
-      parts.push(`${eventsToday} אירועים קבועים היום`);
-      if (nearestExam) {
-        parts.push(
-          nearestExam.days === 0
-            ? `מבחן ב${nearestExam.name} היום`
-            : `המבחן הקרוב: ${nearestExam.name} בעוד ${nearestExam.days} ימים`
-        );
-      }
-    } else {
-      parts.push(`${eventsToday} fixed events today`);
-      if (nearestExam) {
-        parts.push(
-          nearestExam.days === 0
-            ? `Exam in ${nearestExam.name} today`
-            : `Nearest exam: ${nearestExam.name} in ${nearestExam.days} days`
-        );
+    const dt = DAY_TYPES.find((d) => d.key === dayType);
+    if (dt) {
+      if (dt.key === 'custom') {
+        if (customText.trim()) parts.push(customText.trim());
+      } else if (dt.key === 'exam') {
+        parts.push(examDirective);
+      } else if (dt.directive) {
+        parts.push(dt.directive);
       }
     }
-    return parts.join(' • ');
-  }, [data?.events, data?.courses, dateStr, isRTL]);
-
-  const dayTypes = DAY_TYPES(t);
-  const workoutOptions = WORKOUT_OPTIONS(t);
+    const en = ENERGY_LEVELS.find((e) => e.key === energy);
+    if (en) parts.push(en.directive);
+    const w = WORKOUT_TIMES.find((o) => o.key === workout);
+    if (w) parts.push(w.directive);
+    return parts.join(' ');
+  };
 
   const handleSubmit = () => {
     if (isShabbat) {
       onDismissSession?.();
       return;
     }
-
-    const dayTypeObj = dayTypes.find((d) => d.key === selectedDayType);
-    let dayProfile = '';
-    if (dayTypeObj) {
-      if (dayTypeObj.key === 'custom') {
-        dayProfile = customText.trim();
-      } else {
-        dayProfile = dayTypeObj.directive;
-      }
-    }
-
-    if (selectedWorkout) {
-      const w = workoutOptions.find((o) => o.key === selectedWorkout);
-      if (w?.directive) {
-        dayProfile = dayProfile ? `${dayProfile} ${w.directive}` : w.directive;
-      }
-    }
-
-    onSubmit?.(dayProfile || null);
+    onSubmit?.(composeDirective() || null);
   };
 
-  // Selecting day-type advances to screen 3 (workout) inline
-  const handleDayTypeSelect = (key) => {
-    setSelectedDayType(key);
-    if (key !== 'custom') {
-      setScreen(3);
-    }
-  };
+  const step = STEPS[stepIdx];
+  const canContinue =
+    step === 'dayType' ? (dayType && (dayType !== 'custom' || customText.trim())) :
+    step === 'energy' ? !!energy :
+    step === 'workout' ? !!workout :
+    true;
+
+  // Selected summaries for the confirm screen
+  const summary = [
+    dayType && { icon: (DAY_TYPES.find((d) => d.key === dayType) || {}).icon, label: dayType === 'custom' ? customText.trim() : (DAY_TYPES.find((d) => d.key === dayType) || {}).he, accent: C.green },
+    energy && { icon: (ENERGY_LEVELS.find((e) => e.key === energy) || {}).icon, label: (ENERGY_LEVELS.find((e) => e.key === energy) || {}).he, accent: (ENERGY_LEVELS.find((e) => e.key === energy) || {}).color },
+    workout && { icon: (WORKOUT_TIMES.find((o) => o.key === workout) || {}).icon, label: `אימון: ${(WORKOUT_TIMES.find((o) => o.key === workout) || {}).he}`, accent: C.purple },
+  ].filter(Boolean);
 
   if (!isOpen) return null;
+
+  const slideVariants = {
+    enter: (dir) => ({ x: dir * (isRTL ? -56 : 56), opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir * (isRTL ? 36 : -36), opacity: 0 }),
+  };
 
   return (
     <AnimatePresence>
@@ -186,181 +211,266 @@ export const MorningCoachOverlay = ({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onDismissSession}
-        className="fixed inset-0 z-[120] bg-background/70 backdrop-blur-md flex items-end sm:items-center justify-center"
+        className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-md flex items-end sm:items-center justify-center"
       >
         <motion.div
           key="mc-sheet"
-          initial={{ y: 60, opacity: 0 }}
+          initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 60, opacity: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 30 }}
           onClick={(e) => e.stopPropagation()}
           dir={isRTL ? 'rtl' : 'ltr'}
-          className="w-full sm:max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          className="w-full sm:max-w-md overflow-hidden flex flex-col max-h-[92vh]"
+          style={{ background: '#FAF7F2', borderRadius: '26px 26px 0 0', border: `1px solid ${C.border}`, boxShadow: '0 -12px 50px rgba(40,20,0,.25)' }}
         >
+          {/* Top accent + handle */}
+          <div style={{ height: 3, background: 'linear-gradient(90deg, #065F46, #7C3AED 50%, #2563EB)' }} />
+          <div className="w-10 h-1 rounded-full mx-auto mt-3" style={{ background: 'rgba(180,140,80,.25)' }} />
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border/50">
+          <div className="flex items-center justify-between px-5 pt-2 pb-1">
             <div className="flex items-center gap-2">
-              {isShabbat ? (
-                <Moon className="w-5 h-5 text-primary" />
-              ) : (
-                <Sun className="w-5 h-5 text-amber-500" />
-              )}
-              <span className="text-sm font-bold text-foreground">
-                {isShabbat ? t('shabbatShalom') : t('morningCoachGreeting')}
+              {isShabbat
+                ? <Moon className="w-4 h-4" style={{ color: C.purple }} />
+                : <Sparkles className="w-4 h-4" style={{ color: C.purple }} />}
+              <span style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+                {isShabbat ? t('shabbatShalom', 'שבת שלום') : t('morningCoachTag', 'המאמן האישי')}
               </span>
             </div>
-            <button
-              onClick={onDismissSession}
-              aria-label="Close"
-              className="p-1.5 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
+            <button onClick={onDismissSession} aria-label={t('close', 'סגור')} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[rgba(180,140,80,.08)] cursor-pointer">
+              <X className="w-4 h-4" style={{ color: C.muted }} />
             </button>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
-            {/* Greeting + summary (always shown) */}
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-foreground">{greeting}</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {isShabbat ? t('restToday') : t('morningCoachSummary')}
-              </p>
-              {summaryLine && !isShabbat && (
-                <div className="mt-3 rounded-2xl border border-primary/15 bg-primary/5 p-3">
-                  <p className="text-xs font-semibold text-foreground/80 leading-relaxed">
-                    {summaryLine}
-                  </p>
-                </div>
-              )}
+          {/* Progress dots */}
+          {!isShabbat && (
+            <div className="flex items-center justify-center gap-1.5 pb-2">
+              {STEPS.map((s, i) => (
+                <motion.span
+                  key={s}
+                  animate={{ width: i === stepIdx ? 18 : 6, background: i <= stepIdx ? C.green : 'rgba(180,140,80,.2)' }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  style={{ height: 6, borderRadius: 999, display: 'inline-block' }}
+                />
+              ))}
             </div>
+          )}
 
-            {/* Shabbat variant — nothing else */}
-            {isShabbat ? null : (
-              <>
-                {/* Screen 1: primary CTA + don't ask */}
-                {screen === 1 && (
-                  <div className="space-y-3 animate-in fade-in duration-200">
-                    <button
-                      onClick={() => setScreen(2)}
-                      className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      {t('whatsToday')}
-                      {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-                    </button>
-                    <button
-                      onClick={onDismissToday}
-                      className="w-full text-xs text-muted-foreground hover:text-foreground py-2 cursor-pointer"
-                    >
-                      {t('dontAskAgain')}
-                    </button>
-                  </div>
-                )}
-
-                {/* Screen 2: day-type chips */}
-                {screen >= 2 && (
-                  <div className="space-y-3 animate-in fade-in duration-200">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {t('whatsToday')}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {dayTypes.map((d) => (
-                        <button
-                          key={d.key}
-                          onClick={() => handleDayTypeSelect(d.key)}
-                          className={cn(
-                            'px-3 py-1.5 rounded-full border text-[12px] font-bold transition-colors cursor-pointer active:scale-95',
-                            selectedDayType === d.key
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
-                          )}
-                        >
-                          {d.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {selectedDayType === 'custom' && (
-                      <div className="space-y-2 pt-1">
-                        <textarea
-                          value={customText}
-                          onChange={(e) => setCustomText(e.target.value)}
-                          placeholder={isRTL ? 'תאר את היום שלך…' : 'Describe your day…'}
-                          rows={2}
-                          className="w-full rounded-2xl border border-border bg-secondary/40 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-start resize-none"
-                        />
-                        <button
-                          onClick={() => customText.trim() && setScreen(3)}
-                          disabled={!customText.trim()}
-                          className="w-full py-2 rounded-2xl bg-primary text-primary-foreground text-xs font-bold disabled:opacity-40 active:scale-[0.98] transition-all cursor-pointer"
-                        >
-                          {isRTL ? 'המשך' : 'Continue'}
-                        </button>
+          {/* Body — animated steps */}
+          <div className="flex-1 overflow-y-auto px-5 pb-4" style={{ minHeight: 280 }}>
+            {isShabbat ? (
+              <div className="py-8 text-center space-y-3">
+                <Moon className="w-10 h-10 mx-auto" style={{ color: C.purple }} />
+                <h2 style={{ fontFamily: serif, fontSize: 26, color: C.ink }}>{t('shabbatShalom', 'שבת שלום')}</h2>
+                <p className="text-sm" style={{ color: C.sub }}>{t('restToday', 'היום נחים — הלוז יחכה לצאת השבת.')}</p>
+              </div>
+            ) : (
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={step}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  className="space-y-4 pt-1"
+                >
+                  {step === 'greeting' && (
+                    <>
+                      <h2 style={{ fontFamily: serif, fontSize: 30, lineHeight: 1.1, color: C.ink, letterSpacing: '-.03em' }}>
+                        {greeting} <em style={{ fontStyle: 'italic', color: C.green }}>☀️</em>
+                      </h2>
+                      <p className="text-sm leading-relaxed" style={{ color: C.sub }}>
+                        {t('morningCoachIntro', 'כמה שאלות קצרות ואבנה לך לוז מדויק ליום הזה.')}
+                      </p>
+                      <div className="rounded-2xl p-3.5 space-y-2" style={{ background: '#fff', border: `1px solid ${C.border}` }}>
+                        <div className="flex items-center gap-2.5">
+                          <CalendarCheck className="w-4 h-4 shrink-0" style={{ color: C.green }} />
+                          <span className="text-[13px] font-semibold" style={{ color: C.ink }}>
+                            {context.eventsToday > 0 ? `${context.eventsToday} אירועים קבועים היום` : 'אין אירועים קבועים היום'}
+                          </span>
+                        </div>
+                        {context.nearestExam && (
+                          <div className="flex items-center gap-2.5">
+                            <GraduationCap className="w-4 h-4 shrink-0" style={{ color: '#DC2626' }} />
+                            <span className="text-[13px] font-semibold" style={{ color: C.ink }}>
+                              {context.nearestExam.days === 0
+                                ? `מבחן ב${context.nearestExam.name} היום!`
+                                : `המבחן הקרוב: ${context.nearestExam.name} בעוד ${context.nearestExam.days} ימים`}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
+                      <button
+                        onClick={onDismissToday}
+                        className="w-full text-center text-[11px] py-1 cursor-pointer hover:underline"
+                        style={{ color: C.muted }}
+                      >
+                        {t('dontAskAgain', 'אל תשאל אותי שוב היום')}
+                      </button>
+                    </>
+                  )}
 
-                {/* Screen 3: workout chips (optional, skippable) */}
-                {screen >= 3 && (
-                  <div className="space-y-3 animate-in fade-in duration-200">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {t('workoutWhen')}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {workoutOptions.map((o) => (
-                        <button
-                          key={o.key}
-                          onClick={() => {
-                            setSelectedWorkout(o.key);
-                            setScreen(4);
-                          }}
-                          className={cn(
-                            'px-3 py-1.5 rounded-full border text-[12px] font-bold transition-colors cursor-pointer active:scale-95',
-                            selectedWorkout === o.key
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
-                          )}
-                        >
-                          {o.label}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setScreen(4)}
-                      className="text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
-                    >
-                      {isRTL ? 'דלג' : 'Skip'}
-                    </button>
-                  </div>
-                )}
-              </>
+                  {step === 'dayType' && (
+                    <>
+                      <h3 style={{ fontFamily: serif, fontSize: 22, color: C.ink }}>
+                        איזה <em style={{ fontStyle: 'italic', color: C.green }}>יום</em> מחכה לך?
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {DAY_TYPES.map((d) => (
+                          <OptionCard
+                            key={d.key}
+                            icon={d.icon}
+                            label={d.he}
+                            selected={dayType === d.key}
+                            onClick={() => setDayType(d.key)}
+                            sub={d.key === 'exam' && context.nearestExam ? context.nearestExam.name : null}
+                          />
+                        ))}
+                      </div>
+                      <AnimatePresence>
+                        {dayType === 'custom' && (
+                          <motion.textarea
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 72 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            value={customText}
+                            onChange={(e) => setCustomText(e.target.value)}
+                            placeholder='ספר על היום — "נסיעה לתל אביב ב-14:00, רוצה לסיים תרגיל באינפי"'
+                            className="w-full rounded-2xl px-3.5 py-2.5 text-sm focus-visible:outline-none resize-none text-start"
+                            style={{ background: '#fff', border: `1.5px solid ${C.border}`, color: C.ink }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </>
+                  )}
+
+                  {step === 'energy' && (
+                    <>
+                      <h3 style={{ fontFamily: serif, fontSize: 22, color: C.ink }}>
+                        כמה <em style={{ fontStyle: 'italic', color: C.green }}>אנרגיה</em> יש לך?
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {ENERGY_LEVELS.map((e) => (
+                          <OptionCard
+                            key={e.key}
+                            icon={e.icon}
+                            label={e.he}
+                            accent={e.color}
+                            selected={energy === e.key}
+                            onClick={() => setEnergy(e.key)}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[11px]" style={{ color: C.muted }}>
+                        זה קובע את אורך בלוקי הלמידה והמרווחים ביניהם.
+                      </p>
+                    </>
+                  )}
+
+                  {step === 'workout' && (
+                    <>
+                      <h3 className="flex items-center gap-2" style={{ fontFamily: serif, fontSize: 22, color: C.ink }}>
+                        <Dumbbell className="w-5 h-5" style={{ color: C.purple }} />
+                        מתי <em style={{ fontStyle: 'italic', color: C.purple }}>אימון</em>?
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {WORKOUT_TIMES.map((o) => (
+                          <OptionCard
+                            key={o.key}
+                            icon={o.icon}
+                            label={o.he}
+                            accent={C.purple}
+                            selected={workout === o.key}
+                            onClick={() => setWorkout(o.key)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {step === 'confirm' && (
+                    <>
+                      <h3 style={{ fontFamily: serif, fontSize: 22, color: C.ink }}>
+                        מוכן? <em style={{ fontStyle: 'italic', color: C.green }}>ככה הבנתי אותך</em>
+                      </h3>
+                      <div className="space-y-2">
+                        {summary.length > 0 ? summary.map((s, i) => {
+                          const Icon = s.icon || Check;
+                          return (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: isRTL ? 16 : -16 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.08, type: 'spring', stiffness: 360, damping: 26 }}
+                              className="flex items-center gap-3 rounded-2xl px-3.5 py-3"
+                              style={{ background: '#fff', border: `1px solid ${C.border}` }}
+                            >
+                              <span className="flex items-center justify-center shrink-0" style={{ width: 30, height: 30, borderRadius: 10, background: `${s.accent}14`, color: s.accent }}>
+                                <Icon className="w-4 h-4" />
+                              </span>
+                              <span className="text-[13px] font-semibold flex-1 min-w-0" style={{ color: C.ink }}>{s.label}</span>
+                              <Check className="w-4 h-4 shrink-0" style={{ color: C.green }} />
+                            </motion.div>
+                          );
+                        }) : (
+                          <p className="text-sm" style={{ color: C.muted }}>בלי העדפות מיוחדות — אבנה יום מאוזן.</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
 
-          {/* Footer / CTA */}
-          <div className="p-4 border-t border-border/50 bg-background/30">
+          {/* Footer CTA */}
+          <div className="px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${C.border}`, background: 'rgba(255,255,255,.6)' }}>
             {isShabbat ? (
               <button
                 onClick={onDismissSession}
-                className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
+                className="w-full py-3.5 rounded-2xl font-bold text-[15px] text-white active:scale-[0.98] transition-all cursor-pointer"
+                style={{ background: C.purple }}
               >
-                {t('shabbatShalom')}
-              </button>
-            ) : screen === 4 ? (
-              <button
-                onClick={handleSubmit}
-                className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4" />
-                {t('letsStart')}
+                {t('shabbatShalom', 'שבת שלום')}
               </button>
             ) : (
-              <p className="text-center text-[11px] text-muted-foreground">
-                {isRTL ? 'בחר את סוג היום כדי להמשיך' : 'Pick a day type to continue'}
-              </p>
+              <div className="flex items-center gap-2.5">
+                {stepIdx > 0 && (
+                  <button
+                    onClick={back}
+                    aria-label={t('back', 'חזרה')}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 active:scale-95 transition-all cursor-pointer"
+                    style={{ background: '#fff', border: `1.5px solid ${C.border}`, color: C.sub }}
+                  >
+                    {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                  </button>
+                )}
+                {step === 'confirm' ? (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleSubmit}
+                    className="flex-1 py-3.5 rounded-2xl font-bold text-[15px] text-white flex items-center justify-center gap-2 cursor-pointer"
+                    style={{ background: `linear-gradient(135deg, ${C.green}, ${C.greenDark})`, boxShadow: '0 6px 20px rgba(5,150,105,.35)' }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {t('buildMyDay', 'בנה לי את היום')}
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={next}
+                    disabled={!canContinue}
+                    className="flex-1 py-3.5 rounded-2xl font-bold text-[15px] text-white flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer transition-opacity"
+                    style={{ background: `linear-gradient(135deg, ${C.green}, ${C.greenDark})`, boxShadow: '0 6px 20px rgba(5,150,105,.3)' }}
+                  >
+                    {step === 'greeting' ? t('whatsToday', 'בוא נתחיל') : t('continue', 'המשך')}
+                    {isRTL ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </motion.button>
+                )}
+              </div>
             )}
           </div>
         </motion.div>

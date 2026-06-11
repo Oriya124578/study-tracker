@@ -966,7 +966,8 @@ export const CommandCenterView = () => {
                     <button onClick={() => setIsChatOpen(true)} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Bot className="w-3.5 h-3.5" /> {isRTL ? 'שיחה' : 'Chat'}
                     </button>
-                    <button onClick={() => handleAutoPlan()} disabled={loading} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                    {/* Opens the day questionnaire — the answers become the AI directive */}
+                    <button onClick={() => setShowMorningCoach(true)} disabled={loading} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Sparkles className="w-3.5 h-3.5" /> {loading ? t('ccPlanning') : t('ccOrganizeWithAi')}
                     </button>
                     {timelineBlocks.length > 0 && (
