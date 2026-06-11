@@ -409,7 +409,9 @@ const freqSummary = (rule, t, lang) => {
 };
 
 const RecurringForm = ({ initial, onSave, onCancel, t, lang }) => {
-  const today = new Date().toISOString().slice(0, 10);
+  // LOCAL date — toISOString is UTC and gives yesterday between 00:00–02:00 IL.
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const [title, setTitle] = useState(initial?.title || '');
   const [freq, setFreq] = useState(initial?.freq || 'daily');
   // Interval is fixed to the initial value for now (UI keeps it minimal).

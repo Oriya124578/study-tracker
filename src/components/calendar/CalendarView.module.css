@@ -6,6 +6,18 @@
   padding-bottom: 100px;
 }
 
+/* Design-system rule: uniform-width digits everywhere times/dates appear */
+.tl,
+.tLabel,
+.evtTime,
+.nowTime,
+.cNum,
+.itemTime,
+.dhNum,
+.dayD {
+  font-variant-numeric: tabular-nums;
+}
+
 .header {
   position: sticky;
   top: 0;
@@ -212,6 +224,24 @@
 .evtName {
   font-weight: 700;
   font-size: 12px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.evtTime {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 10px;
+  margin-top: 1px;
+  opacity: 0.75;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .evtMeta {
@@ -219,6 +249,9 @@
   font-style: italic;
   font-size: 11px;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .evt.lec { background: #EFF6FF; border: 1px solid rgba(37, 99, 235, 0.12); border-right: 3px solid #2563EB; color: #1E40AF; }
@@ -346,6 +379,87 @@
   gap: 1px;
 }
 
+.gridDay {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  padding: 0 16px;
+}
+
+.gridDay .tl {
+  font-size: 11px;
+  padding-top: 4px;
+}
+
+.gridDay .evt {
+  border-radius: 12px;
+  padding: 7px 10px;
+}
+
+/* All-day strip above the time grid */
+.allDayRow {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(180, 140, 80, 0.12);
+  align-items: start;
+}
+
+.adLabel {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 9px;
+  color: #8A7A6A;
+  text-align: center;
+  padding-top: 4px;
+}
+
+.adCell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.adChip {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 3px 6px;
+  border-radius: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid rgba(180, 140, 80, 0.2);
+  color: #2A1A0A;
+}
+
+.grid3.allDayRow .adChip,
+.gridDay.allDayRow .adChip {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.adChip.exam { background: #FEF2F2; border-color: rgba(239, 68, 68, 0.25); color: #991B1B; }
+.adChip.task { background: #FFFBEB; border-color: rgba(245, 158, 11, 0.3); color: #B45309; }
+.adChip.lec { background: #EFF6FF; border-color: rgba(37, 99, 235, 0.2); color: #1E40AF; }
+.adChip.meal { background: #D1FAE5; border-color: rgba(5, 150, 105, 0.25); color: #065F46; }
+.adChip.workout { background: #EDE9FE; border-color: rgba(124, 58, 237, 0.25); color: #5B21B6; }
+
+.adChip.adDone {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.adChip.adMore {
+  background: rgba(180, 140, 80, 0.08);
+  border-color: transparent;
+  color: #8A7A6A;
+  text-align: center;
+  font-size: 9px;
+}
+
 .tCol {
   display: flex;
   flex-direction: column;
@@ -394,11 +508,21 @@
 }
 
 .gridWeek .evt {
-  border-radius: 3px;
-  padding: 2px 3px;
+  border-radius: 5px;
+  padding: 3px 4px;
   font-size: 8px;
   left: 1px;
   right: 1px;
+}
+
+.gridWeek .evtName {
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.gridWeek .evtTime {
+  font-size: 8px;
+  margin-top: 0;
 }
 
 .gridWeek .evt.lec { border-left: 2px solid #2563EB; border-right: none; border-top: none; border-bottom: none; }

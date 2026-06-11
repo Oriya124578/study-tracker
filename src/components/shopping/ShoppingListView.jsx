@@ -65,7 +65,7 @@ const Checkbox = ({ checked, onClick }) => (
 );
 
 /* ── Item Row (normal mode: tap-check + swipe-delete) ─────── */
-const ItemRow = ({ item, onToggle, onEdit, onDelete, t, isRTL }) => {
+const ItemRow = ({ item, onToggle, onEdit, onDelete, onMoveCat, t, isRTL }) => {
   const meta = item.qty ? `${item.qty}${item.unit ? ' ' + item.unit : ''}` : null;
   const dragElastic = isRTL ? { left: 0, right: 0.6 } : { left: 0.6, right: 0 };
   const passedThreshold = (x) => (isRTL ? x > 90 : x < -90);
@@ -90,12 +90,102 @@ const ItemRow = ({ item, onToggle, onEdit, onDelete, t, isRTL }) => {
           </span>
           {meta && <span className="text-[11px] font-medium" style={{ color: CREAM.muted }}>{meta}</span>}
         </div>
-        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} aria-label={t('edit')} className="w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:opacity-100" style={{ color: CREAM.muted }}>
+        {/* One-tap category move — always visible so it works on touch too */}
+        <button onClick={(e) => { e.stopPropagation(); onMoveCat(); }} aria-label={t('moveCategory', 'העבר קטגוריה')} className="w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 text-base transition-transform active:scale-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none" style={{ background: 'rgba(180,140,80,.07)' }}>
+          {getCategoryMeta(item.category).emoji}
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} aria-label={t('edit')} className="w-8 h-8 rounded-[10px] flex items-center justify-center opacity-50 hover:!opacity-100 transition-opacity shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:opacity-100" style={{ color: CREAM.muted, background: 'rgba(180,140,80,.07)' }}>
           <Edit3 className="w-[14px] h-[14px]" />
         </button>
-        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label={t('delete')} className="w-8 h-8 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:opacity-100 shrink-0" style={{ background: CREAM.redSoft, color: CREAM.red }}>
+        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label={t('delete')} className="w-8 h-8 rounded-[10px] hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:opacity-100 shrink-0" style={{ background: CREAM.redSoft, color: CREAM.red }}>
           <Trash2 className="w-4 h-4" />
         </button>
+      </motion.div>
+    </div>
+  );
+};
+
+/* ── Quick Add bar (auto-categorizes a single typed item) ─── */
+const QuickAddBar = ({ onAdd, t }) => {
+  const [v, setV] = useState('');
+  const submit = () => {
+    const s = v.trim();
+    if (!s) return;
+    setV('');
+    onAdd(s);
+  };
+  return (
+    <div className="flex items-center gap-2.5 px-3.5 py-2" style={{ ...card, borderRadius: 16 }}>
+      <span className="w-[26px] h-[26px] rounded-full flex items-center justify-center shrink-0" style={{ border: '2px dashed rgba(5,150,105,.35)', color: CREAM.green }}>
+        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+      </span>
+      <input
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+        placeholder={t('quickAddPlaceholder', 'הוסף מוצר — הקטגוריה תזוהה לבד')}
+        className="flex-1 min-w-0 bg-transparent outline-none text-sm py-1.5"
+        style={{ color: CREAM.ink }}
+        enterKeyHint="done"
+      />
+      <AnimatePresence>
+        {v.trim() && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+            onClick={submit}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg shrink-0"
+            style={{ background: CREAM.green, color: '#fff' }}
+          >
+            {t('add')}
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+/* ── Move-to-category bottom sheet (one tap from any row) ─── */
+const MoveCategorySheet = ({ item, onClose, onMove, language, isRTL, t }) => {
+  const allCats = getAllCategories();
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center" role="dialog" aria-modal="true" aria-label={t('moveCategory', 'העבר קטגוריה')}>
+      <motion.div className="fixed inset-0 bg-black/45 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+      <motion.div
+        className="relative w-full max-w-xl z-10 p-5 pb-8"
+        style={{ background: '#fff', borderRadius: '24px 24px 0 0', border: `1px solid ${CREAM.border}`, boxShadow: '0 -8px 40px rgba(40,20,0,.18)', maxHeight: '70vh', overflowY: 'auto' }}
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: 'rgba(180,140,80,.25)' }} />
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg truncate" style={{ fontFamily: serif, color: CREAM.ink }}>
+            {t('moveCategoryTitle', 'לאן להעביר את')} <em style={{ color: CREAM.green }}>{item.name}</em>?
+          </h3>
+          <button onClick={onClose} aria-label={t('cancel')} className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 hover:bg-[rgba(180,140,80,.08)]">
+            <X className="w-4 h-4" style={{ color: CREAM.muted }} />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {allCats.map((c) => {
+            const active = c.key === item.category;
+            return (
+              <button
+                key={c.key}
+                onClick={() => { if (!active) onMove(c.key); onClose(); }}
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                style={{
+                  border: `1.5px solid ${active ? CREAM.green : CREAM.borderLight}`,
+                  background: active ? CREAM.greenLight : '#fff',
+                }}
+              >
+                <span className="text-2xl">{c.emoji}</span>
+                <span className="text-[11px] font-semibold text-center leading-tight" style={{ color: active ? CREAM.green : CREAM.sub }}>
+                  {language === 'he' ? c.he : c.en}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </motion.div>
     </div>
   );
@@ -110,7 +200,7 @@ const ReorderCategory = ({ cat, items, language, t }) => {
   return (
     <div style={{ ...card, overflow: 'hidden' }}>
       <div className="flex items-center gap-2.5 px-4 py-3">
-        <span className="text-xl w-7 text-center shrink-0">{cat.emoji}</span>
+        <span className="w-9 h-9 rounded-[12px] flex items-center justify-center text-lg shrink-0" style={{ background: 'rgba(5,150,105,.07)' }}>{cat.emoji}</span>
         <span className="flex-1 text-sm font-semibold text-start" style={{ color: CREAM.ink }}>{name}</span>
         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: items.length ? CREAM.greenSoft : 'rgba(180,140,80,.08)', color: items.length ? CREAM.green : CREAM.muted }}>
           {items.length}
@@ -160,8 +250,33 @@ const ReorderCategory = ({ cat, items, language, t }) => {
   );
 };
 
+/* ── Compact drop chip for EMPTY categories in reorder mode ── */
+const EmptyDropChip = ({ cat, language }) => {
+  const name = language === 'he' ? cat.he : cat.en;
+  return (
+    <Droppable droppableId={cat.key}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl min-w-0"
+          style={{
+            border: `1.5px dashed ${snapshot.isDraggingOver ? CREAM.green : 'rgba(180,140,80,.25)'}`,
+            background: snapshot.isDraggingOver ? CREAM.greenLight : '#fff',
+            transition: 'border-color .15s, background .15s',
+          }}
+        >
+          <span className="text-base shrink-0">{cat.emoji}</span>
+          <span className="text-[12px] font-medium truncate" style={{ color: snapshot.isDraggingOver ? CREAM.green : CREAM.sub }}>{name}</span>
+          <div style={{ maxHeight: 0, maxWidth: 0, overflow: 'hidden' }}>{provided.placeholder}</div>
+        </div>
+      )}
+    </Droppable>
+  );
+};
+
 /* ── Category Accordion ───────────────────────────────────── */
-const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem, onDeleteItem, onAddItem, t, language, isRTL, sinkChecked }) => {
+const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem, onMoveItem, onDeleteItem, onAddItem, t, language, isRTL, sinkChecked }) => {
   const meta = getCategoryMeta(group.key);
   const done = group.items.filter((i) => i.checked).length;
   const total = group.items.length;
@@ -187,9 +302,9 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
         aria-controls={panelId}
         className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors hover:bg-[rgba(180,140,80,.04)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
       >
-        <span className="text-xl w-7 text-center shrink-0">{meta.emoji}</span>
+        <span className="w-9 h-9 rounded-[12px] flex items-center justify-center text-lg shrink-0" style={{ background: 'rgba(5,150,105,.07)' }}>{meta.emoji}</span>
         <span className="flex-1 text-sm font-semibold text-start" style={{ color: CREAM.ink }}>{name}</span>
-        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={allDone ? { background: 'rgba(180,140,80,.08)', color: CREAM.muted, textDecoration: 'line-through' } : { background: CREAM.greenSoft, color: CREAM.green }}>
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ fontVariantNumeric: 'tabular-nums', ...(allDone ? { background: 'rgba(180,140,80,.08)', color: CREAM.muted, textDecoration: 'line-through' } : { background: CREAM.greenSoft, color: CREAM.green }) }}>
           {done}/{total}
         </span>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -209,7 +324,7 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
             style={{ borderTop: `1px solid ${CREAM.borderLight}` }}
           >
             {displayItems.map((item) => (
-              <ItemRow key={item.id} item={item} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
+              <ItemRow key={item.id} item={item} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onMoveCat={() => onMoveItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
             ))}
             {adding ? (
               <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
@@ -476,6 +591,7 @@ export const ShoppingListView = () => {
   const [mode, setMode] = useState('lists'); // 'lists' | 'paste'
   const [viewingListId, setViewingListId] = useState(null);
   const [editItem, setEditItem] = useState(null);
+  const [moveItem, setMoveItem] = useState(null);
   const [openOverrides, setOpenOverrides] = useState({});
   const [reorderMode, setReorderMode] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -534,6 +650,31 @@ export const ShoppingListView = () => {
     return !allDone;
   };
   const toggleCat = (g) => setOpenOverrides((o) => ({ ...o, [g.key]: !isCatOpen(g) }));
+
+  // Quick add: parse one line → name/qty/category from the dictionary.
+  // Unknowns go to AI in the background so next time they're recognized.
+  const handleQuickAdd = (raw) => {
+    const { items, unresolved } = parseShoppingText(raw);
+    const it = items[0] || { name: raw, qty: null, unit: null, category: 'other' };
+    addShoppingItem(viewingList.id, it);
+    const m = getCategoryMeta(it.category);
+    toast.success(`${it.name} ← ${m.emoji} ${language === 'he' ? m.he : m.en}`);
+    if (unresolved.length > 0) {
+      categorizeWithAI(unresolved)
+        .then(({ learned }) => {
+          if (learned && Object.keys(learned).length > 0) learnGroceryItems(learned);
+        })
+        .catch(() => { /* offline / no key — dictionary stays as-is */ });
+    }
+  };
+
+  // One-tap move from the row's category badge.
+  const handleMoveToCategory = (item, catKey) => {
+    moveShoppingItem(viewingList.id, item.id, catKey, 0);
+    learnGroceryItems(learnCategory(item.name, catKey));
+    const m = getCategoryMeta(catKey);
+    toast.success(`${item.name} ← ${m.emoji} ${language === 'he' ? m.he : m.en}`);
+  };
 
   const handleCreate = async (name, rawText, items) => {
     const id = await createShoppingList(name, rawText, items);
@@ -619,6 +760,33 @@ export const ShoppingListView = () => {
           <div className="text-base font-semibold min-w-9 text-center" style={{ fontFamily: display, color: CREAM.green }}>{pct}%</div>
         </div>
 
+        {/* Quick add — type a product, category is auto-detected */}
+        {!reorderMode && <QuickAddBar onAdd={handleQuickAdd} t={t} />}
+
+        {/* All bought — celebration */}
+        <AnimatePresence>
+          {!reorderMode && totals.total > 0 && pct === 100 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+              style={{ background: 'linear-gradient(135deg,#10B981,#047857)', color: '#fff', boxShadow: '0 6px 22px rgba(5,150,105,.3)' }}
+            >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,.2)' }}>
+                <Check className="w-5 h-5" strokeWidth={3} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold">{t('shoppingDoneTitle', 'הקנייה הושלמה 🎉')}</div>
+                <div className="text-xs opacity-85">{t('shoppingDoneSub', 'כל הפריטים סומנו')}</div>
+              </div>
+              <button onClick={() => resetShoppingChecks(viewingList.id)} className="text-xs font-bold px-3 py-2 rounded-xl shrink-0 transition-transform active:scale-95" style={{ background: 'rgba(255,255,255,.18)', color: '#fff' }}>
+                {t('resetChecks')}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Reorder hint */}
         {reorderMode && (
           <div className="flex items-center gap-1.5 text-xs px-1" style={{ color: CREAM.muted }}>
@@ -635,9 +803,19 @@ export const ShoppingListView = () => {
         ) : reorderMode ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-col gap-2.5">
-              {reorderGroups.map((g) => (
+              {/* Categories that have items — full cards */}
+              {reorderGroups.filter((g) => g.items.length > 0).map((g) => (
                 <ReorderCategory key={g.key} cat={g} items={g.items} language={language} t={t} />
               ))}
+              {/* Empty categories — compact drop chips instead of endless empty cards */}
+              <div className="text-[11px] font-bold uppercase tracking-wide px-1 mt-1" style={{ color: CREAM.muted }}>
+                {t('dragToOtherCat', 'גרור פריט לאחת מהקטגוריות:')}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {reorderGroups.filter((g) => g.items.length === 0).map((g) => (
+                  <EmptyDropChip key={g.key} cat={g} language={language} />
+                ))}
+              </div>
             </div>
           </DragDropContext>
         ) : (
@@ -650,6 +828,7 @@ export const ShoppingListView = () => {
                 onToggleOpen={() => toggleCat(g)}
                 onToggleItem={(itemId) => toggleShoppingItem(viewingList.id, itemId)}
                 onEditItem={(item) => setEditItem(item)}
+                onMoveItem={(item) => setMoveItem(item)}
                 onDeleteItem={(itemId) => removeShoppingItem(viewingList.id, itemId)}
                 onAddItem={(nameVal, catKey) => addShoppingItem(viewingList.id, { name: nameVal, category: catKey })}
                 t={t}
@@ -693,6 +872,15 @@ export const ShoppingListView = () => {
                 updateShoppingItem(viewingList.id, editItem.id, patch);
                 if (categoryChanged && patch.name) learnGroceryItems(learnCategory(patch.name, patch.category));
               }}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {moveItem && (
+            <MoveCategorySheet
+              item={moveItem} t={t} isRTL={isRTL} language={language}
+              onClose={() => setMoveItem(null)}
+              onMove={(catKey) => handleMoveToCategory(moveItem, catKey)}
             />
           )}
         </AnimatePresence>

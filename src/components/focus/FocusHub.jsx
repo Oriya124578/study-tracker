@@ -98,7 +98,12 @@ export const FocusHub = () => {
   const todayBlocks = useMemo(
     () =>
       buildTimeline({
-        scheduleDoc: data?.schedule || null,
+        // Ignore a schedule doc subscribed for a different date (e.g. the user
+        // browsed another day in the Command Center right before switching here).
+        scheduleDoc:
+          data?.schedule && (!data.schedule._docDate || data.schedule._docDate === dateStr)
+            ? data.schedule
+            : null,
         events: data?.events,
         personalTasks: data?.personalTasks,
         calori: data?.calori,

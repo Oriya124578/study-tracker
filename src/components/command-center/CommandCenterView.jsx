@@ -12,6 +12,7 @@ import { swrFetch } from '../../lib/cacheService';
 import { dateKey } from '../../lib/caloriRepo';
 import { generateDailySchedule, tuneSchedule } from '../../lib/gemini';
 import { buildTimeline } from '../../lib/scheduleBuilder';
+import { validateAndRepair, timeToMin } from '../../lib/scheduleEngine';
 import { fetchShabbatTimes } from '../../lib/shabbatService';
 import { calculateTravelTime } from '../../lib/mapsService';
 import { format, parseISO, isValid, isSameDay, addDays, subDays } from 'date-fns';
@@ -44,6 +45,8 @@ export const CommandCenterView = () => {
     updatePersonalTask,
     updateEvent,
     setProfile,
+    setScheduleDate,
+    updateScheduleBlock,
     googleCalendarToken,
     setGoogleCalendarToken,
     setAiSuggestionStatus
@@ -77,8 +80,16 @@ export const CommandCenterView = () => {
   const [showMorningCoach, setShowMorningCoach] = useState(false);
   const [activeActionBlock, setActiveActionBlock] = useState(null);
   const [activeDragItem, setActiveDragItem] = useState(null);
-  const hasAttemptedAutoPlan = useRef(false);
   const hasEvaluatedMorningCoach = useRef(false);
+
+  // Keep the cl_schedule subscription in sync with the viewed day,
+  // and restore it to today when leaving the screen.
+  useEffect(() => {
+    setScheduleDate(dateStr);
+  }, [dateStr, setScheduleDate]);
+  useEffect(() => () => {
+    useStore.getState().setScheduleDate(dateKey());
+  }, []);
 
   // dnd-kit sensors (iOS style long press ~500ms)
   const sensors = useSensors(
@@ -98,6 +109,32 @@ export const CommandCenterView = () => {
 
   // Weather State
   const [weather, setWeather] = useState({ temp: null, min: null, max: null, city: null, loading: true, error: false, isNight: false });
+
+  // "Now" indicator — ticks every minute so the red line and the active block
+  // highlight stay accurate while the screen is open.
+  const [nowTick, setNowTick] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+  const isViewingToday = dateStr === dateKey();
+  const nowMin = nowTick.getHours() * 60 + nowTick.getMinutes();
+
+  // Auto-scroll the timeline to "now" so opening the screen at 14:30 doesn't
+  // land you at the morning hours. Re-arms when navigating back to today.
+  const nowRowRef = useRef(null);
+  const hasScrolledToNow = useRef(false);
+  useEffect(() => { hasScrolledToNow.current = false; }, [dateStr]);
+  const isBlockNow = (b) => {
+    if (!isViewingToday) return false;
+    try {
+      const s = timeToMin(b.startTime);
+      const e = timeToMin(b.endTime);
+      return nowMin >= s && nowMin < (e > s ? e : s + 1);
+    } catch {
+      return false;
+    }
+  };
 
   // Fetch weather and location (relocated to top of Personal Manager page)
   useEffect(() => {
@@ -196,13 +233,20 @@ export const CommandCenterView = () => {
   // persisted/projected data. Otherwise buildTimeline picks the right path:
   // doc-driven if cl_schedule exists for this date, fallback otherwise.
   const timelineBlocks = useMemo(() => {
-    if (draftSchedule?.blocks?.length > 0) {
+    // A draft belongs to the day it was generated for — never leak it to other days.
+    if (draftSchedule?.date === dateStr && draftSchedule?.blocks?.length > 0) {
       return draftSchedule.blocks.filter(
         (b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break')
       );
     }
+    // Ignore a schedule doc that belongs to a different date (stale snapshot
+    // while the per-day subscription catches up).
+    const scheduleDoc =
+      data?.schedule && (!data.schedule._docDate || data.schedule._docDate === dateStr)
+        ? data.schedule
+        : null;
     return buildTimeline({
-      scheduleDoc: data?.schedule || null,
+      scheduleDoc,
       events: data?.events,
       personalTasks: data?.personalTasks,
       calori: data?.calori,
@@ -211,6 +255,16 @@ export const CommandCenterView = () => {
       options: { filterLeisure: true, includeCalori: 'todayOnly' },
     });
   }, [data, dateStr, draftSchedule]);
+
+  // Scroll to "now" once the timeline is on screen (today only).
+  useEffect(() => {
+    if (!isViewingToday || hasScrolledToNow.current) return;
+    const el = nowRowRef.current;
+    if (!el) return;
+    hasScrolledToNow.current = true;
+    const id = setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 200);
+    return () => clearTimeout(id);
+  }, [isViewingToday, timelineBlocks]);
 
   // Filter tasks in sidebar
   const sidebarTasks = useMemo(() => {
@@ -228,9 +282,10 @@ export const CommandCenterView = () => {
 
   // Coach Note (from profile or draft)
   const coachNote = useMemo(() => {
-    if (draftSchedule?.coachNote) return draftSchedule.coachNote;
+    if (draftSchedule?.date === dateStr && draftSchedule?.coachNote) return draftSchedule.coachNote;
+    if (data?.schedule?._docDate === dateStr && data.schedule.coachNote) return data.schedule.coachNote;
     return data?.profile?.coachNotes?.[dateStr] || '';
-  }, [data?.profile?.coachNotes, draftSchedule, dateStr]);
+  }, [data?.profile?.coachNotes, data?.schedule, draftSchedule, dateStr]);
 
   // Shabbat constraints indicator
   const shabbatBlockIndicator = useMemo(() => {
@@ -286,6 +341,40 @@ export const CommandCenterView = () => {
   const prevDay = () => setCurrentDate(subDays(currentDate, 1));
   const nextDay = () => setCurrentDate(addDays(currentDate, 1));
   const setToday = () => setCurrentDate(new Date());
+
+  // Bounds for validateAndRepair: wake/sleep window + Shabbat forbidden window.
+  const getRepairBounds = useCallback(() => {
+    let wakeMin = 7 * 60;
+    let sleepMin = 23 * 60;
+    try { wakeMin = timeToMin(data?.profile?.wakeTime || '07:00'); } catch { /* default */ }
+    try { sleepMin = timeToMin(data?.profile?.sleepTime || '23:00'); } catch { /* default */ }
+    let shabbat = null;
+    if (data?.profile?.shabbatMode && shabbatTimes) {
+      const startObj = new Date(shabbatTimes.start);
+      const endObj = new Date(shabbatTimes.end);
+      if (isValid(startObj) && isSameDay(currentDate, startObj)) {
+        const blockStart = new Date(startObj.getTime() - 60 * 60 * 1000);
+        shabbat = { blockStartMin: blockStart.getHours() * 60 + blockStart.getMinutes() };
+      } else if (isValid(endObj) && isSameDay(currentDate, endObj)) {
+        const blockEnd = new Date(endObj.getTime() + 60 * 60 * 1000);
+        shabbat = { blockEndMin: blockEnd.getHours() * 60 + blockEnd.getMinutes() };
+      }
+    }
+    return { wakeMin, sleepMin, shabbat };
+  }, [data?.profile?.wakeTime, data?.profile?.sleepTime, data?.profile?.shabbatMode, shabbatTimes, currentDate]);
+
+  // Normalize AI output: drop sleep/leisure/break noise, ensure ids, then
+  // run the deterministic repair pass (overlaps, out-of-bounds, Shabbat).
+  const sanitizeAiBlocks = useCallback((blocks, originalBlocks = []) => {
+    const cleaned = (blocks || [])
+      .filter((b) => b.type !== 'sleep' && b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
+      .map((b) => ({
+        ...b,
+        id: b.id || `draft-${Math.random().toString(36).substring(2, 7)}`,
+      }));
+    const repaired = validateAndRepair(cleaned, getRepairBounds(), originalBlocks);
+    return repaired.blocks;
+  }, [getRepairBounds]);
 
   // Call Gemini to Auto-Plan
   const handleAutoPlan = useCallback(async (dayProfile = null) => {
@@ -354,7 +443,7 @@ export const CommandCenterView = () => {
       const context = {
         todayDate: dateStr,
         dayOfWeek: format(currentDate, 'EEEE', { locale }),
-        dayProfile: dayProfile || null,
+        dayProfile: typeof dayProfile === 'string' && dayProfile.trim() ? dayProfile : null,
         settings: {
           wakeTime: data?.profile?.wakeTime || '07:00',
           sleepTime: data?.profile?.sleepTime || '23:00',
@@ -376,15 +465,9 @@ export const CommandCenterView = () => {
 
       const result = await generateDailySchedule(context);
 
-      // Prefix draft block IDs to avoid collision before saving, filtering out breaks
-      const processedBlocks = (result.blocks || [])
-        .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
-        .map((b) => ({
-          ...b,
-          id: b.id || `draft-${Math.random().toString(36).substring(2, 7)}`,
-        }));
+      const processedBlocks = sanitizeAiBlocks(result.blocks);
 
-      setDraftSchedule({ blocks: processedBlocks, coachNote: result.coachNote });
+      setDraftSchedule({ date: dateStr, blocks: processedBlocks, coachNote: result.coachNote });
       toast.success(t('ccDraftCreated'));
     } catch (err) {
       if (err.message === 'MISSING_GEMINI_KEY') {
@@ -395,33 +478,20 @@ export const CommandCenterView = () => {
     } finally {
       setLoading(false);
     }
-  }, [data, dateStr, sidebarTasks, gpsLocation, currentDate, locale, shabbatTimes, setDraftSchedule, t]);
+  }, [data, dateStr, sidebarTasks, gpsLocation, currentDate, locale, shabbatTimes, setDraftSchedule, sanitizeAiBlocks, t]);
 
-  // Auto-plan on first load if no plan exists yet.
-  // Gated: when the Morning Coach overlay is on screen, let the user drive the plan
-  // through the overlay instead of silently auto-planning.
-  useEffect(() => {
-    if (hasAttemptedAutoPlan.current) return;
-    if (showMorningCoach) return;
-
-    // Check if there are any events proposed by AI for today
-    const hasProposedEvents = (data?.events || []).some(
-      (ev) => ev.start && ev.start.startsWith(dateStr) && ev.isProposed
-    );
-    const hasDraft = draftSchedule?.blocks?.length > 0;
-
-    if (dateStr === dateKey() && !hasProposedEvents && !hasDraft && !loading) {
-      hasAttemptedAutoPlan.current = true;
-      handleAutoPlan();
-    }
-  }, [dateStr, data?.events, draftSchedule, loading, handleAutoPlan, showMorningCoach]);
+  // NOTE: silent auto-plan on entry was removed on purpose — it regenerated a
+  // fresh AI schedule on every visit and shadowed the saved cl_schedule doc.
+  // Planning now starts only from the Morning Coach overlay or the AI button.
 
   // Morning Coach overlay: decide once per mount whether to show.
   // Predicate per Phase 6b spec.
   useEffect(() => {
     if (hasEvaluatedMorningCoach.current) return;
-    // Wait for profile to load before evaluating.
+    // Wait for profile AND the schedule doc snapshot before evaluating —
+    // otherwise we'd offer a new plan while the saved one is still loading.
     if (!data?.profile) return;
+    if (data?.schedule === undefined) return;
     hasEvaluatedMorningCoach.current = true;
 
     const now = new Date();
@@ -474,8 +544,21 @@ export const CommandCenterView = () => {
   };
   const handleCoachSubmit = (dayProfile) => {
     setShowMorningCoach(false);
-    hasAttemptedAutoPlan.current = true; // prevent duplicate silent auto-plan
     handleAutoPlan(dayProfile);
+  };
+
+  // One input, two behaviors: with an existing timeline the command TUNES it;
+  // with an empty day it PLANS from scratch using the text as the day directive
+  // ("יש לי מחר מבחן, שאלמד כל היום" / "יש לי נסיעה ב-16:00").
+  const handleAiCommand = () => {
+    const cmd = tuneCommand.trim();
+    if (!cmd) return;
+    if (timelineBlocks.length === 0) {
+      setTuneCommand('');
+      handleAutoPlan(cmd);
+    } else {
+      handleTuneSchedule();
+    }
   };
 
   // Tune schedule with input query
@@ -496,15 +579,12 @@ export const CommandCenterView = () => {
       };
 
       const result = await tuneSchedule(timelineBlocks, cmd, context);
-      
-      const processedBlocks = (result.blocks || [])
-        .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה') && !b.title?.toLowerCase().includes('break'))
-        .map((b) => ({
-          ...b,
-          id: b.id || `draft-${Math.random().toString(36).substring(2, 7)}`,
-        }));
 
-      setDraftSchedule({ blocks: processedBlocks, coachNote: result.coachNote });
+      // Pass the current blocks as originals so locked blocks the AI moved
+      // get restored to their place.
+      const processedBlocks = sanitizeAiBlocks(result.blocks, timelineBlocks);
+
+      setDraftSchedule({ date: dateStr, blocks: processedBlocks, coachNote: result.coachNote });
       if (!cmdOverride) setTuneCommand('');
       toast.success(t('ccTuneSuccess'));
     } catch {
@@ -548,8 +628,9 @@ export const CommandCenterView = () => {
       const currentBlocks = draftSchedule?.blocks?.length > 0 ? draftSchedule.blocks : [...timelineBlocks];
       const newBlocks = [...currentBlocks, ...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
       
-      setDraftSchedule({ 
-        blocks: newBlocks, 
+      setDraftSchedule({
+        date: dateStr,
+        blocks: newBlocks,
         coachNote: draftSchedule?.coachNote || 'סונכרנו אירועים מ-Google Calendar. לחץ על שמור כדי לעדכן את הלוז.'
       });
       
@@ -570,7 +651,7 @@ export const CommandCenterView = () => {
       setLoading(true);
       try {
         await clearDaySchedule(dateStr);
-        setDraftSchedule({ blocks: [], coachNote: '' });
+        setDraftSchedule({ date: null, blocks: [], coachNote: '' });
         toast.success(t('ccClearSuccess'));
       } catch {
         toast.error(t('ccClearError'));
@@ -613,21 +694,25 @@ export const CommandCenterView = () => {
     const draggedData = active.data.current;
 
     if (draggedData?.isTimelineBlock) {
-      // Re-arranging an existing block inside the timeline
+      // Re-arranging an existing block inside the timeline.
+      // Decide by where the block actually lives (draft vs saved doc vs task),
+      // not by id prefix — saved doc blocks keep their 'draft-' ids.
       const sourceBlockId = draggedData.id;
-      if (sourceBlockId.startsWith('draft-')) {
+      const computeEnd = (duration) => {
+        const [h, m] = hourStr.split(':').map(Number);
+        const endMin = h * 60 + m + duration;
+        const endH = String(Math.floor(endMin / 60) % 24).padStart(2, '0');
+        const endM = String(endMin % 60).padStart(2, '0');
+        return `${endH}:${endM}`;
+      };
+      const isInDraft = draftSchedule?.date === dateStr &&
+        (draftSchedule?.blocks || []).some((b) => b.id === sourceBlockId);
+
+      if (isInDraft) {
         const updatedBlocks = (draftSchedule?.blocks || []).map(b => {
           if (b.id === sourceBlockId) {
             const duration = b.duration || 60;
-            const [h, m] = hourStr.split(':').map(Number);
-            const endMin = h * 60 + m + duration;
-            const endH = String(Math.floor(endMin / 60) % 24).padStart(2, '0');
-            const endM = String(endMin % 60).padStart(2, '0');
-            return {
-              ...b,
-              startTime: hourStr,
-              endTime: `${endH}:${endM}`
-            };
+            return { ...b, startTime: hourStr, endTime: computeEnd(duration) };
           }
           return b;
         }).sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -638,6 +723,12 @@ export const CommandCenterView = () => {
         const task = data?.personalTasks?.find(t => t.id === refId);
         const duration = task?.scheduledDuration || 60;
         scheduleTask(refId, dateStr, hourStr, duration);
+        toast.success(t('ccTaskScheduledAtTime', 'שובץ בשעה {time}').replace('{time}', hourStr));
+      } else if ((data?.schedule?.blocks || []).some((b) => b.id === sourceBlockId)) {
+        // Persisted schedule-doc block — move it in place.
+        const duration = draggedData.duration ||
+          (data.schedule.blocks.find((b) => b.id === sourceBlockId)?.duration) || 60;
+        updateScheduleBlock(dateStr, sourceBlockId, { startTime: hourStr, endTime: computeEnd(duration), duration });
         toast.success(t('ccTaskScheduledAtTime', 'שובץ בשעה {time}').replace('{time}', hourStr));
       }
     } else if (draggedData?.isSidebarTask) {
@@ -679,11 +770,16 @@ export const CommandCenterView = () => {
 
   // Toggle Lock/Unlock on scheduled blocks
   const toggleBlockLock = (block) => {
-    if (block.id.startsWith('draft-')) {
-      const updatedBlocks = (draftSchedule?.blocks || []).map(b => 
+    const isInDraft = draftSchedule?.date === dateStr &&
+      (draftSchedule?.blocks || []).some((b) => b.id === block.id);
+    if (isInDraft) {
+      const updatedBlocks = (draftSchedule?.blocks || []).map(b =>
         b.id === block.id ? { ...b, isLocked: !b.isLocked } : b
       );
       setDraftSchedule({ ...draftSchedule, blocks: updatedBlocks });
+      toast.success(!block.isLocked ? 'הבלוק ננעל לשינויי AI' : 'הבלוק שוחרר מנעילה');
+    } else if ((data?.schedule?.blocks || []).some((b) => b.id === block.id)) {
+      updateScheduleBlock(dateStr, block.id, { isLocked: !block.isLocked });
       toast.success(!block.isLocked ? 'הבלוק ננעל לשינויי AI' : 'הבלוק שוחרר מנעילה');
     } else if (block.id.startsWith('task-')) {
       const task = data?.personalTasks?.find(t => t.id === block.refId);
@@ -809,8 +905,7 @@ export const CommandCenterView = () => {
       </div>
 
       {/* Main Content */}
-      {true ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-in fade-in duration-200">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-in fade-in duration-200">
         
         {/* Left/Middle: Timeline (Spans 2 columns) */}
         <div className="lg:col-span-2 space-y-6">
@@ -861,7 +956,7 @@ export const CommandCenterView = () => {
                     <button onClick={handleSaveSchedule} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#059669', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Save className="w-3.5 h-3.5" /> {t('ccSaveSchedule')}
                     </button>
-                    <button onClick={() => setDraftSchedule({ blocks: [], coachNote: '' })} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                    <button onClick={() => setDraftSchedule({ date: null, blocks: [], coachNote: '' })} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <X className="w-3.5 h-3.5" /> {t('ccDiscardDraft')}
                     </button>
                   </>
@@ -870,7 +965,7 @@ export const CommandCenterView = () => {
                     <button onClick={() => setIsChatOpen(true)} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Bot className="w-3.5 h-3.5" /> {isRTL ? 'שיחה' : 'Chat'}
                     </button>
-                    <button onClick={handleAutoPlan} disabled={loading} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                    <button onClick={() => handleAutoPlan()} disabled={loading} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Sparkles className="w-3.5 h-3.5" /> {loading ? t('ccPlanning') : t('ccOrganizeWithAi')}
                     </button>
                     {timelineBlocks.length > 0 && (
@@ -886,19 +981,48 @@ export const CommandCenterView = () => {
             {/* Time Slots Layout — cream v3 */}
             <div className="space-y-2 relative">
               <div className="overflow-hidden" style={{ borderRadius: 18, border: '1px solid rgba(180,140,80,.12)', background: '#FAF7F2' }}>
-                {hoursRange.map((hour) => {
+                {timelineBlocks.length === 0 && (
+                  <div className="text-center px-4 py-5" style={{ borderBottom: '1px solid rgba(180,140,80,.08)' }}>
+                    <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: 16, color: '#5A4A3A' }}>
+                      {isRTL ? 'אין עדיין לוז ליום הזה' : 'No schedule for this day yet'}
+                    </p>
+                    <p style={{ fontSize: 11, color: '#8A7A6A', marginTop: 2 }}>
+                      {isRTL ? 'לחץ על "סדר עם AI" או גרור משימות לשעות' : 'Tap "Organize with AI" or drag tasks onto the hours'}
+                    </p>
+                  </div>
+                )}
+                {hoursRange.map((hour, hourIdx) => {
                   const isCovered = isHourCovered(hour);
                   if (isCovered) return null;
 
                   const hourBlocks = getBlocksStartingAtHour(hour);
+                  const hourMin = timeToMin(hour);
+                  const isNowHour = isViewingToday && nowMin >= hourMin && nowMin < hourMin + 60;
 
                   return (
-                    <div 
+                    <div
                       key={hour}
-                      className="flex gap-4 p-3 sm:p-4 items-stretch min-h-[4.5rem] relative hover:bg-muted/10 transition-colors"
+                      // The ref lands on the LAST rendered row at/before "now" —
+                      // i.e. the nearest visible row to the current time.
+                      ref={isViewingToday && hourMin <= nowMin ? nowRowRef : undefined}
+                      className={cn(
+                        'flex gap-4 items-stretch relative hover:bg-muted/10 transition-colors',
+                        hourBlocks.length > 0 ? 'p-3 sm:p-4 min-h-[4.5rem]' : 'px-3 py-1.5 sm:px-4'
+                      )}
+                      style={hourIdx > 0 ? { borderTop: '1px solid rgba(180,140,80,.07)' } : undefined}
                     >
+                      {/* "Now" line — red marker at the current minute */}
+                      {isNowHour && (
+                        <div className="absolute inset-x-0 z-10 pointer-events-none flex items-center gap-1 px-2" style={{ top: `${((nowMin - hourMin) / 60) * 100}%` }}>
+                          <span dir="ltr" style={{ background: '#DC2626', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, padding: '1px 6px', lineHeight: '14px' }}>
+                            {format(nowTick, 'HH:mm')}
+                          </span>
+                          <div className="flex-1" style={{ height: 2, borderRadius: 2, background: '#DC2626', opacity: 0.6 }} />
+                        </div>
+                      )}
+
                       {/* Hour Indicator — Fraunces */}
-                      <div className="w-12 flex items-center justify-start shrink-0 select-none pe-2" style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: 17, letterSpacing: '-.03em', color: '#8A7A6A', borderInlineEnd: '1px solid rgba(180,140,80,.1)' }} dir="ltr">
+                      <div className={cn('w-12 flex items-center justify-start shrink-0 select-none pe-2', hourBlocks.length === 0 && 'opacity-70')} style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontStyle: 'italic', fontSize: hourBlocks.length > 0 ? 17 : 13, letterSpacing: '-.03em', color: '#8A7A6A', borderInlineEnd: '1px solid rgba(180,140,80,.1)' }} dir="ltr">
                         {hour}
                       </div>
 
@@ -919,6 +1043,8 @@ export const CommandCenterView = () => {
                                     className={cn(
                                       'p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
                                       blockColors[block.type] || 'border-border bg-card',
+                                      isBlockNow(block) && 'ring-2 ring-[#059669]/50 shadow-md',
+                                      block.isCompleted && 'opacity-55',
                                       block.isLocked && 'bg-[url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0JyBoZWlnaHQ9JzQnPgo8cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBmaWxsPScjZmZmJyBmaWxsLW9wYWNpdHk9JzAnLz4KPHBhdGggZD0nTS0xLDFMMSwtMU0zLDVMNSwzJyBzdHJva2U9JyMwMDAnIHN0cm9rZS1vcGFjaXR5PScwLjA1JyBzdHJva2Utd2lkdGg9JzEnLz4KPC9zdmc+")] opacity-80 border-dashed hover:shadow-none'
                                     )}
                                   >
@@ -953,7 +1079,13 @@ export const CommandCenterView = () => {
                                     {block.isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                                   </button>
 
-                                  <div className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
+                                  {isBlockNow(block) && (
+                                    <span className="shrink-0" style={{ background: '#059669', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, padding: '2px 8px' }}>
+                                      {isRTL ? 'עכשיו' : 'Now'}
+                                    </span>
+                                  )}
+
+                                  <div className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap" dir="ltr">
                                     <Clock className="w-3.5 h-3.5 opacity-60" />
                                     <span>{block.type === 'meal' || block.startTime === block.endTime
                                       ? block.startTime
@@ -969,19 +1101,16 @@ export const CommandCenterView = () => {
                             );
                           })
                         ) : (
-                          <div 
+                          <div
                             onClick={() => {
                               setTimePickerModal({ hourStr: hour });
                             }}
-                            className="group h-full flex items-center justify-between text-xs text-muted-foreground/35 hover:text-primary hover:bg-primary/5 border border-dashed border-transparent hover:border-primary/20 rounded-xl px-4 py-2.5 transition-all cursor-pointer select-none min-h-[40px]"
+                            className="group h-8 flex items-center justify-between hover:bg-primary/5 border border-dashed border-transparent hover:border-primary/20 rounded-xl px-3 transition-all cursor-pointer select-none"
                           >
-                            <span className="font-semibold text-[11px] opacity-0 group-hover:opacity-100 transition-opacity">
-                              + שבץ משימה ידנית לשעה זו
+                            <span className="font-semibold text-[11px] text-muted-foreground/45 group-hover:text-primary transition-colors">
+                              + {isRTL ? 'שבץ לשעה זו' : 'Schedule here'}
                             </span>
-                            <span className="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-primary transition-opacity flex items-center gap-1">
-                              <Plus className="w-3.5 h-3.5" />
-                              גרור משימה לכאן
-                            </span>
+                            <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                           </div>
                         )}
                         </div>
@@ -993,41 +1122,48 @@ export const CommandCenterView = () => {
             </div>
           </div>
 
-          {/* AI Input — cream v3 */}
-          {timelineBlocks.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-[10px]" style={{ background: '#fff', border: '1.5px solid rgba(124,58,237,.2)', borderRadius: 16, padding: '13px 16px' }}>
-                <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', color: '#fff', fontSize: 14 }}>
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  value={tuneCommand}
-                  onChange={(e) => setTuneCommand(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleTuneSchedule()}
-                  placeholder={t('ccTunePlaceholder')}
-                  className="flex-1 outline-none bg-transparent text-start"
-                  style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 15, color: '#2A1A0A' }}
-                  disabled={loading}
-                />
-                <button
-                  onClick={handleTuneSchedule}
-                  disabled={loading || !tuneCommand.trim()}
-                  className="shrink-0 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                  style={{ width: 30, height: 30, borderRadius: 8, background: tuneCommand.trim() ? '#7C3AED' : '#F5F0E8', color: tuneCommand.trim() ? '#fff' : '#8A7A6A', border: 'none' }}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
+          {/* AI Input — cream v3. Always visible: plans an empty day, tunes an existing one. */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-[10px]" style={{ background: '#fff', border: '1.5px solid rgba(124,58,237,.2)', borderRadius: 16, padding: '13px 16px' }}>
+              <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', color: '#fff', fontSize: 14 }}>
+                <Sparkles className="w-4 h-4" />
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[t('ccChipTired'), t('ccChipStudyMorning'), t('ccChipWorkoutEvening'), t('ccChipSpreadTasks')].map((cmd) => (
-                  <button key={cmd} onClick={() => setTuneCommand(cmd)} className="active:scale-95 transition-colors cursor-pointer" style={{ borderRadius: 999, padding: '5px 11px', fontSize: 11, fontWeight: 600, background: '#F5F0E8', color: '#8A7A6A', border: 'none' }}>
-                    {cmd}
-                  </button>
-                ))}
-              </div>
+              <input
+                type="text"
+                value={tuneCommand}
+                onChange={(e) => setTuneCommand(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAiCommand()}
+                placeholder={timelineBlocks.length === 0
+                  ? t('ccPlanPlaceholder', 'ספר לי על היום — "מבחן מחר, שאלמד כל היום" / "נסיעה ב-16:00"')
+                  : t('ccTunePlaceholder')}
+                className="flex-1 outline-none bg-transparent text-start"
+                style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 15, color: '#2A1A0A' }}
+                disabled={loading}
+              />
+              <button
+                onClick={handleAiCommand}
+                disabled={loading || !tuneCommand.trim()}
+                className="shrink-0 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                style={{ width: 30, height: 30, borderRadius: 8, background: tuneCommand.trim() ? '#7C3AED' : '#F5F0E8', color: tuneCommand.trim() ? '#fff' : '#8A7A6A', border: 'none' }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {(timelineBlocks.length === 0
+                ? [
+                    t('ccChipExamTomorrow', 'יש לי מבחן מחר — שאלמד כל היום'),
+                    t('ccChipTripToday', 'יש לי נסיעה היום'),
+                    t('ccChipLightDay', 'יום קל — רק הדברים החשובים'),
+                  ]
+                : [t('ccChipTired'), t('ccChipStudyMorning'), t('ccChipWorkoutEvening'), t('ccChipSpreadTasks')]
+              ).map((cmd) => (
+                <button key={cmd} onClick={() => setTuneCommand(cmd)} className="active:scale-95 transition-colors cursor-pointer" style={{ borderRadius: 999, padding: '5px 11px', fontSize: 11, fontWeight: 600, background: '#F5F0E8', color: '#8A7A6A', border: 'none' }}>
+                  {cmd}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right: Sidebar - Unscheduled Tasks Tray */}
@@ -1050,7 +1186,7 @@ export const CommandCenterView = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p style={{ fontSize: 13, fontWeight: 700, color: '#2A1A0A', lineHeight: 1.2 }}>{suggestion.suggestion}</p>
-                        {suggestion.context && <p style={{ fontSize: 10, color: '#8A7A6A', marginTop: 2, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 11 }}>{suggestion.context}</p>}
+                        {suggestion.context && <p style={{ color: '#8A7A6A', marginTop: 2, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 11 }}>{suggestion.context}</p>}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -1140,18 +1276,12 @@ export const CommandCenterView = () => {
 
             {/* Quick manual block generator */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 const label = window.prompt(t('ccEnterBlockTitle'));
-                if (label) {
-                  const id = `task-${Date.now()}`;
-                  // Create a custom temporary task to schedule
-                  useStore.getState().addQuickNote({
-                    title: label,
-                    content: t('ccManualStudyBlock'),
-                  });
-                  // Show modal to schedule it
-                  setTimePickerModal({ taskId: id, title: label });
-                }
+                if (!label || !label.trim()) return;
+                // Create a real personal task so scheduling actually persists.
+                const id = await useStore.getState().addPersonalTask({ title: label.trim(), priority: 'med' });
+                if (id) setTimePickerModal({ taskId: id, title: label.trim() });
               }}
               className="w-full py-2.5 rounded-2xl border border-dashed border-border hover:border-primary text-xs font-bold text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-1"
             >
@@ -1161,7 +1291,6 @@ export const CommandCenterView = () => {
           </div>
         </div>
       </div>
-      ) : null}
 
       {/* Manual Time Picker Dialog (Upgraded to support dual direction) */}
       {timePickerModal && timePickerModal.taskId && (

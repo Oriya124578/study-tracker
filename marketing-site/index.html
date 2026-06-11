@@ -214,9 +214,86 @@ footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft
 .foot-in .small{font-size:13px; color:var(--ink-soft);}
 
 /* ============ REVEAL ============ */
-.reveal{opacity:0; transform:translateY(26px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
-.reveal.in{opacity:1; transform:none;}
+.reveal{opacity:0; transform:translateY(26px); filter:blur(6px); transition:opacity .8s var(--ease), transform .8s var(--ease), filter .8s var(--ease);}
+.reveal.in{opacity:1; transform:none; filter:none;}
 .reveal.d1{transition-delay:.08s;} .reveal.d2{transition-delay:.16s;} .reveal.d3{transition-delay:.24s;}
+
+/* ============ WORD CASCADE ============ */
+.wrd{display:inline-block; white-space:pre;}
+.wrd-in{display:inline-block; opacity:0; transform:translateY(.65em) rotate(1.5deg); filter:blur(7px);
+  transition:opacity .65s var(--ease), transform .65s var(--ease), filter .65s var(--ease);
+  transition-delay:calc(var(--wi,0) * 75ms);}
+.in .wrd-in, .wsplit.in .wrd-in{opacity:1; transform:none; filter:none;}
+
+/* italic accent — hand-drawn underline that draws itself on reveal */
+.reveal h1 em, .reveal h2 em, .reveal h3 em, h1.reveal em{position:relative;}
+.reveal h1 em::after, .reveal h2 em::after, .reveal h3 em::after, h1.reveal em::after{
+  content:''; position:absolute; inset-inline:0; inset-block-end:.02em; height:.08em; border-radius:99px;
+  background:currentColor; opacity:.28; transform:scaleX(0); transform-origin:var(--uo,right);
+  transition:transform .8s var(--ease) .55s;}
+.reveal.in h1 em::after, .reveal.in h2 em::after, .reveal.in h3 em::after, h1.reveal.in em::after{transform:scaleX(1);}
+
+/* ============ SCROLL PROGRESS ============ */
+.scroll-progress{position:fixed; inset-block-start:0; inset-inline-start:0; height:3px; width:100%; z-index:200;
+  background:linear-gradient(90deg,var(--green),var(--green2),var(--purple)); transform:scaleX(0);
+  transform-origin:left; pointer-events:none;}
+[dir="rtl"] .scroll-progress{transform-origin:right;}
+
+/* ============ CURSOR GLOW (desktop) ============ */
+.cursor-glow{position:fixed; width:520px; height:520px; border-radius:50%; pointer-events:none; z-index:1;
+  background:radial-gradient(circle, rgba(5,150,105,.07), rgba(124,58,237,.04) 45%, transparent 70%);
+  transform:translate(-50%,-50%); inset-block-start:0; inset-inline-start:0; opacity:0; transition:opacity .5s;}
+@media (hover:none), (max-width:980px){.cursor-glow{display:none;}}
+
+/* ============ SERIF TICKER ============ */
+.ticker{overflow:hidden; border-block:1px solid var(--hairline-soft); padding-block:18px; position:relative;
+  background:linear-gradient(180deg, rgba(245,240,232,.5), transparent);}
+.ticker::before,.ticker::after{content:''; position:absolute; inset-block:0; width:120px; z-index:2; pointer-events:none;}
+.ticker::before{inset-inline-start:0; background:linear-gradient(to left, transparent, var(--canvas));}
+.ticker::after{inset-inline-end:0; background:linear-gradient(to right, transparent, var(--canvas));}
+.ticker-track{display:flex; gap:0; width:max-content; animation:tickerMove 36s linear infinite;}
+.ticker:hover .ticker-track{animation-play-state:paused;}
+.ticker-item{display:flex; align-items:center; gap:26px; padding-inline-end:26px; flex:none;
+  font-family:var(--font-display); font-style:italic; font-size:21px; color:var(--ink); white-space:nowrap;}
+.ticker-item .tk-star{color:var(--green); font-style:normal; font-size:15px; animation:starSpin 7s linear infinite;}
+@keyframes tickerMove{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+@keyframes starSpin{to{transform:rotate(360deg);}}
+
+/* ============ DEVICE TILT + FLOAT (separate channels) ============ */
+.tilt-zone{perspective:1100px;}
+.device{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition:transform .3s ease-out; will-change:transform;}
+.floats{animation:floatT 7s ease-in-out infinite;}
+@keyframes floatT{0%,100%{translate:0 0;}50%{translate:0 -14px;}}
+
+/* ============ WORLD SPOTLIGHT ============ */
+.world::after{content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%), var(--spot,rgba(5,150,105,.10)), transparent 65%);
+  transition:opacity .35s;}
+.world:hover::after{opacity:1;}
+.world .wicon{transition:transform .35s var(--ease);}
+.world:hover .wicon{transform:scale(1.12) rotate(-6deg);}
+
+/* ============ LIFESTYLE CARDS ============ */
+.life-card img{transition:transform .8s var(--ease);}
+.life-card:hover img{transform:scale(1.05);}
+.life-cap{transition:transform .45s var(--ease);}
+.life-card:hover .life-cap{transform:translateY(-4px);}
+
+/* ============ FINAL CARD SHEEN + SPARKLES ============ */
+.final-card::before{content:''; position:absolute; inset:-50%; pointer-events:none;
+  background:linear-gradient(115deg, transparent 42%, rgba(255,255,255,.14) 50%, transparent 58%);
+  animation:sheen 5.5s ease-in-out infinite;}
+@keyframes sheen{0%,55%{transform:translateX(-60%);}95%,100%{transform:translateX(60%);}}
+.spark{position:absolute; color:rgba(255,255,255,.65); font-size:16px; pointer-events:none; animation:sparkFloat 6s ease-in-out infinite;}
+.spark.s2{animation-delay:1.8s; font-size:12px;} .spark.s3{animation-delay:3.4s; font-size:20px;}
+@keyframes sparkFloat{0%,100%{transform:translateY(0) scale(1); opacity:.5;}50%{transform:translateY(-18px) scale(1.25); opacity:1;}}
+
+/* ============ MAGNETIC BTN ============ */
+.btn-mag{transition:translate .25s var(--ease), transform .18s var(--ease), box-shadow .2s, background .2s;}
+
+/* nav cta pulse halo */
+@keyframes ctaPulse{0%,100%{box-shadow:0 6px 20px rgba(5,150,105,.30);}50%{box-shadow:0 6px 26px rgba(5,150,105,.52), 0 0 0 6px rgba(5,150,105,.08);}}
+.nav .btn-primary{animation:ctaPulse 3.6s ease-in-out infinite;}
 
 /* ============ RESPONSIVE ============ */
 @media (max-width:980px){
@@ -251,6 +328,9 @@ footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft
 </style>
 </head>
 <body>
+
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
 <!-- NAV -->
 <nav class="nav">
@@ -293,13 +373,29 @@ footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft
         <div class="hstat"><span class="num i">∞</span><div class="hstat-l" data-he="זמן אמת" data-en="real-time">זמן אמת</div></div>
       </div>
     </div>
-    <div class="hero-phone-wrap reveal d1">
+    <div class="hero-phone-wrap reveal d1 tilt-zone">
       <div class="blob" style="width:90px;height:90px;background:var(--purple-softer);inset-block-start:6%;inset-inline-end:2%;"></div>
       <div class="blob" style="width:60px;height:60px;background:var(--green-soft);inset-block-end:10%;inset-inline-start:0;"></div>
       <div class="device hero-dev floats"><iframe loading="lazy" title="Home screen" src="screens/cream-01-home.html" onload="cleanFrame(this)"></iframe></div>
     </div>
   </div>
 </header>
+
+<!-- SERIF TICKER -->
+<div class="ticker" id="ticker" dir="ltr" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack">
+    <div class="ticker-item" dir="rtl">
+      <span data-he="ציר זמן אחד" data-en="One timeline">ציר זמן אחד</span><span class="tk-star">✦</span>
+      <span data-he="לוח שנה מאוחד" data-en="Unified calendar">לוח שנה מאוחד</span><span class="tk-star">✦</span>
+      <span data-he="פומודורו" data-en="Pomodoro">פומודורו</span><span class="tk-star">✦</span>
+      <span data-he="גשר קלורי" data-en="Calori bridge">גשר קלורי</span><span class="tk-star">✦</span>
+      <span data-he="מנהל AI אישי" data-en="Personal AI manager">מנהל AI אישי</span><span class="tk-star">✦</span>
+      <span data-he="משימות ופתקים" data-en="Tasks &amp; notes">משימות ופתקים</span><span class="tk-star">✦</span>
+      <span data-he="עברית-first" data-en="Hebrew-first">עברית-first</span><span class="tk-star">✦</span>
+      <span data-he="זמן אמת" data-en="Real-time">זמן אמת</span><span class="tk-star">✦</span>
+    </div>
+  </div>
+</div>
 
 <!-- THREE WORLDS -->
 <section class="pad" id="worlds">
@@ -530,6 +626,9 @@ footer{padding-block:46px 60px; border-block-start:1px solid var(--hairline-soft
 <!-- FINAL CTA -->
 <section class="wrap final" id="cta">
   <div class="final-card reveal">
+    <span class="spark" style="inset-block-start:18%;inset-inline-start:12%;">✦</span>
+    <span class="spark s2" style="inset-block-start:30%;inset-inline-end:16%;">✦</span>
+    <span class="spark s3" style="inset-block-end:20%;inset-inline-start:24%;">✦</span>
     <h2 data-he="היום שלך, <em>מאוחד</em>." data-en="Your day, <em>unified</em>.">היום שלך, <em>מאוחד</em>.</h2>
     <p data-he="לימודים, חיים ותזונה — במקום אחד שקט וחכם." data-en="Studies, life and nutrition — in one calm, smart place.">לימודים, חיים ותזונה — במקום אחד שקט וחכם.</p>
     <a href="#top" class="btn btn-primary" data-he="חזרה למעלה ↑" data-en="Back to top ↑">חזרה למעלה ↑</a>
@@ -568,6 +667,7 @@ function setLang(lang){
     b.classList.toggle('on', b.dataset.lang === lang);
   });
   try{ localStorage.setItem('cl-lang', lang); }catch(e){}
+  if(window.enhanceMotion) enhanceMotion();
 }
 (function(){
   var saved = 'he';
@@ -580,6 +680,146 @@ var io = new IntersectionObserver(function(entries){
   entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
 }, { threshold:.12, rootMargin:'0px 0px -8% 0px' });
 document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+// ====================== MOTION LAYER ======================
+var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---- word cascade: wrap each word so it rises in with a stagger ----
+function splitWords(el){
+  var wi = el.__wiBase || 0;
+  Array.prototype.slice.call(el.childNodes).forEach(function(node){
+    if(node.nodeType === 3 && node.textContent.trim()){
+      var frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach(function(part){
+        if(!part) return;
+        if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(part)); return; }
+        var w = document.createElement('span'); w.className = 'wrd';
+        var inn = document.createElement('span'); inn.className = 'wrd-in';
+        inn.style.setProperty('--wi', wi++); inn.textContent = part;
+        w.appendChild(inn); frag.appendChild(w);
+      });
+      el.replaceChild(frag, node);
+    } else if(node.nodeType === 1 && node.tagName !== 'BR' && !node.classList.contains('wrd')){
+      node.__wiBase = wi; splitWords(node); wi = node.__wiBase;
+    }
+  });
+  el.__wiBase = wi;
+}
+
+// ---- count-up for hero stats ----
+function countUp(el){
+  var target = parseFloat(el.textContent);
+  if(isNaN(target)) return;
+  var t0 = null, dur = 1400;
+  function step(ts){
+    if(!t0) t0 = ts;
+    var p = Math.min((ts - t0) / dur, 1);
+    var eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = Math.round(target * eased);
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// runs once + after every language switch (innerHTML gets replaced)
+function enhanceMotion(){
+  if(REDUCED) return;
+  document.querySelectorAll('.hero h1, .sec-head h2, .feat-txt h3, .final-card h2').forEach(function(h){
+    if(!h.querySelector('.wrd')) splitWords(h);
+  });
+  // rebuild ticker duplication (track must be 2x for a seamless loop)
+  var track = document.getElementById('tickerTrack');
+  if(track && track.children.length === 1){
+    track.appendChild(track.children[0].cloneNode(true));
+  }
+}
+window.enhanceMotion = enhanceMotion;
+enhanceMotion();
+
+// ---- counters fire when hero stats scroll in ----
+if(!REDUCED){
+  var cio = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.querySelectorAll('.num').forEach(countUp);
+        cio.unobserve(e.target);
+      }
+    });
+  }, { threshold:.4 });
+  var hs = document.querySelector('.hero-stats');
+  if(hs) cio.observe(hs);
+}
+
+// ---- 3D tilt on phone devices ----
+if(!REDUCED && matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.hero-phone-wrap, .feat-media').forEach(function(zone){
+    zone.classList.add('tilt-zone');
+    zone.addEventListener('mousemove', function(e){
+      var r = zone.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - .5;
+      var py = (e.clientY - r.top) / r.height - .5;
+      zone.querySelectorAll('.device').forEach(function(d){
+        d.style.setProperty('--ry', (px * 10) + 'deg');
+        d.style.setProperty('--rx', (-py * 8) + 'deg');
+      });
+    });
+    zone.addEventListener('mouseleave', function(){
+      zone.querySelectorAll('.device').forEach(function(d){
+        d.style.setProperty('--ry', '0deg'); d.style.setProperty('--rx', '0deg');
+      });
+    });
+  });
+
+  // ---- magnetic primary buttons ----
+  document.querySelectorAll('.btn-primary').forEach(function(b){
+    b.classList.add('btn-mag');
+    b.addEventListener('mousemove', function(e){
+      var r = b.getBoundingClientRect();
+      b.style.translate = ((e.clientX - r.left - r.width/2) * .25) + 'px ' + ((e.clientY - r.top - r.height/2) * .35) + 'px';
+    });
+    b.addEventListener('mouseleave', function(){ b.style.translate = '0px 0px'; });
+  });
+
+  // ---- spotlight follows cursor inside world cards ----
+  document.querySelectorAll('.world').forEach(function(w){
+    w.addEventListener('mousemove', function(e){
+      var r = w.getBoundingClientRect();
+      w.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      w.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+  });
+
+  // ---- ambient glow trails the cursor ----
+  var glow = document.getElementById('cursorGlow');
+  if(glow){
+    var gx = -600, gy = -600, tx = gx, ty = gy, shown = false;
+    addEventListener('mousemove', function(e){
+      tx = e.clientX; ty = e.clientY;
+      if(!shown){ shown = true; glow.style.opacity = '1'; }
+    });
+    (function loop(){
+      gx += (tx - gx) * .08; gy += (ty - gy) * .08;
+      glow.style.insetInlineStart = gx + 'px'; glow.style.insetBlockStart = gy + 'px';
+      requestAnimationFrame(loop);
+    })();
+  }
+}
+
+// ---- scroll progress + hero parallax ----
+var prog = document.getElementById('scrollProgress');
+var heroPhone = document.querySelector('.hero-phone-wrap');
+var ticking = false;
+addEventListener('scroll', function(){
+  if(ticking) return; ticking = true;
+  requestAnimationFrame(function(){
+    var max = document.documentElement.scrollHeight - innerHeight;
+    if(prog && max > 0) prog.style.transform = 'scaleX(' + (scrollY / max) + ')';
+    if(!REDUCED && heroPhone && scrollY < innerHeight){
+      heroPhone.style.translate = '0 ' + (scrollY * .12) + 'px';
+    }
+    ticking = false;
+  });
+}, { passive:true });
 
 </script>
 </body>

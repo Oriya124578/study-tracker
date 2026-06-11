@@ -329,7 +329,7 @@ export const SettingsView = () => {
         title: t('data', 'נתונים'),
         items: [
           { id: 'settings/data', iconEl: <Database className="w-4 h-4" />, ic: 'gr', title: t('exportData', 'ייצוא וגיבוי'), sub: 'קובץ JSON של כל המידע' },
-          { id: 'settings/about', iconEl: <Info className="w-4 h-4" />, ic: 'gr', title: t('aboutTitle', 'אודות'), sub: 'גרסה, רישיון, פרטיות', val: 'v6.11.0' },
+          { id: 'settings/about', iconEl: <Info className="w-4 h-4" />, ic: 'gr', title: t('aboutTitle', 'אודות'), sub: 'גרסה, רישיון, פרטיות', val: 'v6.11.5' },
         ]
       }
     ];
@@ -419,7 +419,7 @@ export const SettingsView = () => {
           textAlign: 'center', fontFamily: "'Instrument Serif', serif",
           fontStyle: 'italic', fontSize: 13, color: 'rgba(138,122,106,.5)', padding: '14px 0 4px',
         }}>
-          Calori Life &middot; <em style={{ color: '#059669' }}>v6.7.0</em>
+          Calori Life &middot; <em style={{ color: '#059669' }}>v6.11.5</em>
         </div>
       </div>
     );

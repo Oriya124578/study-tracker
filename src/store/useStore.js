@@ -80,6 +80,25 @@ import { format, parseISO, isValid } from 'date-fns';
 
 // Default notification preferences. `enabled` stays false until the user opts
 // in (which also triggers the browser permission prompt).
+// Shabbat window for a given local date. The hadlaka/havdala timestamps span
+// Friday→Saturday; only the boundary that actually falls on dateStr applies
+// (setting both at once would forbid most of the day). Includes the ±1h buffer.
+const shabbatBoundsForDate = (shabbatTimes, dateStr) => {
+  if (!shabbatTimes?.start || !shabbatTimes?.end) return null;
+  try {
+    const sh = {};
+    if (shabbatTimes.start.substring(0, 10) === dateStr) {
+      sh.blockStartMin = Math.max(0, timeToMin(shabbatTimes.start.substring(11, 16)) - 60);
+    }
+    if (shabbatTimes.end.substring(0, 10) === dateStr) {
+      sh.blockEndMin = Math.min(1439, timeToMin(shabbatTimes.end.substring(11, 16)) + 60);
+    }
+    return Object.keys(sh).length > 0 ? sh : null;
+  } catch {
+    return null;
+  }
+};
+
 export const DEFAULT_NOTIFICATION_SETTINGS = {
   enabled: false,
   dailyDigest: true,
@@ -235,7 +254,7 @@ export const useStore = create((set, get) => ({
   // Phase 5: notification settings (persisted to localStorage; FCM-ready)
   notificationSettings: loadNotificationSettings(),
   // AI Command Center draft state
-  draftSchedule: { blocks: [], coachNote: '' },
+  draftSchedule: { date: null, blocks: [], coachNote: '' },
 
   // Focus Tracking state
   focusTracking: {
@@ -496,7 +515,9 @@ export const useStore = create((set, get) => ({
     if (!uid) return;
     try { get()._scheduleUnsub && get()._scheduleUnsub(); } catch { /* ignore */ }
     const unsub = fsSubscribeSchedule(uid, date, (doc) => {
-      set((state) => ({ data: { ...state.data, schedule: doc } }));
+      // Tag the doc with its date so views can ignore a stale doc while
+      // navigating between days (snapshot is async).
+      set((state) => ({ data: { ...state.data, schedule: doc ? { ...doc, _docDate: date } : null } }));
     });
     set({ _scheduleUnsub: unsub });
   },
@@ -1588,44 +1609,25 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  // Persist the draft to cl_schedule/{date} (single source of truth) so the
+  // saved plan survives reloads and re-entries instead of being regenerated.
   saveDraftSchedule: async (dateStr, draftBlocks, coachNote) => {
-    const { uid } = get();
+    const { uid, data } = get();
     if (!uid) return;
 
-    for (const block of draftBlocks) {
-      if (
-        block.type === 'study' ||
-        block.type === 'event' ||
-        block.type === 'meal' ||
-        block.type === 'travel' ||
-        block.type === 'leisure'
-      ) {
-        if (block.isProposed) {
-          const eventId = block.id.startsWith('draft-') ? newId(uid, 'event') : block.id;
-          const startIso = `${dateStr}T${block.startTime}:00`;
-          const endIso = `${dateStr}T${block.endTime}:00`;
-
-          await fsSetEvent(uid, eventId, {
-            title: block.title,
-            start: startIso,
-            end: endIso,
-            allDay: false,
-            type: block.type,
-            notes: block.notes || '',
-            isProposed: true,
-            refId: block.refId || null,
-          }).catch(console.error);
+    const taskIds = new Set((data.personalTasks || []).map((t) => t.id));
+    const blocks = (draftBlocks || [])
+      .filter((b) => b.type !== 'sleep' && b.type !== 'leisure')
+      .map((b) => {
+        let duration = b.duration;
+        if (!duration && b.startTime && b.endTime) {
+          try { duration = timeToMin(b.endTime) - timeToMin(b.startTime); } catch { duration = 60; }
         }
-      } else if (block.refId && block.id.startsWith('task-')) {
-        const taskId = block.refId;
-        await fsSetPersonalTask(uid, taskId, {
-          scheduledDate: dateStr,
-          scheduledTime: block.startTime,
-          scheduledDuration: block.duration || 60,
-          updatedAt: new Date().toISOString(),
-        }).catch(console.error);
-      }
-    }
+        const source = b.source || (b.refId && taskIds.has(b.refId) ? 'task' : 'schedule');
+        return { ...b, duration: duration || 60, source };
+      });
+
+    await get().saveSchedule(dateStr, blocks, coachNote || '');
 
     if (coachNote) {
       get().setProfile({
@@ -1633,7 +1635,7 @@ export const useStore = create((set, get) => ({
       });
     }
 
-    set({ draftSchedule: { blocks: [], coachNote: '' } });
+    set({ draftSchedule: { date: null, blocks: [], coachNote: '' } });
   },
 
   clearDaySchedule: async (dateStr) => {
@@ -1641,6 +1643,9 @@ export const useStore = create((set, get) => ({
     if (!uid) return;
 
     try {
+      // Delete the saved schedule doc so it doesn't resurrect on re-entry.
+      await fsDeleteSchedule(uid, dateStr);
+
       const tasksToUnschedule = data.personalTasks.filter((t) => t.scheduledDate === dateStr);
       for (const t of tasksToUnschedule) {
         await fsSetPersonalTask(uid, t.id, {
@@ -1782,10 +1787,7 @@ export const useStore = create((set, get) => ({
           const bounds = {
             wakeMin: timeToMin(data?.profile?.wakeTime || '07:00'),
             sleepMin: timeToMin(data?.profile?.sleepTime || '23:00'),
-            shabbat: shabbatTimes && shabbatTimes.start && shabbatTimes.end ? {
-              blockStartMin: timeToMin(shabbatTimes.start.substring(11, 16)),
-              blockEndMin: timeToMin(shabbatTimes.end.substring(11, 16)),
-            } : null,
+            shabbat: shabbatBoundsForDate(shabbatTimes, dateStr),
           };
           const decision = chooseEngine(
             { kind: 'REMOVE', blockId },
@@ -1912,10 +1914,7 @@ export const useStore = create((set, get) => ({
           const aiBounds = {
             wakeMin: timeToMin(data?.profile?.wakeTime || '07:00'),
             sleepMin: timeToMin(data?.profile?.sleepTime || '23:00'),
-            shabbat: shabbatTimes && shabbatTimes.start && shabbatTimes.end ? {
-              blockStartMin: timeToMin(shabbatTimes.start.substring(11, 16)),
-              blockEndMin: timeToMin(shabbatTimes.end.substring(11, 16)),
-            } : null,
+            shabbat: shabbatBoundsForDate(shabbatTimes, dateStr),
           };
           const repaired = validateAndRepair(normalized, aiBounds);
           await get().saveSchedule(dateStr, repaired.blocks, result.coachNote || '');
@@ -1942,7 +1941,7 @@ export const useStore = create((set, get) => ({
       interval: Math.max(1, Number(input.interval) || 1),
       byWeekday: Array.isArray(input.byWeekday) ? input.byWeekday : null,
       byMonthday: Array.isArray(input.byMonthday) ? input.byMonthday : null,
-      startDate: input.startDate || new Date().toISOString().slice(0, 10),
+      startDate: input.startDate || dateKey(),
       endDate: input.endDate || null,
       time: input.time || null,
       durationMinutes: Math.max(1, Number(input.durationMinutes) || 30),
@@ -1971,12 +1970,17 @@ export const useStore = create((set, get) => ({
     await fsDeleteRecurringTask(uid, id).catch(console.error);
   },
 
+  // NOTE: these write NESTED objects, not dotted field paths — fsSetPersonalTask
+  // uses setDoc(..., {merge:true}), which treats dotted keys as literal field
+  // names (only updateDoc expands them). setDoc-merge deep-merges nested maps,
+  // so this lands in recurrence.completions/skips/exceptions correctly.
+
   // Mark a specific date as completed for a recurring rule
   completeRecurringInstance: async (id, dateStr) => {
     const { uid } = get();
     if (!uid || !id || !dateStr) return;
     await fsSetPersonalTask(uid, id, {
-      [`recurrence.completions.${dateStr}`]: { done: true, doneAt: new Date().toISOString() },
+      recurrence: { completions: { [dateStr]: { done: true, doneAt: new Date().toISOString() } } },
       updatedAt: new Date().toISOString(),
     }).catch(console.error);
   },
@@ -1986,7 +1990,7 @@ export const useStore = create((set, get) => ({
     const { uid } = get();
     if (!uid || !id || !dateStr) return;
     await fsSetPersonalTask(uid, id, {
-      [`recurrence.skips.${dateStr}`]: true,
+      recurrence: { skips: { [dateStr]: true } },
       updatedAt: new Date().toISOString(),
     }).catch(console.error);
   },
@@ -1995,11 +1999,9 @@ export const useStore = create((set, get) => ({
   editRecurringInstance: async (id, dateStr, overrides) => {
     const { uid } = get();
     if (!uid || !id || !dateStr) return;
-    const patch = {};
-    for (const [k, v] of Object.entries(overrides)) {
-      patch[`recurrence.exceptions.${dateStr}.${k}`] = v;
-    }
-    patch.updatedAt = new Date().toISOString();
-    await fsSetPersonalTask(uid, id, patch).catch(console.error);
+    await fsSetPersonalTask(uid, id, {
+      recurrence: { exceptions: { [dateStr]: overrides } },
+      updatedAt: new Date().toISOString(),
+    }).catch(console.error);
   },
 }));

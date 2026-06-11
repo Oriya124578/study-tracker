@@ -39,7 +39,7 @@ You must ALWAYS output a single valid JSON object with the following structure:
 }
 
 Scheduling Rules:
-1. Sleep hours: Respect the user's wake and sleep hours (e.g. 07:00 to 23:00). Add 'sleep' blocks for the remaining time.
+1. Sleep hours: Plan ONLY between the user's wake time and bedtime. Do NOT output 'sleep' blocks — anything outside the waking window is simply not scheduled.
 2. Morning Prayer: Immediately after the user's wake-up time (e.g., if wake time is 07:00, then from 07:00 to 07:45), ALWAYS schedule a block titled "תפילה" (type: 'event') for 45 minutes.
 3. Fixed events (events, university lectures, tutorials, exams, doctor appointments): These are pre-existing and MUST NOT be moved. Mark them with isLocked = true, isProposed = false.
 4. Travel blocks: For fixed events with location, check the travelTimeMinutes (provided in context) and insert a 'travel' block (e.g. "נסיעה") before and after the event.
@@ -50,7 +50,12 @@ Scheduling Rules:
 9. Meals: Schedule 'meal' blocks (e.g. breakfast, lunch, dinner) at normal times (e.g. 08:30, 13:00, 19:30) of about 30-45 minutes.
 10. Do not overlap blocks! They must be sequential.
 11. All text fields (title, notes, coachNote) MUST be in Hebrew (RTL friendly). Number/time fields should use standard numerals.
-12. NEVER generate any blocks of type 'leisure' or any block representing breaks, rest, leisure, or free time (e.g. 'הפסקה קצרה', 'הפסקה', 'זמן חופשי', 'מנוחה'). The timeline MUST only contain active blocks like 'study', 'meal', 'workout', 'event', 'sleep', 'travel'. Gaps in the timeline represent free/break time and must simply have no blocks at all.
+12. NEVER generate any blocks of type 'leisure' or any block representing breaks, rest, leisure, or free time (e.g. 'הפסקה קצרה', 'הפסקה', 'זמן חופשי', 'מנוחה'). The timeline MUST only contain active blocks like 'study', 'meal', 'workout', 'event', 'travel'. Gaps in the timeline represent free/break time and must simply have no blocks at all.
+13. Realistic pacing: do NOT pack the day wall-to-wall. Leave a gap of at least 15-30 minutes between consecutive proposed blocks (fixed events excepted), and leave at least 2-3 hours of the waking day completely unscheduled. A day with 3-5 well-placed blocks beats a day with 10 crammed ones.
+14. Round times: all proposed startTime/endTime values must land on :00, :15, :30 or :45.
+15. Study focus: at most 3 study blocks per day. Prioritize the course with the NEAREST exam; do not create a study block for a course without a clear reason (upcoming exam or a linked task). Put the most demanding study block in the user's preferred study hours, or in the morning if no preference exists.
+16. Keep every existing/locked item exactly where it is — never duplicate it, never re-time it, never invent fixed events that were not provided.
+17. coachNote must be personal and concrete (reference the actual plan: nearest exam, workout timing, load level) — not a generic motivational phrase.
 `;
 
 export const extractJSONFromMarkdown = (text) => {
@@ -114,8 +119,12 @@ User's recent scheduling analytics (last 3 days):
 Use this data to personalize study block durations and frequency. For example, if actualStudyDuration < plannedStudyDuration, suggest shorter blocks. If interruptionCount is high, insert more spacing between blocks.
 ` : ''}
 ${context.dayProfile ? `
-User's day directive (soft global constraint — bias the whole schedule to respect this):
+User's day directive — this is the MOST IMPORTANT input. Build the whole schedule around it:
   "${context.dayProfile}"
+Interpretation rules for the directive:
+- If it mentions an exam ("מבחן מחר/היום ב[קורס]"), dedicate MOST study blocks to that course (this overrides rule 15's block limit — up to 5 focused blocks with real gaps between them).
+- If it mentions a trip, drive, appointment or any time commitment ("נסיעה ב-16:00", "תור לרופא"), ADD it as a locked 'event' or 'travel' block at the stated time (estimate a sensible duration if not given).
+- If it mentions fatigue or a light day, schedule fewer and shorter blocks.
 ` : ''}`;
 
     const result = await model.generateContent([
@@ -165,7 +174,10 @@ User settings:
 
 Please modify the schedule to satisfy the user's command.
 - You can resize, move, add, or delete 'study', 'meal', 'workout', and 'travel' blocks. NEVER add, suggest, or include any 'leisure' or break blocks.
+- If the command mentions a NEW commitment — a trip ("נסיעה"), appointment ("תור"), meeting, or event with a time — ADD it as a new locked block ('event' or 'travel') at the stated time, and move conflicting non-locked blocks out of its way.
+- If the command mentions an exam ("יש לי מחר מבחן ב..."), restructure the study blocks to focus on that course — replace other study blocks if needed.
 - DO NOT move any 'isLocked': true blocks (like lectures, exams, or doctor appointments) unless the user's command explicitly requests changing/deleting that specific locked item.
+- Keep all unchanged blocks EXACTLY as they are (same id, times, titles) — return the FULL schedule, not just the changed blocks.
 - Provide a new coachNote explaining the adjustments made in Hebrew.
 `;
 

@@ -6,6 +6,15 @@ import { toast } from '../../store/useToast';
 import { cn } from '../../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 
+// LOCAL yyyy-MM-dd (toISOString is UTC — wrong date between midnight and ~02:00 IL time).
+const localDateStr = (offsetDays = 0) => {
+  const d = new Date(Date.now() + offsetDays * 86400000);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 /* ── cream v3 palette ─────────────────────────────────────── */
 const CREAM = {
   bg: '#FAF7F2',
@@ -698,14 +707,14 @@ export const AddItemSheet = () => {
                   <SectionLabel>{t('dueDate')}</SectionLabel>
                   <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                     <DueChip
-                      active={dueDate === new Date().toISOString().slice(0, 10)}
-                      onClick={() => setDueDate(new Date().toISOString().slice(0, 10))}
+                      active={dueDate === localDateStr()}
+                      onClick={() => setDueDate(localDateStr())}
                     >
                       {t('today', 'Today')}
                     </DueChip>
                     <DueChip
-                      active={dueDate === new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
-                      onClick={() => setDueDate(new Date(Date.now() + 86400000).toISOString().slice(0, 10))}
+                      active={dueDate === localDateStr(1)}
+                      onClick={() => setDueDate(localDateStr(1))}
                     >
                       {t('tomorrow', 'Tomorrow')}
                     </DueChip>
@@ -713,8 +722,8 @@ export const AddItemSheet = () => {
                       {t('thisWeek', 'This week')}
                     </DueChip>
                     <div className="flex-shrink-0 relative">
-                      <DueChip active={!!dueDate && ![new Date().toISOString().slice(0, 10), new Date(Date.now() + 86400000).toISOString().slice(0, 10)].includes(dueDate)}>
-                        {dueDate && ![new Date().toISOString().slice(0, 10), new Date(Date.now() + 86400000).toISOString().slice(0, 10)].includes(dueDate) ? dueDate : t('pickDate', 'Pick date')}
+                      <DueChip active={!!dueDate && ![localDateStr(), localDateStr(1)].includes(dueDate)}>
+                        {dueDate && ![localDateStr(), localDateStr(1)].includes(dueDate) ? dueDate : t('pickDate', 'Pick date')}
                       </DueChip>
                       <input
                         type="date"
