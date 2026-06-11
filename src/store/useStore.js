@@ -843,6 +843,100 @@ export const useStore = create((set, get) => ({
     fsDeleteShoppingList(uid, listId).catch(console.error);
   },
 
+  renameShoppingList: (listId, name) => {
+    const { uid } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) =>
+          l.id === listId ? { ...l, name, updatedAt: now } : l
+        ),
+      },
+    }));
+    fsSetShoppingList(uid, listId, { name, updatedAt: now }).catch(console.error);
+  },
+
+  // "Active" is now just a single optional pin (decoupled from which list is
+  // being viewed/edited). Setting one active clears the flag on the previous.
+  setActiveShoppingList: (listId) => {
+    const { uid, data } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) =>
+          l.id === listId
+            ? { ...l, isActive: true, updatedAt: now }
+            : l.isActive
+            ? { ...l, isActive: false }
+            : l
+        ),
+      },
+    }));
+    for (const l of data.shoppingLists) {
+      if (l.isActive && l.id !== listId) {
+        fsSetShoppingList(uid, l.id, { isActive: false, updatedAt: now }).catch(console.error);
+      }
+    }
+    fsSetShoppingList(uid, listId, { isActive: true, updatedAt: now }).catch(console.error);
+  },
+
+  unsetActiveShoppingList: (listId) => {
+    const { uid } = get();
+    if (!uid) return;
+    const now = new Date().toISOString();
+    set((state) => ({
+      data: {
+        ...state.data,
+        shoppingLists: state.data.shoppingLists.map((l) =>
+          l.id === listId ? { ...l, isActive: false, updatedAt: now } : l
+        ),
+      },
+    }));
+    fsSetShoppingList(uid, listId, { isActive: false, updatedAt: now }).catch(console.error);
+  },
+
+  // Persist a new within-category item order. Items of other categories keep
+  // their positions; the reordered category's slots are filled in the new order.
+  reorderShoppingItems: (listId, categoryKey, orderedIds) =>
+    get()._patchShoppingItems(listId, (items) => {
+      const inCat = orderedIds.map((id) => items.find((it) => it.id === id)).filter(Boolean);
+      let ci = 0;
+      return items.map((it) => (it.category === categoryKey ? inCat[ci++] || it : it));
+    }),
+
+  resetShoppingChecks: (listId) =>
+    get()._patchShoppingItems(listId, (items) =>
+      items.map((it) => (it.checked ? { ...it, checked: false } : it))
+    ),
+
+  // Clone a list (all items reset to unchecked) so a weekly shopper rebuilds a
+  // past list in one tap. Returns the new id.
+  duplicateShoppingList: async (listId) => {
+    const { uid, data } = get();
+    if (!uid) return null;
+    const src = data.shoppingLists.find((l) => l.id === listId);
+    if (!src) return null;
+    const id = newId(uid, 'shoppingList');
+    const now = new Date().toISOString();
+    const copy = {
+      name: `${src.name} (עותק)`,
+      createdAt: now,
+      updatedAt: now,
+      isActive: false,
+      items: (src.items || []).map((it) => ({ ...it, id: genItemId(), checked: false })),
+      rawText: src.rawText || '',
+    };
+    set((state) => ({
+      data: { ...state.data, shoppingLists: [{ id, ...copy }, ...state.data.shoppingLists] },
+    }));
+    await fsSetShoppingList(uid, id, copy).catch(console.error);
+    return id;
+  },
+
   // Persist a learned item→category mapping to Firestore (cross-device sync).
   learnGroceryItems: (learnedMap) => {
     const { uid } = get();
