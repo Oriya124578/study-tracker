@@ -95,7 +95,7 @@ export const BrandedLoadingScreen = () => {
           className="mt-[10px] text-[12px] font-semibold text-black/30 dark:text-white/30 tracking-[1.2px] uppercase select-text"
           style={{ fontFamily: "'Heebo', sans-serif" }}
         >
-          v6.10.1
+          v6.11.0
         </div>
 
         {/* Indicator dots */}
