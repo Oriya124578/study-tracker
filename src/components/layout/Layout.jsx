@@ -114,6 +114,7 @@ export const Layout = () => {
           backdropFilter: 'blur(22px)',
           WebkitBackdropFilter: 'blur(22px)',
           borderColor: 'rgba(180,140,80,.12)',
+          transform: 'translateZ(0)',
         }}
         dir={language === 'he' ? 'rtl' : 'ltr'}
       >
@@ -192,7 +193,7 @@ export const Layout = () => {
       <button
         onClick={() => setIsFanMenuOpen(!isFanMenuOpen)}
         className="fixed right-4 bottom-[calc(64px+env(safe-area-inset-bottom))] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
-        style={{ background: '#065F46', boxShadow: '0 6px 20px rgba(6,95,70,.35)' }}
+        style={{ background: '#065F46', boxShadow: '0 6px 20px rgba(6,95,70,.35)', transform: 'translateZ(0)', willChange: 'transform' }}
         aria-label={isFanMenuOpen ? t('close') : t('navMore')}
       >
         <motion.div

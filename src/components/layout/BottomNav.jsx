@@ -33,6 +33,10 @@ export const BottomNav = () => {
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(180,140,80,.12)',
+        // iOS WebKit: fixed + backdrop-filter detaches from the viewport while
+        // scrolling unless the element gets its own compositing layer.
+        transform: 'translateZ(0)',
+        willChange: 'transform',
       }}
     >
       {NAV_ITEMS.map((item) => {

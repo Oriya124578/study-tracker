@@ -64,13 +64,31 @@ const Checkbox = ({ checked, onClick }) => (
   </motion.button>
 );
 
+/* True when the item was added in the last moments — drives the "lands in its
+   category" entrance (green sweep + spring). */
+const isJustAdded = (item) => {
+  if (!item.addedAt) return false;
+  const ts = new Date(item.addedAt).getTime();
+  return Number.isFinite(ts) && Date.now() - ts < 2500;
+};
+
 /* ── Item Row (normal mode: tap-check + swipe-delete) ─────── */
-const ItemRow = ({ item, onToggle, onEdit, onDelete, onMoveCat, t, isRTL }) => {
+const ItemRow = ({ item, onToggle, onEdit, onDelete, onMoveCat, t, isRTL, highlight = false }) => {
   const meta = item.qty ? `${item.qty}${item.unit ? ' ' + item.unit : ''}` : null;
   const dragElastic = isRTL ? { left: 0, right: 0.6 } : { left: 0.6, right: 0 };
   const passedThreshold = (x) => (isRTL ? x > 90 : x < -90);
   return (
     <div className="relative overflow-hidden" style={{ borderBottom: `1px solid rgba(180,140,80,.06)` }}>
+      {/* One-shot green sweep over a freshly added item */}
+      {highlight && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-10"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 1.5, delay: 0.25, ease: 'easeOut' }}
+          style={{ background: 'linear-gradient(90deg, rgba(5,150,105,.18), rgba(16,185,129,.06))' }}
+        />
+      )}
       <div className={cn('absolute inset-0 flex items-center px-5', isRTL ? 'justify-end' : 'justify-start')} style={{ background: CREAM.redSoft }}>
         <Trash2 className="w-5 h-5" style={{ color: CREAM.red }} />
       </div>
@@ -323,9 +341,20 @@ const CategorySection = ({ group, isOpen, onToggleOpen, onToggleItem, onEditItem
             transition={{ duration: 0.22 }}
             style={{ borderTop: `1px solid ${CREAM.borderLight}` }}
           >
-            {displayItems.map((item) => (
-              <ItemRow key={item.id} item={item} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onMoveCat={() => onMoveItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
-            ))}
+            {displayItems.map((item) => {
+              const fresh = isJustAdded(item);
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={fresh ? { opacity: 0, scale: 0.92, y: -12 } : false}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                >
+                  <ItemRow item={item} highlight={fresh} onToggle={() => onToggleItem(item.id)} onEdit={() => onEditItem(item)} onMoveCat={() => onMoveItem(item)} onDelete={() => onDeleteItem(item.id)} t={t} isRTL={isRTL} />
+                </motion.div>
+              );
+            })}
             {adding ? (
               <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderTop: `1px solid ${CREAM.borderLight}` }}>
                 <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submitAdd(); if (e.key === 'Escape') { setAdding(false); setDraft(''); } }} onBlur={submitAdd} placeholder={t('productName')} className="flex-1 bg-transparent outline-none text-sm" style={{ color: CREAM.ink }} />
@@ -470,18 +499,23 @@ const PasteView = ({ onCancel, onCreate, t, isRTL }) => {
           <div className="text-[13px] font-bold uppercase tracking-wide" style={{ color: CREAM.muted }}>
             {parsed.items.length} {t('itemsInCategories').replace('{cats}', parsed.groups.length)}
           </div>
-          {parsed.groups.map((g) => {
+          {parsed.groups.map((g, gi) => {
             const m = getCategoryMeta(g.key);
             const nm = isRTL ? m.he : m.en;
             return (
-              <div key={g.key} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(250,247,242,.6)', border: `1px solid ${CREAM.borderLight}` }}>
+              <motion.div
+                key={g.key}
+                initial={{ opacity: 0, x: isRTL ? 18 : -18, scale: 0.96 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 360, damping: 26, delay: gi * 0.07 }}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(250,247,242,.6)', border: `1px solid ${CREAM.borderLight}` }}>
                 <span className="text-xl w-7 text-center">{m.emoji}</span>
                 <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                   <span className="text-[13px] font-semibold" style={{ color: CREAM.ink }}>{nm}</span>
                   <span className="text-[11px] truncate" style={{ color: CREAM.muted }}>{g.items.map((i) => i.name).join(', ')}</span>
                 </div>
                 <span className="text-base font-semibold min-w-6 text-center" style={{ fontFamily: display, color: CREAM.green }}>{g.items.length}</span>
-              </div>
+              </motion.div>
             );
           })}
           <button onClick={() => onCreate(name.trim() || t('shoppingTitle'), text, parsed.items)} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white text-[15px] font-semibold mt-1 transition-transform active:scale-[.98]" style={{ background: CREAM.green, boxShadow: '0 4px 16px rgba(5,150,105,.25)' }}>
@@ -657,6 +691,8 @@ export const ShoppingListView = () => {
     const { items, unresolved } = parseShoppingText(raw);
     const it = items[0] || { name: raw, qty: null, unit: null, category: 'other' };
     addShoppingItem(viewingList.id, it);
+    // Pop the target category open so the user SEES the item land in place.
+    setOpenOverrides((o) => ({ ...o, [it.category]: true }));
     const m = getCategoryMeta(it.category);
     toast.success(`${it.name} ← ${m.emoji} ${language === 'he' ? m.he : m.en}`);
     if (unresolved.length > 0) {

@@ -5,6 +5,7 @@ import {
   Coffee, Dumbbell, Utensils, ChevronLeft, ChevronRight, X, RefreshCw,
   Lock, Unlock, Moon, Sun, MoreVertical
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
@@ -1030,18 +1031,19 @@ export const CommandCenterView = () => {
                       <DroppableHour id={hour} isCovered={isCovered}>
                         <div className="flex-1 flex flex-col gap-2.5 justify-center h-full min-h-[3rem] min-w-0">
                           {hourBlocks.length > 0 ? (
-                            hourBlocks.map((block) => {
+                            hourBlocks.map((block, blockIdx) => {
                               const Icon = blockIcons[block.type] || CalendarIcon;
                               return (
-                                <DraggableBlock 
-                                  key={block.id} 
-                                  id={block.id} 
-                                  isLocked={block.isLocked} 
+                                <DraggableBlock
+                                  key={block.id}
+                                  id={block.id}
+                                  isLocked={block.isLocked}
                                   data={{ ...block, isTimelineBlock: true }}
                                 >
                                   <div
+                                    style={{ animationDelay: `${Math.min(blockIdx * 50, 250)}ms` }}
                                     className={cn(
-                                      'p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
+                                      'rise-in p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
                                       blockColors[block.type] || 'border-border bg-card',
                                       isBlockNow(block) && 'ring-2 ring-[#059669]/50 shadow-md',
                                       block.isCompleted && 'opacity-55',
@@ -1427,10 +1429,36 @@ export const CommandCenterView = () => {
         onAction={(action) => handleBlockAction(activeActionBlock, action)}
       />
 
-      {/* Loading Overlay */}
+      {/* Loading Overlay — animated "schedule being built" skeleton */}
       {loading && (
-        <div className="fixed inset-0 bg-background/50 backdrop-blur-md z-[110] flex flex-col items-center justify-center gap-3">
-          <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+        <div className="fixed inset-0 bg-background/60 backdrop-blur-md z-[110] flex flex-col items-center justify-center gap-6 px-8">
+          <motion.div
+            animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.08, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            className="flex items-center justify-center"
+            style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', boxShadow: '0 8px 30px rgba(124,58,237,.35)' }}
+          >
+            <Sparkles className="w-7 h-7 text-white" />
+          </motion.div>
+
+          {/* Mini timeline that assembles itself in a loop */}
+          <div className="w-full max-w-[260px] flex flex-col gap-2" dir={isRTL ? 'rtl' : 'ltr'}>
+            {[{ w: '85%', c: 'rgba(37,99,235,.25)' }, { w: '60%', c: 'rgba(5,150,105,.3)' }, { w: '75%', c: 'rgba(124,58,237,.25)' }, { w: '50%', c: 'rgba(217,119,6,.3)' }].map((bar, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 10, color: '#8A7A6A', width: 26 }} dir="ltr">
+                  {String(8 + i * 3).padStart(2, '0')}:00
+                </span>
+                <motion.div
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: [0, 1, 1, 0], opacity: [0, 1, 1, 0] }}
+                  transition={{ duration: 2.4, times: [0, 0.25, 0.8, 1], repeat: Infinity, delay: i * 0.22, ease: 'easeInOut' }}
+                  className="h-[14px] rounded-md origin-right"
+                  style={{ width: bar.w, background: bar.c, transformOrigin: isRTL ? 'right' : 'left' }}
+                />
+              </div>
+            ))}
+          </div>
+
           <p className="text-sm font-black text-foreground">{t('ccAiCalculating')}</p>
         </div>
       )}
