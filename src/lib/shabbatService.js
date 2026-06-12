@@ -36,7 +36,12 @@ export const fetchShabbatTimes = async (location, dateStr = '', onData = null) =
   // b = minutes before sunset for candle-lighting.
   // Standard in Israel: 30 min (Jerusalem: 40). Google/Chabad use 30.
   // M=on calculates Havdalah based on 8.5 degrees (standard Israeli 3 stars).
-  const candleMinutes = (location?.city === 'jerusalem') ? 40 : 30;
+  // GPS path: detect Jerusalem proximity (~15km of the Old City) for the 40-min custom.
+  const nearJerusalem =
+    location?.latitude && location?.longitude &&
+    Math.abs(Number(location.latitude) - 31.778) < 0.14 &&
+    Math.abs(Number(location.longitude) - 35.235) < 0.16;
+  const candleMinutes = (location?.city === 'jerusalem' || nearJerusalem) ? 40 : 30;
   let url = `https://www.hebcal.com/shabbat?cfg=json&b=${candleMinutes}&M=on&tzid=Asia/Jerusalem`;
   
   if (dateStr) {

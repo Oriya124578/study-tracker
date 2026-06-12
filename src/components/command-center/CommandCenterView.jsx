@@ -868,12 +868,12 @@ export const CommandCenterView = () => {
       <div className="relative overflow-hidden" style={{ ...ccCard, padding: '22px 20px' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #065F46, #7C3AED 50%, #2563EB)' }} />
         <div style={{ position: 'absolute', top: -60, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div className="flex items-center gap-[6px] mb-2" style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.14em', textTransform: 'uppercase' }}>
+        <div className="flex items-center gap-[6px] mb-1.5" style={{ fontSize: 10, fontWeight: 600, color: '#8A7A6A', letterSpacing: '.14em', textTransform: 'uppercase' }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7C3AED', display: 'inline-block' }} className="animate-pulse" />
-          {t('ccTitle')} · {format(currentDate, 'EEEE, d MMMM', { locale })}
+          {t('ccTitle')}
         </div>
-        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 28, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.04em', lineHeight: 1.05, marginBottom: 10 }}>
-          {t('ccSubtitle')}
+        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 24, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.04em', lineHeight: 1.05, marginBottom: 6 }}>
+          {format(currentDate, 'EEEE, d MMMM', { locale })}
         </h1>
         <div className="flex items-center gap-1.5" style={{ fontSize: 13, color: '#5A4A3A', lineHeight: 1.6 }}>
           {!weather.loading && !weather.error && (
@@ -895,9 +895,7 @@ export const CommandCenterView = () => {
             <button onClick={setToday} className="px-4 py-1.5 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 999, background: '#F0FDF4', border: '1px solid rgba(5,150,105,.2)', fontSize: 11, fontWeight: 600, color: '#065F46' }}>
               {t('today')}
             </button>
-            <span className="flex-1 text-center min-w-[100px]" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 15, fontWeight: 400, color: '#2A1A0A' }}>
-              {format(currentDate, 'EEEE, d MMMM', { locale })}
-            </span>
+            <span className="flex-1" />
             <button onClick={nextDay} className="p-2 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: '50%', background: '#fff', border: '1px solid rgba(180,140,80,.18)' }}>
               <ChevronLeft className="w-4 h-4" style={{ color: '#2A1A0A' }} />
             </button>
@@ -926,7 +924,7 @@ export const CommandCenterView = () => {
                   <div className="flex items-center justify-between">
                     <h4 style={{ fontSize: 10, fontWeight: 600, color: '#7C3AED', letterSpacing: '.12em', textTransform: 'uppercase' }}>{t('ccCoachNote')}</h4>
                   </div>
-                  <p className="mt-1 leading-relaxed" style={{ fontSize: 13, color: '#5A4A3A' }}>{coachNote}</p>
+                  <p className="mt-1 leading-relaxed" style={{ fontSize: 13, color: '#5A4A3A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{coachNote}</p>
                 </div>
               </div>
             </div>

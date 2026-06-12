@@ -20,7 +20,18 @@ import {
   getMinutes,
 } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Trash2, MapPin, Clock, Sparkles, Check, GraduationCap } from 'lucide-react';
+import { dateKey } from '../../lib/caloriRepo';
+import { toast } from '../../store/useToast';
 import styles from './CalendarView.module.css';
+
+const dayKeyOf = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+};
 
 function safeParse(d) {
   if (!d) return null;
@@ -29,13 +40,21 @@ function safeParse(d) {
 }
 
 export const CalendarView = () => {
-  const { data } = useStore();
+  const { data, updateEvent, deleteEvent, updatePersonalTask, deletePersonalTask, togglePersonalTask, setActiveCategory, setScheduleDate } = useStore();
   const isRTL = true;
   const locale = he;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week'); // 'day', '3days', 'week', 'month', 'list'
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedItem, setSelectedItem] = useState(null); // tapped block → edit sheet
+
+  // Day view follows the manager's cl_schedule for the viewed date, so the
+  // plan the manager built shows up inside the calendar. Restored on unmount.
+  useEffect(() => {
+    if (viewMode === 'day') setScheduleDate(dayKeyOf(selectedDate));
+  }, [viewMode, selectedDate, setScheduleDate]);
+  useEffect(() => () => { useStore.getState().setScheduleDate(dateKey()); }, []);
 
   // Tick every minute so the "now" line stays accurate while the view is open.
   const [nowTick, setNowTick] = useState(() => new Date());
@@ -132,7 +151,61 @@ export const CalendarView = () => {
     return [];
   };
 
-  const itemsForDay = (day) => allItems.filter((item) => isSameDay(item.date, day));
+  // Blocks the manager planned (cl_schedule) for the subscribed date, mapped
+  // into calendar items. Events are skipped (they already appear from cl_events).
+  const planItems = useMemo(() => {
+    const doc = data?.schedule;
+    if (!doc || !Array.isArray(doc.blocks) || !doc._docDate) return [];
+    const [y, m, d] = doc._docDate.split('-').map(Number);
+    if (!y || !m || !d) return [];
+    const kindOf = (b) =>
+      b.type === 'meal' ? 'meal'
+      : b.type === 'workout' ? 'workout'
+      : b.type === 'study' ? 'lec'
+      : b.type === 'task' || b.source === 'task' ? 'task'
+      : 'event';
+    const out = [];
+    for (const b of doc.blocks) {
+      if (!b || b.source === 'event' || typeof b.startTime !== 'string') continue;
+      const [sh, sm] = b.startTime.split(':').map(Number);
+      if (Number.isNaN(sh)) continue;
+      const start = new Date(y, m - 1, d, sh, sm || 0);
+      let end = null;
+      if (typeof b.endTime === 'string') {
+        const [eh, em] = b.endTime.split(':').map(Number);
+        if (!Number.isNaN(eh)) end = new Date(y, m - 1, d, eh, em || 0);
+      }
+      out.push({
+        id: `plan-${b.id}`,
+        kind: kindOf(b),
+        title: b.title || '',
+        date: start,
+        endDate: end,
+        allDay: false,
+        plan: true,
+        notes: b.notes || '',
+      });
+    }
+    return out;
+  }, [data?.schedule]);
+
+  const planDate = useMemo(() => {
+    const ds = data?.schedule?._docDate;
+    if (!ds) return null;
+    const [y, m, d] = ds.split('-').map(Number);
+    return y && m && d ? new Date(y, m - 1, d) : null;
+  }, [data?.schedule?._docDate]);
+
+  const itemsForDay = (day) => {
+    const base = allItems.filter((item) => isSameDay(item.date, day));
+    if (planItems.length > 0 && planDate && isSameDay(day, planDate)) {
+      // Avoid double-showing a timed item at the exact same start with same title.
+      const seen = new Set(base.map((i) => `${i.title}|${i.allDay ? 'a' : format(i.date, 'HH:mm')}`));
+      const extra = planItems.filter((p) => !seen.has(`${p.title}|${format(p.date, 'HH:mm')}`));
+      return [...base, ...extra].sort((a, b) => a.date - b.date);
+    }
+    return base;
+  };
 
   const nav = (dir) => {
     const d = dir === 'next' ? 1 : -1;
@@ -286,7 +359,7 @@ export const CalendarView = () => {
                   <div className={styles.dLine}></div>
                 </div>
               )}
-              <div role="listitem" className={`${styles.item} ${getEventClass(item.kind)}`}>
+              <div role="listitem" onClick={() => setSelectedItem(item)} style={{ cursor: 'pointer' }} className={`${styles.item} ${getEventClass(item.kind)}`}>
                 <div className={styles.itemTime}>{item.allDay ? 'כל היום' : format(item.date, 'HH:mm')}</div>
                 <div className={styles.itemBody}>
                   <div className={styles.itemName}>{item.title}</div>
@@ -389,7 +462,7 @@ export const CalendarView = () => {
             {days.map((day, di) => (
               <div key={day.toISOString()} className={styles.adCell}>
                 {allDayByDay[di].slice(0, maxChips).map((item) => (
-                  <div key={item.id} className={`${styles.adChip} ${getEventClass(item.kind)} ${item.done ? styles.adDone : ''}`} title={item.title}>
+                  <div key={item.id} onClick={() => setSelectedItem(item)} role="button" style={{ cursor: 'pointer' }} className={`${styles.adChip} ${getEventClass(item.kind)} ${item.done ? styles.adDone : ''}`} title={item.title}>
                     {item.title}
                   </div>
                 ))}
@@ -431,13 +504,16 @@ export const CalendarView = () => {
                   return (
                     <div
                       key={item.id}
-                      className={`${styles.evt} ${getEventClass(item.kind)}`}
+                      onClick={() => setSelectedItem(item)}
+                      role="button"
+                      className={`${styles.evt} ${getEventClass(item.kind)} ${item.plan ? styles.planEvt : ''}`}
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
                         width: cols > 1 ? `calc(${100 / cols}% - 3px)` : undefined,
                         insetInlineStart: cols > 1 ? `${(col * 100) / cols}%` : undefined,
                         insetInlineEnd: cols > 1 ? 'auto' : undefined,
+                        cursor: 'pointer',
                       }}
                       title={item.title}
                     >
@@ -504,7 +580,7 @@ export const CalendarView = () => {
             <div
               key={d.toISOString()}
               className={`${styles.dhDay} ${isToday(d) ? styles.today : ''}`}
-              onClick={() => setSelectedDate(d)}
+              onClick={() => { setSelectedDate(d); setViewMode('day'); }}
             >
               <div className={styles.dhName}>{format(d, 'E', { locale })}{isToday(d) ? ' · היום' : ''}</div>
               <div className={styles.dhNum}>{format(d, 'd')}</div>
@@ -528,7 +604,7 @@ export const CalendarView = () => {
               role="columnheader"
               aria-label={format(d, 'EEEE', { locale: enUS })}
               className={`${styles.dhDay} ${isToday(d) ? styles.today : ''}`}
-              onClick={() => setSelectedDate(d)}
+              onClick={() => { setSelectedDate(d); setViewMode('day'); }}
             >
               <div className={styles.dhName}>{format(d, 'E', { locale })}</div>
               <div className={styles.dhNum}>{format(d, 'd')}</div>
@@ -537,6 +613,43 @@ export const CalendarView = () => {
         </div>
         {renderGridCols(days, 'week')}
       </>
+    );
+  };
+
+  // ── Item detail / edit sheet ───────────────────────────────────────────
+  const KIND_META = {
+    exam: { label: 'מבחן', color: '#DC2626', Icon: GraduationCap },
+    lec: { label: 'לימודים', color: '#2563EB', Icon: Clock },
+    task: { label: 'משימה', color: '#D97706', Icon: Check },
+    meal: { label: 'ארוחה', color: '#059669', Icon: Clock },
+    workout: { label: 'אימון', color: '#7C3AED', Icon: Clock },
+    event: { label: 'אירוע', color: '#5A4A3A', Icon: Clock },
+  };
+
+  const renderItemSheet = () => {
+    if (!selectedItem) return null;
+    const it = selectedItem;
+    const meta = KIND_META[it.kind] || KIND_META.event;
+    const isEvent = it.kind === 'event' && !it.plan && !String(it.id).startsWith('exam-');
+    const isTask = it.kind === 'task' && !it.plan;
+    const close = () => setSelectedItem(null);
+
+    return (
+      <ItemSheet
+        key={it.id}
+        item={it}
+        meta={meta}
+        isEvent={isEvent}
+        isTask={isTask}
+        locale={locale}
+        onClose={close}
+        onSaveEvent={(patch) => { updateEvent(it.id, patch); toast.success('האירוע עודכן'); close(); }}
+        onDeleteEvent={() => { if (window.confirm('למחוק את האירוע?')) { deleteEvent(it.id); toast.success('האירוע נמחק'); close(); } }}
+        onSaveTask={(patch) => { updatePersonalTask(it.id, patch); toast.success('המשימה עודכנה'); close(); }}
+        onToggleTask={() => { togglePersonalTask(it.id); close(); }}
+        onDeleteTask={() => { if (window.confirm('למחוק את המשימה?')) { deletePersonalTask(it.id); toast.success('המשימה נמחקה'); close(); } }}
+        onOpenManager={() => { close(); setActiveCategory('commandCenter'); }}
+      />
     );
   };
 
@@ -566,7 +679,11 @@ export const CalendarView = () => {
               role="button"
               aria-label={m.ariaLabel}
               className={`${styles.segI} ${viewMode === m.id ? styles.active : ''}`}
-              onClick={() => setViewMode(m.id)}
+              onClick={() => {
+                // 3-days always anchors on TODAY (+2 next days).
+                if (m.id === '3days' || m.id === 'day') setSelectedDate(new Date());
+                setViewMode(m.id);
+              }}
             >
               {m.label}
             </div>
@@ -579,6 +696,136 @@ export const CalendarView = () => {
 
       {viewMode === 'month' && renderMonth()}
       {viewMode === 'list' && renderList()}
+
+      <AnimatePresence>{renderItemSheet()}</AnimatePresence>
     </div>
+  );
+};
+
+/* ── Bottom sheet for viewing/editing a calendar block ──────────────────── */
+const sheetInput = {
+  width: '100%', padding: '11px 14px', borderRadius: 14, fontSize: 14,
+  border: '1.5px solid rgba(180,140,80,.18)', background: 'rgba(250,247,242,.5)',
+  color: '#2A1A0A', outline: 'none',
+};
+
+const ItemSheet = ({ item, meta, isEvent, isTask, locale, onClose, onSaveEvent, onDeleteEvent, onSaveTask, onToggleTask, onDeleteTask, onOpenManager }) => {
+  const [title, setTitle] = useState(item.title || '');
+  const [dateVal, setDateVal] = useState(dayKeyOf(item.date));
+  const [startVal, setStartVal] = useState(item.allDay ? '' : format(item.date, 'HH:mm'));
+  const [endVal, setEndVal] = useState(item.endDate && !item.allDay ? format(item.endDate, 'HH:mm') : '');
+  const { Icon } = meta;
+  const editable = isEvent || isTask;
+
+  const save = () => {
+    if (!title.trim()) return;
+    if (isEvent) {
+      const patch = { title: title.trim() };
+      if (!item.allDay && startVal) {
+        patch.start = `${dateVal}T${startVal}:00`;
+        if (endVal) patch.end = `${dateVal}T${endVal}:00`;
+      } else if (item.allDay) {
+        patch.start = `${dateVal}T00:00:00`;
+      }
+      onSaveEvent(patch);
+    } else if (isTask) {
+      onSaveTask({ title: title.trim(), dueDate: dateVal });
+    }
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(6px)' }}
+      onClick={onClose}
+      dir="rtl"
+    >
+      <motion.div
+        initial={{ y: 80 }} animate={{ y: 0 }} exit={{ y: 80 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full sm:max-w-md p-5 pb-[max(22px,env(safe-area-inset-bottom))] space-y-4"
+        style={{ background: '#FAF7F2', borderRadius: '24px 24px 0 0', border: '1px solid rgba(180,140,80,.16)', boxShadow: '0 -10px 44px rgba(40,20,0,.22)' }}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'rgba(180,140,80,.25)' }} />
+
+        {/* Kind tag + close */}
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: `${meta.color}14`, color: meta.color }}>
+            <Icon className="w-3.5 h-3.5" />
+            {item.plan ? 'מהלוז של המנהל' : meta.label}
+          </span>
+          <button onClick={onClose} aria-label="סגור" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[rgba(180,140,80,.08)]">
+            <X className="w-4 h-4" style={{ color: '#8A7A6A' }} />
+          </button>
+        </div>
+
+        {/* Title */}
+        {editable ? (
+          <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...sheetInput, fontFamily: "'Instrument Serif', serif", fontSize: 18 }} />
+        ) : (
+          <h3 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: '#2A1A0A', lineHeight: 1.2 }}>{item.title}</h3>
+        )}
+
+        {/* When */}
+        <div className="flex items-center gap-2 text-[13px]" style={{ color: '#5A4A3A' }}>
+          <Clock className="w-4 h-4 shrink-0" style={{ color: meta.color }} />
+          <span>
+            {format(item.date, 'EEEE, d MMMM', { locale })}
+            {!item.allDay && ` · ${format(item.date, 'HH:mm')}`}
+            {!item.allDay && item.endDate && `–${format(item.endDate, 'HH:mm')}`}
+            {item.allDay && ' · כל היום'}
+          </span>
+        </div>
+        {item.location && (
+          <div className="flex items-center gap-2 text-[13px]" style={{ color: '#5A4A3A' }}>
+            <MapPin className="w-4 h-4 shrink-0" style={{ color: meta.color }} />
+            <span>{item.location}</span>
+          </div>
+        )}
+        {item.notes && <p className="text-[12px] leading-relaxed" style={{ color: '#8A7A6A' }}>{item.notes}</p>}
+
+        {/* Edit fields */}
+        {editable && (
+          <div className="grid grid-cols-3 gap-2">
+            <input type="date" value={dateVal} onChange={(e) => setDateVal(e.target.value)} style={{ ...sheetInput, gridColumn: isEvent && !item.allDay ? 'span 1' : 'span 3', fontSize: 13 }} />
+            {isEvent && !item.allDay && (
+              <>
+                <input type="time" value={startVal} onChange={(e) => setStartVal(e.target.value)} style={{ ...sheetInput, fontSize: 13 }} />
+                <input type="time" value={endVal} onChange={(e) => setEndVal(e.target.value)} style={{ ...sheetInput, fontSize: 13 }} />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        {item.plan ? (
+          <button onClick={onOpenManager} className="w-full py-3 rounded-2xl text-white text-sm font-bold flex items-center justify-center gap-2 active:scale-[.98] transition-all" style={{ background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', boxShadow: '0 5px 18px rgba(124,58,237,.3)' }}>
+            <Sparkles className="w-4 h-4" />
+            ערוך במנהל
+          </button>
+        ) : editable ? (
+          <div className="flex items-center gap-2">
+            <button onClick={isEvent ? onDeleteEvent : onDeleteTask} aria-label="מחק" className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 active:scale-95 transition-all" style={{ background: '#FEE2E2', color: '#DC2626' }}>
+              <Trash2 className="w-5 h-5" />
+            </button>
+            {isTask && (
+              <button onClick={onToggleTask} className="px-4 h-12 rounded-2xl text-sm font-bold shrink-0 active:scale-95 transition-all flex items-center gap-1.5" style={{ background: item.done ? 'rgba(180,140,80,.1)' : 'rgba(5,150,105,.1)', color: item.done ? '#8A7A6A' : '#059669' }}>
+                <Check className="w-4 h-4" />
+                {item.done ? 'בטל ביצוע' : 'בוצע'}
+              </button>
+            )}
+            <button onClick={save} disabled={!title.trim()} className="flex-1 h-12 rounded-2xl text-white text-sm font-bold active:scale-[.98] transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #059669, #065F46)', boxShadow: '0 5px 18px rgba(5,150,105,.3)' }}>
+              שמור שינויים
+            </button>
+          </div>
+        ) : (
+          <p className="text-center text-[11px] py-1" style={{ color: '#8A7A6A' }}>
+            {String(item.id).startsWith('exam-') ? 'מועדי מבחנים נערכים בהגדרות הקורס' : 'פריט לקריאה בלבד'}
+          </p>
+        )}
+      </motion.div>
+    </motion.div>
   );
 };

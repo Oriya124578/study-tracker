@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const QUOTES = [
-  "מחשבים לך את הדרך להצלחה...",
-  "הבריאות שלך היא ההשקעה הטובה ביותר",
-  "כל יום הוא הזדמנות חדשה לשינוי",
-  "אנחנו בונים עבורך תוכנית אישית",
-  "איכות היא לא מעשה, היא הרגל",
-  "הצעד הראשון הוא הכי חשוב",
+  'מחשבים לך את הדרך להצלחה...',
+  'הבריאות שלך היא ההשקעה הטובה ביותר',
+  'כל יום הוא הזדמנות חדשה לשינוי',
+  'אנחנו בונים עבורך תוכנית אישית',
+  'איכות היא לא מעשה, היא הרגל',
+  'הצעד הראשון הוא הכי חשוב',
 ];
 
+// Cream v3 — mirrors the in-app header/cards: warm canvas, serif accents,
+// hairline borders, green/purple brand gradient.
 export const BrandedLoadingScreen = () => {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
-  // Rotate quotes every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex((prev) => (prev + 1) % QUOTES.length);
@@ -22,22 +23,27 @@ export const BrandedLoadingScreen = () => {
   }, []);
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between bg-[#F8F8F8] dark:bg-[#0B0B0C] text-foreground select-none overflow-hidden transition-colors duration-300">
-      {/* Top Spacer to mimic status bar height and balance vertical spacing */}
+    <div
+      className="h-screen w-full flex flex-col justify-between select-none overflow-hidden relative"
+      style={{ background: '#FAF7F2' }}
+      dir="rtl"
+    >
+      {/* Brand gradient hairline along the top — same as in-app hero cards */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #065F46, #7C3AED 50%, #2563EB)' }} />
+      {/* Warm radial glows */}
+      <div style={{ position: 'absolute', top: -120, right: -80, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(5,150,105,.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: -100, left: -90, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
       <div className="h-10" />
 
       {/* Main Centered Branding Block */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Floating App Video Logo */}
+        {/* Floating App Video Logo — cream card framing */}
         <motion.div
           animate={{ y: [-7, 7] }}
-          transition={{
-            repeat: Infinity,
-            repeatType: 'reverse',
-            duration: 2.5,
-            ease: 'easeInOut',
-          }}
-          className="w-[180px] h-[180px] rounded-[32px] overflow-hidden shadow-2xl shadow-[#059669]/20"
+          transition={{ repeat: Infinity, repeatType: 'reverse', duration: 2.5, ease: 'easeInOut' }}
+          className="w-[170px] h-[170px] overflow-hidden"
+          style={{ borderRadius: 32, border: '1px solid rgba(180,140,80,.18)', boxShadow: '0 18px 50px rgba(40,20,0,.14), 0 6px 18px rgba(5,150,105,.12)' }}
         >
           <video
             src="/loading_animation.mp4"
@@ -49,67 +55,57 @@ export const BrandedLoadingScreen = () => {
           />
         </motion.div>
 
-        {/* Brand Name Title */}
-        <h1
-          className="mt-5 text-[30px] font-semibold text-[#059669] tracking-[-0.5px] leading-none"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        >
-          Calori Life
+        {/* Wordmark — identical lineage to the in-app header */}
+        <h1 className="mt-6 leading-none" dir="ltr" style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.02em', color: '#2A1A0A' }}>
+          calori
+          <span style={{ color: '#059669', fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: 35 }}> life</span>
         </h1>
 
-        {/* Indeterminate Indent progress bar */}
-        <div className="mt-[22px] w-[180px] h-[3.5px] bg-black/[0.08] dark:bg-white/[0.15] rounded-full overflow-hidden relative">
+        {/* Indeterminate progress bar — warm track, green sweep */}
+        <div className="mt-6 w-[170px] h-[3px] rounded-full overflow-hidden relative" style={{ background: 'rgba(180,140,80,.15)' }}>
           <motion.div
-            className="h-full w-[35%] bg-gradient-to-r from-transparent via-[#059669] to-transparent rounded-full"
+            className="h-full w-[35%] rounded-full"
+            style={{ background: 'linear-gradient(90deg, transparent, #059669, transparent)' }}
             animate={{ x: ['-100%', '300%'] }}
-            transition={{
-              repeat: Infinity,
-              duration: 2.8,
-              ease: 'linear',
-            }}
+            transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }}
           />
         </div>
       </div>
 
       {/* Footer Info Block */}
-      <div className="pb-[140px] px-10 flex flex-col items-center text-center">
-        {/* Hebrew Health Quotes with Fade Transition */}
-        <div className="h-[51px] flex items-center justify-center overflow-hidden">
+      <div className="pb-[110px] px-10 flex flex-col items-center text-center">
+        {/* Rotating quotes — serif italic, warm ink */}
+        <div className="h-[54px] flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.p
               key={currentQuoteIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-[17px] font-semibold text-black/65 dark:text-white/65 leading-[1.5] max-w-[280px]"
-              style={{ fontFamily: "'Heebo', sans-serif" }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="leading-[1.5] max-w-[300px]"
+              style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 18, color: '#5A4A3A' }}
             >
               {QUOTES[currentQuoteIndex]}
             </motion.p>
           </AnimatePresence>
         </div>
 
-        {/* Version String */}
-        <div
-          className="mt-[10px] text-[12px] font-semibold text-black/30 dark:text-white/30 tracking-[1.2px] uppercase select-text"
-          style={{ fontFamily: "'Heebo', sans-serif" }}
-        >
-          v6.12.1
+        {/* Version — Fraunces italic, green em like settings */}
+        <div className="mt-2 select-text" dir="ltr" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 600, fontSize: 13, color: '#8A7A6A', letterSpacing: '-.01em' }}>
+          Calori Life · <em style={{ color: '#059669' }}>v6.12.1</em>
         </div>
 
-        {/* Indicator dots */}
+        {/* Indicator dots — warm inactive, green active */}
         <div className="mt-5 flex justify-center items-center gap-2" dir="ltr">
           {QUOTES.map((_, i) => {
             const isActive = currentQuoteIndex === i;
             return (
-              <div
+              <motion.div
                 key={i}
-                className={`h-[6px] rounded-full transition-all duration-350 ease-out ${
-                  isActive
-                    ? 'w-[22px] bg-[#059669]'
-                    : 'w-[6px] bg-black/15 dark:bg-white/15'
-                }`}
+                animate={{ width: isActive ? 22 : 6, background: isActive ? '#059669' : 'rgba(180,140,80,.25)' }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                style={{ height: 6, borderRadius: 999 }}
               />
             );
           })}

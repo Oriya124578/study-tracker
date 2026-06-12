@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
@@ -31,8 +31,15 @@ function App() {
   const activeCategory = useStore((s) => s.activeCategory);
   const caloriDate = useStore((s) => s.caloriDate);
 
-  // Sync route with Zustand state
+  // Sync route with Zustand state.
+  // Route->State must run ONLY when the URL itself changed — otherwise, right
+  // after goBack() (state changed, URL not yet), it re-asserts the OLD route's
+  // state and traps the user on the page (the "stuck on Calori" bug).
+  const prevPathRef = useRef(location.pathname);
   useEffect(() => {
+    const pathChanged = prevPathRef.current !== location.pathname;
+    prevPathRef.current = location.pathname;
+    if (!pathChanged) return;
     // Route -> State
     if (location.pathname.startsWith('/settings')) {
       const activeCat = location.pathname.slice(1);
