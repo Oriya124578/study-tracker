@@ -10,7 +10,8 @@ import { Toaster } from '../ui/Toaster';
 import { AddItemSheet } from '../add-item/AddItemSheet';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useNotificationScheduler } from '../../hooks/useNotificationScheduler';
-import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { dateKey } from '../../lib/caloriRepo';
+import { Plus, CheckSquare, StickyNote, UtensilsCrossed, Timer, MoreHorizontal, X, User, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
@@ -29,6 +30,9 @@ const CaloriView = lazy(() => import('../calori/CaloriView').then((m) => ({ defa
 const CommandCenterView = lazy(() => import('../command-center/CommandCenterView').then((m) => ({ default: m.CommandCenterView })));
 const FocusHub = lazy(() => import('../focus/FocusHub').then((m) => ({ default: m.FocusHub })));
 const ShoppingListView = lazy(() => import('../shopping/ShoppingListView').then((m) => ({ default: m.ShoppingListView })));
+// The personal-manager chat is reachable from every screen via the floating left
+// FAB, so it lives here. Lazy so its Gemini SDK chunk only loads when first opened.
+const CoachChatDrawer = lazy(() => import('../command-center/CoachChatDrawer').then((m) => ({ default: m.CoachChatDrawer })));
 
 // Lightweight, on-brand fallback shown while a lazy view chunk loads.
 const ViewFallback = () => (
@@ -41,7 +45,8 @@ const ViewFallback = () => (
 const NAV_TABS = ['overview', 'calendar', 'courses', 'commandCenter', 'shopping'];
 
 export const Layout = () => {
-  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory, goBack } = useStore();
+  const { data, activeCategory, activeCourse, openAddSheet, setActiveCategory, goBack,
+    coachChatOpen, openCoachChat, closeCoachChat, setPendingTuneCommand } = useStore();
   const displayName = data?.profile?.displayName || '';
   const { t, language } = useTranslation();
   const isRTL = language === 'he';
@@ -204,6 +209,34 @@ export const Layout = () => {
           <Plus className="w-6 h-6" strokeWidth={2.5} />
         </motion.div>
       </button>
+
+      {/* Left FAB — "המנהל האישי" AI chat. Sparkles circle, opens the chat full-screen
+          from any screen. Mirrors the right FAB's safe-area-aware bottom offset. */}
+      <button
+        onClick={openCoachChat}
+        className="fixed left-4 bottom-[calc(92px+env(safe-area-inset-bottom))] w-[52px] h-[52px] rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        style={{ background: 'linear-gradient(135deg,#7C3AED,#5B21B6)', boxShadow: '0 6px 20px rgba(124,58,237,.4)', transform: 'translateZ(0)', willChange: 'transform' }}
+        aria-label={t('personalManager', 'המנהל האישי')}
+      >
+        <Sparkles className="w-6 h-6" strokeWidth={2.2} />
+      </button>
+
+      {/* Global personal-manager chat (lazy: chunk loads on first open) */}
+      {coachChatOpen && (
+        <Suspense fallback={null}>
+          <CoachChatDrawer
+            isOpen={coachChatOpen}
+            onClose={closeCoachChat}
+            dateStr={dateKey()}
+            shabbatTimes={null}
+            onReplan={(cmd) => {
+              setPendingTuneCommand(cmd);
+              setActiveCategory('commandCenter');
+              closeCoachChat();
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Animated Fan-out Menu */}
       <AnimatePresence>

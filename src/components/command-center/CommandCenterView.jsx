@@ -5,7 +5,7 @@ import {
   Coffee, Dumbbell, Utensils, ChevronLeft, ChevronRight, X, RefreshCw,
   Lock, Unlock, Moon, Sun, MoreVertical
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
@@ -20,8 +20,8 @@ import { format, parseISO, isValid, isSameDay, addDays, subDays } from 'date-fns
 import { he } from 'date-fns/locale';
 import { toast } from '../../store/useToast';
 import { CalendarView } from '../calendar/CalendarView';
-import { CoachChatDrawer } from './CoachChatDrawer';
 import { MorningCoachOverlay } from './MorningCoachOverlay';
+import { SmartClarifier } from './SmartClarifier';
 import { BlockActionSheet } from './BlockActionSheet';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 import { DroppableHour, DraggableBlock, DraggableSidebarTask } from './DndComponents';
@@ -50,7 +50,9 @@ export const CommandCenterView = () => {
     updateScheduleBlock,
     googleCalendarToken,
     setGoogleCalendarToken,
-    setAiSuggestionStatus
+    openCoachChat,
+    pendingTuneCommand,
+    setPendingTuneCommand
   } = useStore();
 
   const { t } = useTranslation();
@@ -77,8 +79,8 @@ export const CommandCenterView = () => {
   const [gpsLocation, setGpsLocation] = useState(null);
   const [activeTaskTab, setActiveTaskTab] = useState('all'); // 'all' | 'high' | 'med' | 'low'
   const [timePickerModal, setTimePickerModal] = useState(null); // { taskId, title, hourStr } for manual slot assign
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [showMorningCoach, setShowMorningCoach] = useState(false);
+  const [clarifierText, setClarifierText] = useState(null);
   const [activeActionBlock, setActiveActionBlock] = useState(null);
   const [activeDragItem, setActiveDragItem] = useState(null);
   const hasEvaluatedMorningCoach = useRef(false);
@@ -556,11 +558,29 @@ export const CommandCenterView = () => {
     if (!cmd) return;
     if (timelineBlocks.length === 0) {
       setTuneCommand('');
-      handleAutoPlan(cmd);
+      setClarifierText(cmd);
     } else {
       handleTuneSchedule();
     }
   };
+
+  const handleClarifierSubmit = (directive) => {
+    setClarifierText(null);
+    handleAutoPlan(directive);
+  };
+
+  // Consume a replan/tune command handed off from the global manager chat.
+  useEffect(() => {
+    if (!pendingTuneCommand) return;
+    const cmd = pendingTuneCommand;
+    setPendingTuneCommand(null);
+    if (timelineBlocks.length === 0) {
+      setClarifierText(cmd);
+    } else {
+      handleTuneSchedule(cmd);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingTuneCommand]);
 
   // Tune schedule with input query
   const handleTuneSchedule = async (cmdOverride) => {
@@ -912,7 +932,7 @@ export const CommandCenterView = () => {
           {/* Coach Note — cream v3 */}
           {coachNote && (
             <div
-              onClick={() => setIsChatOpen(true)}
+              onClick={openCoachChat}
               className="relative overflow-hidden animate-in slide-in-from-top-4 duration-500 cursor-pointer transition-all select-none"
               style={{ ...ccBlockCard, padding: '14px 16px', borderColor: 'rgba(124,58,237,.15)', background: '#fff' }}
             >
@@ -947,7 +967,7 @@ export const CommandCenterView = () => {
             {/* Header / Actions */}
             <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(180,140,80,.1)' }}>
               <h3 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400, color: '#2A1A0A', letterSpacing: '-.02em' }}>
-                {t('ccHourlyTimeline')} <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{isRTL ? 'שלי' : 'my'}</em>
+                <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{isRTL ? 'הלו״ז שלי' : 'My schedule'}</em>
               </h3>
               <div className="flex gap-2 flex-wrap">
                 {draftSchedule?.blocks?.length > 0 ? (
@@ -961,7 +981,7 @@ export const CommandCenterView = () => {
                   </>
                 ) : (
                   <>
-                    <button onClick={() => setIsChatOpen(true)} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
+                    <button onClick={openCoachChat} className="px-3 py-1.5 flex items-center gap-1 active:scale-95 transition-all cursor-pointer" style={{ borderRadius: 11, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
                       <Bot className="w-3.5 h-3.5" /> {isRTL ? 'שיחה' : 'Chat'}
                     </button>
                     {/* Opens the day questionnaire — the answers become the AI directive */}
@@ -1042,7 +1062,7 @@ export const CommandCenterView = () => {
                                   <div
                                     style={{ animationDelay: `${Math.min(blockIdx * 50, 250)}ms` }}
                                     className={cn(
-                                      'rise-in p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all',
+                                      'rise-in p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-all min-w-0 overflow-hidden',
                                       blockColors[block.type] || 'border-border bg-card',
                                       isBlockNow(block) && 'ring-2 ring-[#059669]/50 shadow-md',
                                       block.isCompleted && 'opacity-55',
@@ -1055,11 +1075,20 @@ export const CommandCenterView = () => {
                                       </div>
                                       <div className="min-w-0 text-start">
                                         <h4 className="font-bold text-sm truncate text-foreground">{block.title}</h4>
+                                        {(() => {
+                                          const [sh, sm] = (block.startTime || '').split(':').map(Number);
+                                          const [eh, em] = (block.endTime || '').split(':').map(Number);
+                                          const dur = (eh * 60 + em) - (sh * 60 + sm);
+                                          const durLabel = dur > 0 ? (dur >= 60 ? `${Math.floor(dur/60)} שע׳` + (dur % 60 ? ` ${dur%60} דק׳` : '') : `${dur} דק׳`) : null;
+                                          const typeLabel = block.type === 'travel' ? (isRTL ? 'נסיעה' : 'Travel') : null;
+                                          const sub = [typeLabel, durLabel].filter(Boolean).join(' · ');
+                                          return sub ? <p className="text-[11px] opacity-60 mt-0.5">{sub}</p> : null;
+                                        })()}
                                         {block.notes && <p className="text-xs opacity-75 mt-0.5 truncate">{block.notes}</p>}
                                       </div>
                                     </div>
                                     
-                                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap min-w-0" onClick={(e) => e.stopPropagation()}>
                                   {block.isProposed && (
                                     <span className="text-[10px] font-bold bg-primary/10 text-primary border border-primary/10 px-2 py-0.5 rounded-full shrink-0">
                                       {t('ccAiProposal')}
@@ -1169,41 +1198,6 @@ export const CommandCenterView = () => {
 
         {/* Right: Sidebar - Unscheduled Tasks Tray */}
         <div className="lg:col-span-1 space-y-6">
-          {/* AI Suggestions — cream v3 */}
-          {data?.aiSuggestions && data.aiSuggestions.length > 0 && (
-            <div className="space-y-3" style={{ ...ccCard, padding: '16px 14px', borderColor: 'rgba(124,58,237,.15)' }}>
-              <div>
-                <h3 className="flex items-center gap-1.5" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 16, fontWeight: 400, color: '#2A1A0A' }}>
-                  <Sparkles className="w-4 h-4" style={{ color: '#7C3AED' }} />
-                  {isRTL ? 'הצעות' : 'Suggestions'} <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>AI</em>
-                </h3>
-              </div>
-              <div className="space-y-[6px]">
-                {data.aiSuggestions.map(suggestion => (
-                  <div key={suggestion.id} className="space-y-2" style={{ ...ccBlockCard, padding: '13px 14px', borderColor: 'rgba(124,58,237,.15)' }}>
-                    <div className="flex items-center gap-[10px] mb-2">
-                      <div className="shrink-0 flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, background: '#F5F3FF', color: '#6D28D9', fontSize: 16 }}>
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p style={{ fontSize: 13, fontWeight: 700, color: '#2A1A0A', lineHeight: 1.2 }}>{suggestion.suggestion}</p>
-                        {suggestion.context && <p style={{ color: '#8A7A6A', marginTop: 2, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 11 }}>{suggestion.context}</p>}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => setAiSuggestionStatus(suggestion.id, 'accepted')} className="flex-1 py-[7px] text-center cursor-pointer active:scale-95 transition-colors" style={{ borderRadius: 9, background: '#7C3AED', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none' }}>
-                        {t('accept', 'אשר')}
-                      </button>
-                      <button onClick={() => setAiSuggestionStatus(suggestion.id, 'rejected')} className="flex-1 py-[7px] text-center cursor-pointer active:scale-95 transition-colors" style={{ borderRadius: 9, background: '#F5F0E8', color: '#8A7A6A', fontSize: 11, fontWeight: 700, border: 'none' }}>
-                        {t('reject', 'דחה')}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Unscheduled Tasks — cream v3 */}
           <div className="space-y-4" style={{ ...ccCard, padding: '16px 14px' }}>
             <div>
@@ -1380,14 +1374,16 @@ export const CommandCenterView = () => {
         onDismissToday={handleCoachDismissToday}
       />
 
-      {/* Interactive Coach Chat Drawer */}
-      <CoachChatDrawer
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        dateStr={dateStr}
-        shabbatTimes={shabbatTimes}
-        onReplan={handleTuneSchedule}
-      />
+      <AnimatePresence>
+        {clarifierText && (
+          <SmartClarifier
+            userText={clarifierText}
+            courses={data?.courses || []}
+            onSubmit={handleClarifierSubmit}
+            onCancel={() => setClarifierText(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Drag Overlay for dnd-kit */}
       <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>

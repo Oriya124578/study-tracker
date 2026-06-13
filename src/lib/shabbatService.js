@@ -1,7 +1,8 @@
 import { swrFetch } from './cacheService';
 
-// Simple local cache to avoid redundant network calls during the same session.
+// Session cache keyed by location+date. Cleared on page reload automatically.
 const cache = {};
+const SHABBAT_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
 
 const CITY_MAPPINGS = {
   jerusalem: 'IL-Jerusalem',
@@ -102,7 +103,7 @@ export const fetchShabbatTimes = async (location, dateStr = '', onData = null) =
     // We use a TTL of 24 hours (24 * 60 * 60 * 1000) because Shabbat times for a specific date don't change.
     const result = await swrFetch(cacheKey, fetcher, (data, isCached) => {
       if (onData) onData(data, isCached);
-    }, 24 * 60 * 60 * 1000);
+    }, SHABBAT_CACHE_TTL);
     return result;
   } catch (error) {
     console.error('[Shabbat Service] Error fetching times:', error);

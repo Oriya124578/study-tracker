@@ -8,6 +8,7 @@ import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { cn } from '../../lib/utils';
 import { dateKey } from '../../lib/caloriRepo';
+import { buildTimeline } from '../../lib/scheduleBuilder';
 import {
   format, parseISO, isValid, isSameDay, differenceInDays,
   startOfDay, addDays
@@ -86,37 +87,43 @@ export const SmartDashboard = () => {
   const weight = data?.calori?.weight || data?.calori?.dayHistory?.weight;
 
   // ── Timeline blocks ──
+  // Single source of truth: a today draft wins; otherwise buildTimeline (same
+  // selector the manager uses) reads the SAVED cl_schedule doc and overlays
+  // events + scheduled tasks + calori. This is what keeps the home "today" list
+  // in sync with the schedule created in the manager.
   const todayBlocks = useMemo(() => {
-    const blocks = [];
     const ds = todayStr;
 
-    if (draftSchedule?.blocks?.length > 0) {
-      return draftSchedule.blocks
-        .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה'))
-        .map((b) => ({ id: b.id, type: b.type || 'event', title: b.title, time: b.startTime, sub: '' }))
-        .sort((a, b) => a.time.localeCompare(b.time))
-        .slice(0, 4);
+    let base;
+    if (draftSchedule?.date === ds && draftSchedule?.blocks?.length > 0) {
+      base = draftSchedule.blocks;
+    } else {
+      const scheduleDoc =
+        data?.schedule && (!data.schedule._docDate || data.schedule._docDate === ds)
+          ? data.schedule
+          : null;
+      base = buildTimeline({
+        scheduleDoc,
+        events: data?.events,
+        personalTasks: data?.personalTasks,
+        calori: data?.calori,
+        dateStr: ds,
+        todayStr: ds,
+        options: { filterLeisure: true, includeCalori: 'todayOnly' },
+      });
     }
 
-    (data?.events || []).forEach((ev) => {
-      if (ev.start?.startsWith(ds)) {
-        const p = safeParse(ev.start);
-        blocks.push({ id: ev.id, type: 'event', title: ev.title, time: p ? format(p, 'HH:mm') : '', sub: '' });
-      }
-    });
-    (data?.calori?.meals || []).forEach((meal) => {
-      const p = safeParse(meal.timestamp);
-      if (p && format(p, 'yyyy-MM-dd') === ds) {
-        blocks.push({ id: `m-${meal.id}`, type: 'meal', title: meal.name, time: format(p, 'HH:mm'), sub: `${meal.calories || 0} ${t('calories')} · ${t('caloriProtein')} ${meal.protein || 0}g` });
-      }
-    });
-    (data?.calori?.workouts || []).forEach((w) => {
-      const p = safeParse(w.timestamp);
-      if (p && format(p, 'yyyy-MM-dd') === ds) {
-        blocks.push({ id: `w-${w.id}`, type: 'workout', title: w.name, time: format(p, 'HH:mm'), sub: `${w.caloriesBurned || 0} ${t('calories')}` });
-      }
-    });
+    const blocks = base
+      .filter((b) => b.type !== 'leisure' && !b.title?.includes('הפסקה'))
+      .map((b) => ({
+        id: b.id,
+        type: b.type || 'event',
+        title: b.title,
+        time: b.startTime || '',
+        sub: (b.type === 'meal' || b.type === 'workout') ? (b.notes || '') : '',
+      }));
 
+    // All-day exams on top of the timed blocks.
     (data?.courses || []).forEach((course) => {
       ['moedA', 'moedB', 'moedC'].forEach((moed) => {
         const dt = safeParse(course[moed] || course.exams?.[moed]);
@@ -126,7 +133,7 @@ export const SmartDashboard = () => {
       });
     });
 
-    return blocks.sort((a, b) => a.time.localeCompare(b.time)).slice(0, 5);
+    return blocks.sort((a, b) => (a.time || '').localeCompare(b.time || '')).slice(0, 6);
   }, [data, todayStr, draftSchedule, t]);
 
   // ── Upcoming 7 days ──

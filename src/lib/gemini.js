@@ -122,6 +122,7 @@ ${context.dayProfile ? `
 User's day directive — this is the MOST IMPORTANT input. Build the whole schedule around it:
   "${context.dayProfile}"
 Interpretation rules for the directive:
+- If it asks for a full / all-day study day ("שאלמד כל היום", "יום לימודים מלא", "להתמקד בלימודים כל היום", "intensive"), FILL the waking window from wake time to bedtime with study blocks. This OVERRIDES rule 13's "leave 2-3 hours empty" guidance AND rule 15's 3-block limit: create as many ~90–120 minute study blocks as needed to cover the day. Keep it humane and realistic: insert 'meal' blocks (~30–45 min) around 08:30, 13:00 and 19:30, and a short 15-minute gap between consecutive study blocks — but do NOT leave large empty stretches. Prioritize the course with the nearest exam, then spread remaining blocks across the other exam courses / linked tasks.
 - If it mentions an exam ("מבחן מחר/היום ב[קורס]"), dedicate MOST study blocks to that course (this overrides rule 15's block limit — up to 5 focused blocks with real gaps between them).
 - If it mentions a trip, drive, appointment or any time commitment ("נסיעה ב-16:00", "תור לרופא"), ADD it as a locked 'event' or 'travel' block at the stated time (estimate a sensible duration if not given).
 - If it mentions fatigue or a light day, schedule fewer and shorter blocks.

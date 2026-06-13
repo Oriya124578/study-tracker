@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -96,7 +95,16 @@ const BackButton = ({ onClick, language }) => (
 export const SettingsView = () => {
   const { data, resetSemester, addCourse, updateCourse, archiveCourse, language, setLanguage, theme, setTheme, setProfile, pomoSettings, setPomoSettings, activeCategory, setActiveCategory, setCategory, deleteCategory } = useStore();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  // Local section navigation (the app navigates via Zustand activeCategory, NOT
+  // react-router — so settings sub-screens are plain local state). null = index.
+  const [section, setSection] = useState(null);
+  // Google Calendar integration status (lifted out of the render fn so the hook
+  // isn't called conditionally).
+  const [integrationStatus, setIntegrationStatus] = useState(() =>
+    new URLSearchParams(window.location.search).get('success') === 'true'
+      ? 'Calendar Connected'
+      : 'Calendar Disconnected'
+  );
   const [editingCourse, setEditingCourse] = useState(null); // The course object being edited/added
   const [isAddMode, setIsAddMode] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -305,31 +313,31 @@ export const SettingsView = () => {
       {
         title: t('account', 'חשבון'),
         items: [
-          { id: 'settings/profile', iconEl: <User className="w-4 h-4" />, ic: 'g', title: t('profileTitle', 'פרופיל'), sub: 'שם, תמונה, אימייל' },
-          { id: 'settings/notifications', iconEl: <Bell className="w-4 h-4" />, ic: 'b', title: t('notificationsTitle', 'התראות'), sub: 'יומי, פר-קטגוריה, שקט בלילה', val: t('active', 'פעיל') },
+          { id: 'profile', iconEl: <User className="w-4 h-4" />, ic: 'g', title: t('profileTitle', 'פרופיל'), sub: 'שם, תמונה, אימייל' },
+          { id: 'notifications', iconEl: <Bell className="w-4 h-4" />, ic: 'b', title: t('notificationsTitle', 'התראות'), sub: 'יומי, פר-קטגוריה, שקט בלילה', val: t('active', 'פעיל') },
         ]
       },
       {
         title: t('content', 'תכנים'),
         items: [
-          { id: 'settings/studies', iconEl: <BookOpen className="w-4 h-4" />, ic: 'r', title: t('courseManagerTitle', 'לימודים'), sub: 'סמסטר, יעדים, AI Links', val: `${activeCourses.length} ${t('courses', 'קורסים')}` },
-          { id: 'settings/manager', iconEl: <Bot className="w-4 h-4" />, ic: 'p', title: t('aiSettingsTitle', 'המנהל האישי'), sub: 'התנהגות AI, תדירות הצעות' },
-          { id: 'settings/calori', iconEl: <Shield className="w-4 h-4" />, ic: 'g', title: t('caloriTitle', 'קלורי'), sub: 'סנכרון תזונה ואימונים', val: t('linked', 'מקושר') },
-          { id: 'settings/categories', iconEl: <Tags className="w-4 h-4" />, ic: 'p', title: 'קטגוריות תיוג', sub: 'ניהול תגיות וקטגוריות' },
+          { id: 'studies', iconEl: <BookOpen className="w-4 h-4" />, ic: 'r', title: t('courseManagerTitle', 'לימודים'), sub: 'סמסטר, יעדים, AI Links', val: `${activeCourses.length} ${t('courses', 'קורסים')}` },
+          { id: 'manager', iconEl: <Bot className="w-4 h-4" />, ic: 'p', title: t('aiSettingsTitle', 'המנהל האישי'), sub: 'שעות, מיקום, שבת, מפתחות AI' },
+          { id: 'calori', iconEl: <Shield className="w-4 h-4" />, ic: 'g', title: t('caloriTitle', 'קלורי'), sub: 'סנכרון תזונה ואימונים', val: t('linked', 'מקושר') },
+          { id: 'categories', iconEl: <Tags className="w-4 h-4" />, ic: 'p', title: 'קטגוריות תיוג', sub: 'ניהול תגיות וקטגוריות' },
         ]
       },
       {
         title: t('preferences', 'העדפות'),
         items: [
-          { id: 'settings/general', iconEl: <Palette className="w-4 h-4" />, ic: 'a', title: t('preferencesTitle', 'כללי'), sub: 'שפה, ערכת נושא, תחילת שבוע' },
-          { id: 'settings/integrations', iconEl: <Globe className="w-4 h-4" />, ic: 'b', title: 'אינטגרציות', sub: 'חיבור לשירותים חיצוניים' },
+          { id: 'general', iconEl: <Palette className="w-4 h-4" />, ic: 'a', title: t('preferencesTitle', 'כללי'), sub: 'שפה, ערכת נושא, פומודורו' },
+          { id: 'integrations', iconEl: <Globe className="w-4 h-4" />, ic: 'b', title: 'אינטגרציות', sub: 'חיבור לשירותים חיצוניים' },
         ]
       },
       {
         title: t('data', 'נתונים'),
         items: [
-          { id: 'settings/data', iconEl: <Database className="w-4 h-4" />, ic: 'gr', title: t('exportData', 'ייצוא וגיבוי'), sub: 'קובץ JSON של כל המידע' },
-          { id: 'settings/about', iconEl: <Info className="w-4 h-4" />, ic: 'gr', title: t('aboutTitle', 'אודות'), sub: 'גרסה, רישיון, פרטיות', val: 'v6.12.2' },
+          { id: 'data', iconEl: <Database className="w-4 h-4" />, ic: 'gr', title: t('exportData', 'ייצוא וגיבוי'), sub: 'קובץ JSON, איפוס סמסטר' },
+          { id: 'about', iconEl: <Info className="w-4 h-4" />, ic: 'gr', title: t('aboutTitle', 'אודות'), sub: 'גרסה, רישיון, פרטיות', val: 'v6.14.1' },
         ]
       }
     ];
@@ -338,7 +346,7 @@ export const SettingsView = () => {
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '16px 16px 96px', display: 'flex', flexDirection: 'column', gap: 14 }} dir={language === 'he' ? 'rtl' : 'ltr'}>
         {/* Profile hero card */}
         <div
-          onClick={() => navigate('/settings/profile')}
+          onClick={() => setSection('profile')}
           style={{ ...creamCard, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
         >
           <div style={creamGradientBar} />
@@ -381,7 +389,7 @@ export const SettingsView = () => {
                 return (
                   <div
                     key={j}
-                    onClick={() => navigate(`/${item.id}`)}
+                    onClick={() => setSection(item.id)}
                     style={creamRow(j === 0)}
                   >
                     <div style={creamIcon(ic.bg, ic.color)}>{item.iconEl}</div>
@@ -419,7 +427,7 @@ export const SettingsView = () => {
           textAlign: 'center', fontFamily: "'Instrument Serif', serif",
           fontStyle: 'italic', fontSize: 13, color: 'rgba(138,122,106,.5)', padding: '14px 0 4px',
         }}>
-          Calori Life &middot; <em style={{ color: '#059669' }}>v6.12.2</em>
+          Calori Life &middot; <em style={{ color: '#059669' }}>v6.14.1</em>
         </div>
       </div>
     );
@@ -859,57 +867,132 @@ export const SettingsView = () => {
             </div>
           </div>
 
-          {/* Data Export */}
-          <div className="p-4 rounded-xl border bg-card flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-foreground">{t('exportData')}</h3>
-              <p className="text-sm text-muted-foreground">{t('exportDataDesc')}</p>
-            </div>
-            <Button variant="outline" onClick={handleExportData}>{t('exportDataBtn')}</Button>
-          </div>
-
-          {/* Danger Zone */}
-          <div className="mt-8 pt-4 border-t">
-            <h3 className="text-sm font-bold text-destructive uppercase tracking-wider mb-4 px-2">{t('dangerZone', 'אזור סכנה')}</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-destructive/5 border border-destructive/20">
-                <div>
-                  <h3 className="font-semibold text-destructive flex items-center gap-2">
-                    <RefreshCcw className="w-4 h-4" />
-                    {t('resetSemesterTitle')}
-                  </h3>
-                  <p className="text-sm text-destructive/80">{t('resetSemesterDesc')}</p>
-                </div>
-                <Button variant="destructive" onClick={handleReset}>{t('resetNow')}</Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
-                <div>
-                  <h3 className="font-semibold text-foreground flex items-center gap-2">
-                    <LogOut className="w-4 h-4" />
-                    {t('logoutTitle')}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{t('logoutDesc')}</p>
-                </div>
-                <Button variant="outline" onClick={handleLogout}>{t('logoutBtn')}</Button>
-              </div>
-            </div>
-          </div>
-
         </CardContent>
       </Card>
         </>
   );
 
+  // ── Data & backup ──
+  const renderData = () => (
+    <Card className="shadow-sm border-border">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Database className="w-5 h-5 text-primary" />
+          {t('exportData', 'ייצוא וגיבוי')}
+        </CardTitle>
+        <CardDescription>{t('exportDataDesc', 'הורד עותק של כל המידע שלך')}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Export */}
+        <div className="p-4 rounded-xl border bg-card flex items-center justify-between gap-4">
+          <div>
+            <h3 className="font-semibold text-foreground">{t('exportData', 'ייצוא וגיבוי')}</h3>
+            <p className="text-sm text-muted-foreground">{t('exportDataDesc', 'קובץ JSON של כל המידע')}</p>
+          </div>
+          <Button variant="outline" onClick={handleExportData}>{t('exportDataBtn', 'הורד גיבוי')}</Button>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="mt-4 pt-4 border-t">
+          <h3 className="text-sm font-bold text-destructive uppercase tracking-wider mb-4 px-2">{t('dangerZone', 'אזור סכנה')}</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-destructive/5 border border-destructive/20 gap-4">
+              <div>
+                <h3 className="font-semibold text-destructive flex items-center gap-2">
+                  <RefreshCcw className="w-4 h-4" />
+                  {t('resetSemesterTitle')}
+                </h3>
+                <p className="text-sm text-destructive/80">{t('resetSemesterDesc')}</p>
+              </div>
+              <Button variant="destructive" onClick={handleReset}>{t('resetNow')}</Button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl border bg-card gap-4">
+              <div>
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <LogOut className="w-4 h-4" />
+                  {t('logoutTitle')}
+                </h3>
+                <p className="text-sm text-muted-foreground">{t('logoutDesc')}</p>
+              </div>
+              <Button variant="outline" onClick={handleLogout}>{t('logoutBtn')}</Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // ── Calori bridge (read-only sync info) ──
+  const renderCalori = () => {
+    const cal = data?.calori || {};
+    const rows = [
+      { label: 'ארוחות היום', value: (cal.meals || []).length },
+      { label: 'אימונים היום', value: (cal.workouts || []).length },
+      { label: 'יעד קלורי יומי', value: cal.dailyGoal ? `${cal.dailyGoal} קק"ל` : '—' },
+    ];
+    return (
+      <Card className="shadow-sm border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            {t('caloriTitle', 'קלורי')}
+          </CardTitle>
+          <CardDescription>סנכרון לקריאה בלבד מאפליקציית קלורי (תזונה ואימונים)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3 p-4 rounded-xl border bg-card">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#059669]" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">{t('linked', 'מקושר')}</h3>
+              <p className="text-sm text-muted-foreground">{auth?.currentUser?.email}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {rows.map((r) => (
+              <div key={r.label} className="p-4 rounded-xl border bg-card text-center">
+                <div className="text-2xl font-bold text-foreground">{r.value}</div>
+                <div className="text-xs text-muted-foreground mt-1">{r.label}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            הנתונים נמשכים אוטומטית מאפליקציית קלורי. Calori Life לעולם לא כותב לנתוני התזונה/אימונים — קריאה בלבד.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // ── About ──
+  const renderAbout = () => (
+    <Card className="shadow-sm border-border">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Info className="w-5 h-5 text-primary" />
+          {t('aboutTitle', 'אודות')}
+        </CardTitle>
+        <CardDescription>גרסה, רישיון ופרטיות</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
+          <span className="font-semibold text-foreground">Calori Life</span>
+          <span className="text-sm font-mono text-primary">v6.14.1</span>
+        </div>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/40 transition-colors">
+          <span className="font-semibold text-foreground flex items-center gap-2"><Lock className="w-4 h-4" /> מדיניות פרטיות</span>
+          <ExternalLink className="w-4 h-4 text-muted-foreground" />
+        </a>
+        <div className="p-4 rounded-xl border bg-card text-sm text-muted-foreground leading-relaxed">
+          מנהל אישי ומעקב לימודים, חלק ממערכת Calori. נבנה עם React + Firebase.
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderIntegrations = () => {
-    // Determine initial status purely from URL or mocked state if needed
-    // But the prompt says we should integrate with googleCalendar.js endpoints.
-    const searchParams = new URLSearchParams(window.location.search);
-    const isSuccess = searchParams.get('success') === 'true';
-    
-    // We'll use a local state to satisfy the test expectations textually
-    // "Calendar Connected", "Calendar Disconnected", "Failed to sync events"
-    const [status, setStatus] = useState(isSuccess ? 'Calendar Connected' : 'Calendar Disconnected');
+    const status = integrationStatus;
+    const setStatus = setIntegrationStatus;
 
     const handleConnect = async () => {
       try {
@@ -978,26 +1061,23 @@ export const SettingsView = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-4 sm:p-6 md:p-8 animate-in fade-in duration-500 pb-24" dir={language === 'he' ? 'rtl' : 'ltr'}>
-      <Routes>
-        <Route path="/settings" element={renderSettingsIndex()} />
-        <Route path="/settings/*" element={
-          <>
-            <BackButton onClick={() => navigate('/settings')} language={language} />
-            <Routes>
-              <Route path="profile" element={renderProfile()} />
-              <Route path="studies" element={renderStudies()} />
-              <Route path="categories" element={renderCategories()} />
-              <Route path="notifications" element={renderNotifications()} />
-              <Route path="manager" element={renderManager()} />
-              <Route path="calori" element={renderManager()} />
-              <Route path="general" element={renderPreferences()} />
-              <Route path="integrations" element={renderIntegrations()} />
-              <Route path="data" element={renderPreferences()} />
-              <Route path="about" element={renderPreferences()} />
-            </Routes>
-          </>
-        } />
-      </Routes>
+      {section === null ? (
+        renderSettingsIndex()
+      ) : (
+        <>
+          <BackButton onClick={() => setSection(null)} language={language} />
+          {section === 'profile' && renderProfile()}
+          {section === 'studies' && renderStudies()}
+          {section === 'categories' && renderCategories()}
+          {section === 'notifications' && renderNotifications()}
+          {section === 'manager' && renderManager()}
+          {section === 'calori' && renderCalori()}
+          {section === 'general' && renderPreferences()}
+          {section === 'integrations' && renderIntegrations()}
+          {section === 'data' && renderData()}
+          {section === 'about' && renderAbout()}
+        </>
+      )}
 
       {/* Course Edit/Add Modal */}
       {editingCourse && (

@@ -75,6 +75,7 @@ import {
 import { generateDailySchedule } from '../lib/gemini';
 import { chooseEngine, timeToMin, validateAndRepair } from '../lib/scheduleEngine';
 import { format, parseISO, isValid } from 'date-fns';
+import { toast } from './useToast';
 
 // ---------- Notification settings (Phase 5) --------------------------------
 
@@ -255,6 +256,12 @@ export const useStore = create((set, get) => ({
   notificationSettings: loadNotificationSettings(),
   // AI Command Center draft state
   draftSchedule: { date: null, blocks: [], coachNote: '' },
+
+  // Global "המנהל האישי" coach chat (opened from the floating left FAB on any screen).
+  coachChatOpen: false,
+  // Set by the chat's "replan" action when fired globally; CommandCenterView
+  // consumes it on mount/visit to run the tune, then clears it.
+  pendingTuneCommand: null,
 
   // Focus Tracking state
   focusTracking: {
@@ -615,6 +622,9 @@ export const useStore = create((set, get) => ({
       const prev = state.categoryHistory[state.categoryHistory.length - 1];
       return { activeCategory: prev, categoryHistory: state.categoryHistory.slice(0, -1) };
     }),
+  openCoachChat: () => set({ coachChatOpen: true }),
+  closeCoachChat: () => set({ coachChatOpen: false }),
+  setPendingTuneCommand: (cmd) => set({ pendingTuneCommand: cmd }),
   setSidebarOpen: (isOpen) => set({ sidebarOpen: isOpen }),
   setShowPomodoroModal: (isOpen) => set({ showPomodoroModal: isOpen }),
   setIsUploading: (status) => set({ isUploading: status }),
@@ -1351,7 +1361,7 @@ export const useStore = create((set, get) => ({
     const now = new Date().toISOString();
     const event = {
       title: input.title || '',
-      type: 'event',
+      type: input.type || 'event',
       start: input.start || null,
       end: input.end || null,
       allDay: !!input.allDay,
@@ -1515,14 +1525,20 @@ export const useStore = create((set, get) => ({
     const id = newId(uid, 'taskList');
     const now = new Date().toISOString();
     const list = { name, createdAt: now };
-    await fsSetTaskList(uid, id, list).catch(console.error);
-    return id;
+    try {
+      await fsSetTaskList(uid, id, list);
+      return id;
+    } catch (e) {
+      console.error(e);
+      toast.error('יצירת הרשימה נכשלה — בדוק הרשאות');
+      return null;
+    }
   },
 
   updateTaskList: async (id, name) => {
     const { uid } = get();
     if (!uid) return;
-    await fsSetTaskList(uid, id, { name }).catch(console.error);
+    await fsSetTaskList(uid, id, { name }).catch((e) => { console.error(e); toast.error('עדכון הרשימה נכשל'); });
   },
 
   deleteTaskList: async (id) => {
@@ -1541,14 +1557,20 @@ export const useStore = create((set, get) => ({
     const id = newId(uid, 'noteCategory');
     const now = new Date().toISOString();
     const cat = { name, createdAt: now };
-    await fsSetNoteCategory(uid, id, cat).catch(console.error);
-    return id;
+    try {
+      await fsSetNoteCategory(uid, id, cat);
+      return id;
+    } catch (e) {
+      console.error(e);
+      toast.error('יצירת הקטגוריה נכשלה — בדוק הרשאות');
+      return null;
+    }
   },
 
   updateNoteCategory: async (id, name) => {
     const { uid } = get();
     if (!uid) return;
-    await fsSetNoteCategory(uid, id, { name }).catch(console.error);
+    await fsSetNoteCategory(uid, id, { name }).catch((e) => { console.error(e); toast.error('עדכון הקטגוריה נכשל'); });
   },
 
   deleteNoteCategory: async (id) => {

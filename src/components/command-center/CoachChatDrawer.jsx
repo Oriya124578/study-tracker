@@ -12,19 +12,43 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
     data,
     addPersonalTask,
     deletePersonalTask,
+    togglePersonalTask,
+    toggleStarPersonalTask,
+    addSubtask,
     addQuickNote,
+    updateQuickNote,
     deleteQuickNote,
     scheduleTask,
     unscheduleTask,
     updatePersonalTask,
+    addEvent,
     updateEvent,
+    deleteEvent,
+    addShoppingItem,
+    createShoppingList,
+    clearDaySchedule,
+    addCourse,
+    updateCourse,
     setActiveCategory,
     draftSchedule,
     setDraftSchedule,
   } = useStore();
 
-  const { language } = useTranslation();
+  const { t, language } = useTranslation();
   const isRTL = language === 'he';
+
+  // Available destinations for add_task / add_note actions.
+  const taskLists = [
+    { id: 'personal', name: t('defaultListName') },
+    ...(data?.taskLists || []).filter((l) => l.id !== 'personal'),
+  ];
+  const noteCategories = [
+    { id: 'general', name: 'כללי' },
+    ...(data?.noteCategories || []).filter((c) => c.id !== 'general'),
+  ];
+
+  // Per-message picker selection for add_task/add_note action cards.
+  const [actionTargets, setActionTargets] = useState({});
 
   const [messages, setMessages] = useState([
     {
@@ -151,6 +175,10 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
         courses: coursesContext,
         upcomingExams,
         caloriData: caloriContext,
+        taskLists,
+        noteCategories,
+        events: data?.events || [],
+        shoppingLists: data?.shoppingLists || [],
       });
 
       // Append bot response
@@ -218,38 +246,116 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
     return blocks.sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 
-  // Action Executor
+  // Build an "HH:MM" string `mins` minutes after a start "HH:MM".
+  const addMinutesToTime = (hhmm, mins) => {
+    const [h, m] = (hhmm || '00:00').split(':').map(Number);
+    const total = Math.min(23 * 60 + 59, h * 60 + m + mins);
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  };
+
+  // Action Executor — the manager can drive the whole app from here.
   const handleExecuteAction = async (msgIndex, action) => {
     try {
       const { type, payload } = action;
+      const today = dateStr;
 
+      // ── Tasks ──────────────────────────────────────────────────────────
       if (type === 'add_task') {
-        await addPersonalTask({
+        const listId = actionTargets[msgIndex] || payload.list || 'personal';
+        const id = await addPersonalTask({
           title: payload.title,
           priority: payload.priority || 'med',
-          list: 'personal',
+          dueDate: payload.dueDate || null,
+          list: listId,
         });
-        toast.success(`המשימה "${payload.title}" נוספה בהצלחה`);
+        if (payload.time && id) {
+          scheduleTask(id, payload.dueDate || today, payload.time, data?.profile?.studyBlockDuration || 90);
+        }
+        const listName = taskLists.find((l) => l.id === listId)?.name || '';
+        toast.success(`המשימה "${payload.title}" נוספה ל${listName}`);
+      } else if (type === 'complete_task') {
+        togglePersonalTask(payload.taskId);
+        toast.success('המשימה סומנה כבוצעה ✓');
+      } else if (type === 'update_task') {
+        const patch = {};
+        if (payload.title) patch.title = payload.title;
+        if (payload.priority) patch.priority = payload.priority;
+        if (payload.dueDate !== undefined) patch.dueDate = payload.dueDate;
+        updatePersonalTask(payload.taskId, patch);
+        toast.success('המשימה עודכנה');
       } else if (type === 'delete_task') {
         await deletePersonalTask(payload.taskId);
         toast.success('המשימה נמחקה');
-      } else if (type === 'add_note') {
-        await addQuickNote({
-          title: payload.title || 'פתק חדש',
-          content: payload.content || '',
-          categoryId: 'general',
-        });
-        toast.success('הפתק נוצר בהצלחה');
-      } else if (type === 'delete_note') {
-        await deleteQuickNote(payload.noteId);
-        toast.success('הפתק נמחק');
+      } else if (type === 'star_task') {
+        toggleStarPersonalTask(payload.taskId);
+        toast.success('המשימה סומנה במועדפים ⭐');
+      } else if (type === 'add_subtask') {
+        addSubtask(payload.taskId, payload.title);
+        toast.success('תת-משימה נוספה');
       } else if (type === 'schedule_task') {
         const duration = data?.profile?.studyBlockDuration || 90;
-        scheduleTask(payload.taskId, dateStr, payload.time, duration);
+        scheduleTask(payload.taskId, payload.date || today, payload.time, duration);
         toast.success(`המשימה שובצה לשעה ${payload.time}`);
       } else if (type === 'unschedule_task') {
         unscheduleTask(payload.taskId);
         toast.success('המשימה הוסרה מהלו"ז');
+
+      // ── Notes ──────────────────────────────────────────────────────────
+      } else if (type === 'add_note') {
+        const catId = actionTargets[msgIndex] || payload.categoryId || 'general';
+        await addQuickNote({
+          title: payload.title || 'פתק חדש',
+          content: payload.content || '',
+          categoryId: catId,
+        });
+        const catName = noteCategories.find((c) => c.id === catId)?.name || '';
+        toast.success(`הפתק נוצר ב${catName}`);
+      } else if (type === 'update_note') {
+        const patch = {};
+        if (payload.title !== undefined) patch.title = payload.title;
+        if (payload.content !== undefined) patch.content = payload.content;
+        if (payload.pinned !== undefined) patch.pinned = !!payload.pinned;
+        updateQuickNote(payload.noteId, patch);
+        toast.success('הפתק עודכן');
+      } else if (type === 'delete_note') {
+        await deleteQuickNote(payload.noteId);
+        toast.success('הפתק נמחק');
+
+      // ── Shopping ───────────────────────────────────────────────────────
+      } else if (type === 'add_shopping_item') {
+        const lists = data?.shoppingLists || [];
+        let listId = payload.listId || (lists.find((l) => l.isActive) || lists[0])?.id;
+        if (!listId) listId = await createShoppingList('רשימת קניות', '', []);
+        addShoppingItem(listId, { name: payload.name, qty: payload.qty || null, unit: payload.unit || null });
+        toast.success(`"${payload.name}" נוסף לרשימת הקניות`);
+      } else if (type === 'create_shopping_list') {
+        const id = await createShoppingList(payload.name || 'רשימת קניות', '', []);
+        (payload.items || []).forEach((name) => {
+          if (name && id) addShoppingItem(id, { name });
+        });
+        toast.success(`רשימת הקניות "${payload.name}" נוצרה`);
+
+      // ── Events & workouts ──────────────────────────────────────────────
+      } else if (type === 'add_event') {
+        const start = `${payload.date || today}T${payload.time || '09:00'}:00`;
+        const end = payload.endTime ? `${payload.date || today}T${payload.endTime}:00` : null;
+        await addEvent({ title: payload.title, start, end, location: payload.location || '' });
+        toast.success(`האירוע "${payload.title}" נוסף ללו"ז`);
+      } else if (type === 'delete_event') {
+        deleteEvent(payload.eventId);
+        toast.success('האירוע נמחק');
+      } else if (type === 'add_workout') {
+        const time = payload.time || '18:00';
+        const date = payload.date || today;
+        const start = `${date}T${time}:00`;
+        const end = `${date}T${addMinutesToTime(time, payload.durationMinutes || 60)}:00`;
+        await addEvent({ title: payload.title || 'אימון', type: 'workout', start, end });
+        toast.success(`אימון "${payload.title || 'אימון'}" נקבע ללו"ז`);
+
+      // ── Daily schedule ─────────────────────────────────────────────────
+      } else if (type === 'clear_schedule') {
+        await clearDaySchedule(payload.date || today);
+        toast.success('הלו"ז נמחק');
       } else if (type === 'lock_block') {
         if (payload.blockId.startsWith('draft-')) {
           const updatedBlocks = draftSchedule.blocks.map(b =>
@@ -263,10 +369,27 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
         }
         toast.success(payload.locked ? 'הבלוק ננעל' : 'הבלוק שוחרר מנעילה');
       } else if (type === 'replan') {
-        toast.info('משנה את תכנון הלו"ז בעזרת ה-AI...');
+        toast.info('מסדר את הלו"ז בעזרת ה-AI...');
         onReplan?.(payload.tuneCommand);
         onClose(); // Close chat to let user see AI planning in background
         return;
+
+      // ── Courses ────────────────────────────────────────────────────────
+      } else if (type === 'add_course') {
+        await addCourse({
+          id: `course-${Date.now()}`,
+          name: payload.name,
+          weeksCount: payload.weeksCount || 14,
+          moedA: payload.moedA || '',
+        });
+        toast.success(`הקורס "${payload.name}" נוסף`);
+      } else if (type === 'update_course') {
+        const patch = {};
+        if (payload.name) patch.name = payload.name;
+        if (payload.moedA) patch.moedA = payload.moedA;
+        if (payload.moedB) patch.moedB = payload.moedB;
+        updateCourse(payload.courseId, patch);
+        toast.success('הקורס עודכן');
       }
 
       // Mark action as executed in UI
@@ -287,11 +410,12 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
 
   // Action chips list (Calori 1300 style)
   const SUGGESTION_CHIPS = [
-    { label: 'היום אני עייף, תקל עליי', action: 'היום אני עייף, שנה לי את הלו"ז שיהיה קל יותר' },
-    { label: 'פנה לי שעתיים ללימודים בבוקר', action: 'פנה לי שעתיים פנויות ללימודים בבוקר' },
-    { label: 'סדר לי אימון בערב', action: 'אני רוצה לשלב אימון בערב, תמצא לי שעה טובה לזה' },
-    { label: 'תעביר אותי לדף הפתקים', action: 'אני רוצה לעבור לדף הפתקים שלי' },
-    { label: 'תוסיף לי משימה חדשה', action: 'אני רוצה להוסיף משימה חדשה' },
+    { label: 'סדר לי את היום', action: 'סדר לי את הלו"ז להיום בצורה חכמה' },
+    { label: 'הוסף משימה', action: 'אני רוצה להוסיף משימה חדשה' },
+    { label: 'הוסף לרשימת קניות', action: 'תוסיף חלב וביצים לרשימת הקניות' },
+    { label: 'קבע לי אימון בערב', action: 'קבע לי אימון בשעה 18:00' },
+    { label: 'כתוב לי פתק', action: 'תכתוב לי פתק חדש' },
+    { label: 'מה יש לי היום?', action: 'מה המשימות והאירועים שלי להיום?' },
   ];
 
   return (
@@ -314,7 +438,7 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
             exit={isRTL ? { x: '100%' } : { x: '-100%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 220 }}
             className={cn(
-              "fixed inset-y-0 w-full sm:max-w-md bg-card/95 backdrop-blur-xl border-t border-border z-[95] flex flex-col shadow-2xl overflow-hidden",
+              "fixed inset-y-0 w-full sm:max-w-lg bg-card/95 backdrop-blur-xl border-t border-border z-[95] flex flex-col shadow-2xl overflow-hidden",
               isRTL ? "right-0 border-l" : "left-0 border-r"
             )}
             dir={isRTL ? 'rtl' : 'ltr'}
@@ -327,10 +451,10 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
                 </div>
                 <div>
                   <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1">
-                    דבר עם המאמן
+                    המנהל האישי
                     <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
                   </h3>
-                  <p className="text-[10px] text-muted-foreground font-medium">מאמן AI אישי לתזונה, כושר ולימודים</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">מנהל AI אישי לתזונה, כושר ולימודים</p>
                 </div>
               </div>
               <button
@@ -379,6 +503,30 @@ export const CoachChatDrawer = ({ isOpen, onClose, dateStr, shabbatTimes, onRepl
                           <span className="text-[11px] font-black text-muted-foreground tracking-wider uppercase">אישור פעולת מאמן</span>
                         </div>
                         <h4 className="font-extrabold text-xs text-foreground">{msg.action.title}</h4>
+
+                        {/* List / category picker for add_task & add_note */}
+                        {msg.actionStatus === 'pending' && (msg.action.type === 'add_task' || msg.action.type === 'add_note') && (() => {
+                          const isNote = msg.action.type === 'add_note';
+                          const options = isNote ? noteCategories : taskLists;
+                          const fallback = msg.action.payload?.list || msg.action.payload?.categoryId || (isNote ? 'general' : 'personal');
+                          const value = actionTargets[idx] ?? fallback;
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-bold text-muted-foreground shrink-0">
+                                {isNote ? 'קטגוריה:' : 'רשימה:'}
+                              </span>
+                              <select
+                                value={value}
+                                onChange={(e) => setActionTargets((prev) => ({ ...prev, [idx]: e.target.value }))}
+                                className="flex-1 text-xs font-bold bg-secondary/60 border border-border rounded-lg px-2 py-1.5 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+                              >
+                                {options.map((o) => (
+                                  <option key={o.id} value={o.id}>{o.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })()}
 
                         {/* Interactive Buttons depending on Status */}
                         {msg.actionStatus === 'pending' ? (

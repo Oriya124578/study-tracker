@@ -428,8 +428,9 @@ export const translations = {
     addNotePlaceholder: 'הוסף פתק...',
 
     // Navigation & Command Center
-    navCommandCenter: 'המנהל האישי',
-    navManager: 'המנהל',
+    navCommandCenter: 'לוז יומי',
+    navManager: 'לוז יומי',
+    personalManager: 'המנהל האישי',
     attachCourseOptional: '+ צרף לקורס (אופציונלי)',
     removeCourse: 'הסר קורס',
     saveCommandCenterSettings: 'שמור הגדרות מנהל אישי',
@@ -1039,8 +1040,9 @@ export const translations = {
     addNotePlaceholder: 'Add a note...',
 
     // Navigation & Command Center
-    navCommandCenter: 'Personal Manager',
-    navManager: 'Manager',
+    navCommandCenter: 'Daily Schedule',
+    navManager: 'Daily Schedule',
+    personalManager: 'Personal Manager',
     attachCourseOptional: '+ Attach to course (optional)',
     removeCourse: 'Remove course',
     saveCommandCenterSettings: 'Save Personal Manager Settings',

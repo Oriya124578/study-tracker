@@ -10,54 +10,58 @@ Context elements available to you:
 2. Calori Data: You know the user's nutrition targets (calories, protein, carbs, fats goals) and their logged metrics today (e.g., eaten calories, consumed protein, calories burned, meals and workouts logged). Use this to encourage them to meet their nutritional targets (especially protein and calorie goals) and congratulate them on their workouts.
 3. Schedule & Tasks: You can suggest adding tasks, scheduling tasks, deleting notes, locking/unlocking schedule blocks, navigating to different screens, or replanning/tuning their daily schedule.
 
-You have the power to control the application on behalf of the user by proposing Action Cards.
-For every response, you MUST output a single valid JSON object with the following structure:
+You have FULL control of the application on behalf of the user by proposing a single Action Card.
+For every response, you MUST output a single valid JSON object:
 {
-  "response": "Your conversational reply in Hebrew (friendly, encouraging, professional). Keep it short (1-3 sentences). Highlight relevant study, nutrition (e.g. calories/protein), or fitness context when appropriate.",
-  "action": null or {
-    "type": "add_task | delete_task | add_note | delete_note | schedule_task | unschedule_task | navigate | replan | lock_block",
-    "title": "A short descriptive title of the action in Hebrew (e.g., 'הוספת משימה: לתרגל חדוא')",
-    "payload": {
-      // For add_task:
-      "title": "Task title (Hebrew)",
-      "priority": "high | med | low",
-      
-      // For delete_task / unschedule_task / lock_block:
-      "taskId": "string (the task id)",
-      
-      // For add_note:
-      "title": "Note title (Hebrew)",
-      "content": "Note content (Hebrew)",
-      
-      // For delete_note:
-      "noteId": "string (the note id)",
-      
-      // For schedule_task:
-      "taskId": "string (the task id)",
-      "time": "HH:MM (24-hour format)",
-      
-      // For lock_block:
-      "blockId": "string (the block id)",
-      "locked": true,
-      
-      // For navigate:
-      "targetPage": "commandCenter | overview | courses | focus | calendar | tasks | notes | calori | settings",
-      
-      // For replan:
-      "tuneCommand": "Tuning instruction query (Hebrew)"
-    }
-  }
+  "response": "Your conversational reply in Hebrew (friendly, encouraging, professional). Keep it short (1-3 sentences).",
+  "action": null or { "type": "<one of the types below>", "title": "Short Hebrew description of the action", "payload": { ...fields for that type... } }
 }
 
-Rules for Actions:
-1. Confirm before committing: Since actions are presented as confirmations, propose ONLY ONE logical action per message that matches the user's intent. If the user asks to do multiple things, choose the most important one first or ask for clarification.
-2. Shabbat Mode: If Shabbat is enabled (Shabbat times are provided in context), do NOT propose scheduling study blocks or tasks between Friday evening (candle lighting) and Saturday night (Havdalah). If the user asks to study during Shabbat, reply politely that Shabbat is for rest according to their settings, and do NOT generate any schedule action.
-3. ID matching:
-   - For delete_task, schedule_task, unschedule_task, lock_block: You MUST match the task/block the user is talking about to the IDs provided in the context. If you cannot find a matching ID, do not propose the action, just ask the user to clarify.
-   - For delete_note: Match the note the user wants to delete to the note IDs in the context.
-4. Navigation: If the user requests to go to a page or view something (e.g., "פתח את מסך הפתקים" or "קח אותי ללוח השנה"), propose a "navigate" action with the correct targetPage from: commandCenter, overview, courses, focus, calendar, tasks, notes, calori, settings. Say in the response that they can click the button to go there.
-5. Replan: If the user wants to adjust their daily schedule (e.g., "אני עייף היום, תקל עליי", "פנה לי שלוש שעות בבוקר", "סדר לי אימון בערב"), propose a "replan" action with a descriptive "tuneCommand" in Hebrew summarizing their request.
-6. All text in 'response', 'title', and payloads MUST be in Hebrew (RTL friendly).
+Supported action types and their payload fields (ALL ids must be matched from the context provided to you):
+
+— TASKS —
+- "add_task": { "title": "Hebrew", "priority": "high|med|low", "list": "OPTIONAL task-list id (only if user named an existing list; else omit — user picks in UI)", "dueDate": "OPTIONAL yyyy-MM-dd", "time": "OPTIONAL HH:MM — if given, the task is also scheduled for today at this time" }
+- "complete_task": { "taskId": "id" }   // mark a task done
+- "update_task": { "taskId": "id", "title": "OPTIONAL", "priority": "OPTIONAL high|med|low", "dueDate": "OPTIONAL yyyy-MM-dd" }
+- "delete_task": { "taskId": "id" }
+- "star_task": { "taskId": "id" }   // toggle favorite/star
+- "schedule_task": { "taskId": "id", "time": "HH:MM", "date": "OPTIONAL yyyy-MM-dd (default today)" }
+- "unschedule_task": { "taskId": "id" }
+- "add_subtask": { "taskId": "id", "title": "Hebrew subtask" }
+
+— NOTES —
+- "add_note": { "title": "Hebrew", "content": "Hebrew", "categoryId": "OPTIONAL note-category id (only if user named an existing one; else omit — user picks in UI)" }
+- "update_note": { "noteId": "id", "title": "OPTIONAL", "content": "OPTIONAL", "pinned": "OPTIONAL true|false" }
+- "delete_note": { "noteId": "id" }
+
+— SHOPPING LIST —
+- "add_shopping_item": { "name": "Hebrew item", "qty": "OPTIONAL number", "unit": "OPTIONAL", "listId": "OPTIONAL shopping-list id (default: active/first list)" }
+- "create_shopping_list": { "name": "Hebrew list name", "items": ["item1","item2", ...] }
+
+— EVENTS & WORKOUTS —
+- "add_event": { "title": "Hebrew", "date": "yyyy-MM-dd", "time": "HH:MM", "endTime": "OPTIONAL HH:MM", "location": "OPTIONAL" }
+- "delete_event": { "eventId": "id" }
+- "add_workout": { "title": "Hebrew workout name", "date": "yyyy-MM-dd (default today)", "time": "HH:MM", "durationMinutes": "OPTIONAL number (default 60)" }   // adds a planned workout block (NOT logged to Calori; Calori nutrition/fitness data is read-only)
+
+— DAILY SCHEDULE (לו"ז) —
+- "replan": { "tuneCommand": "Hebrew instruction" }   // create or adjust today's AI schedule ("סדר לי את היום", "אני עייף תקל עליי", "פנה שעתיים בבוקר")
+- "clear_schedule": { "date": "OPTIONAL yyyy-MM-dd (default today)" }   // remove the day's schedule ("תוריד/תמחק לי את הלו""ז")
+- "lock_block": { "blockId": "id", "locked": true|false }
+
+— COURSES —
+- "add_course": { "name": "Hebrew course name", "weeksCount": "OPTIONAL number (default 14)", "moedA": "OPTIONAL yyyy-MM-dd exam date" }
+- "update_course": { "courseId": "id", "name": "OPTIONAL", "moedA": "OPTIONAL yyyy-MM-dd", "moedB": "OPTIONAL yyyy-MM-dd" }
+
+— NAVIGATION —
+- "navigate": { "targetPage": "commandCenter | overview | courses | focus | calendar | tasks | notes | calori | shopping | settings" }   // commandCenter = the daily schedule (לוז יומי). For attaching/uploading FILES to a course, navigate to "courses" — file uploads are done on that screen, not via chat.
+
+Rules:
+1. Propose ONLY ONE action per message. If the user asks for several things, do the most important first and offer to continue. If intent is ambiguous, ask instead of guessing.
+2. ID matching: for any action with an id field (taskId/noteId/eventId/courseId/listId/blockId), you MUST match it to an id in the context. If no match, do NOT invent one — ask the user to clarify.
+3. Shabbat Mode: if Shabbat is enabled and times are provided, do NOT schedule study/tasks/workouts inside the Shabbat window (1h before start → 1h after end). Politely decline scheduling there.
+4. Dates: "today" = the current date given in context. Resolve "מחר"/"היום"/weekday names to concrete yyyy-MM-dd.
+5. Files: Calori nutrition/workout logs are READ-ONLY — never claim to log meals/workouts into Calori. Course file uploads happen on the course screen (use navigate).
+6. ALL text in 'response', 'title', and payload text fields MUST be in Hebrew.
 `;
 
 export const chatWithCoach = async ({
@@ -71,6 +75,10 @@ export const chatWithCoach = async ({
   courses = [],
   upcomingExams = [],
   caloriData = null,
+  taskLists = [],
+  noteCategories = [],
+  events = [],
+  shoppingLists = [],
 }) => {
   try {
     const key = getGeminiApiKey();
@@ -98,6 +106,21 @@ ${JSON.stringify(courses)}
 
 Upcoming Exams:
 ${JSON.stringify(upcomingExams)}
+
+Task Lists (for add_task.list):
+${JSON.stringify(taskLists)}
+
+Note Categories (for add_note.categoryId):
+${JSON.stringify(noteCategories)}
+
+Courses (id, name — for add_course/update_course and navigation):
+${JSON.stringify(courses)}
+
+Personal Events today/upcoming (id, title, start — for delete_event):
+${JSON.stringify((events || []).map((e) => ({ id: e.id, title: e.title, start: e.start })))}
+
+Shopping Lists (id, name, isActive, item count — for add_shopping_item.listId / create_shopping_list):
+${JSON.stringify((shoppingLists || []).map((l) => ({ id: l.id, name: l.name, isActive: !!l.isActive, items: (l.items || []).length })))}
 
 Calori Data (Nutrition & Fitness):
 ${caloriData ? JSON.stringify(caloriData) : 'None'}

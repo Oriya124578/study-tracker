@@ -9,7 +9,10 @@ export function DroppableHour({ id, isCovered, children }) {
   });
 
   return (
-    <div ref={setNodeRef} className={cn("relative transition-colors", isOver && "bg-primary/5")}>
+    // flex-1 + min-w-0 are essential: this is a flex child of the hour row, and
+    // without them the block cards size to their intrinsic width and overflow the
+    // overflow-hidden timeline container (clipped on the left in RTL).
+    <div ref={setNodeRef} className={cn("relative transition-colors flex-1 min-w-0", isOver && "bg-primary/5")}>
       {children}
     </div>
   );
@@ -35,7 +38,7 @@ export function DraggableBlock({ id, data, isLocked, children, onShortTap }) {
       {...listeners} 
       {...attributes}
       className={cn(
-        "touch-none cursor-pointer outline-none", 
+        "touch-none cursor-pointer outline-none w-full min-w-0",
         !isLocked && "active:cursor-grabbing",
       )}
       onClick={(e) => {

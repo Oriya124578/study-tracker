@@ -185,6 +185,13 @@ const TaskRow = ({ task }) => {
   const subtasks    = task.subtasks || [];
   const doneSubs    = subtasks.filter((s) => s.done).length;
 
+  // Lists the task can be moved to (default + custom, deduped against seed).
+  const taskLists = [
+    { id: 'personal', name: t('defaultListName') },
+    ...(data?.taskLists || []).filter((l) => l.id !== 'personal'),
+  ];
+  const currentListId = task.list || 'personal';
+
   const handleAddSub = () => {
     const label = newSub.trim();
     if (!label) return;
@@ -339,6 +346,31 @@ const TaskRow = ({ task }) => {
                   </button>
                 )}
               </div>
+
+              {/* Move to list */}
+              {taskLists.length > 1 && (
+                <div className="flex items-center gap-1.5 mt-2 pt-2 flex-wrap" style={{ borderTop: '1px solid rgba(180,140,80,.1)' }}>
+                  <span className="font-semibold me-1 text-xs" style={{ color: '#8A7A6A' }}>{t('moveToList', 'רשימה')}:</span>
+                  {taskLists.map((l) => {
+                    const isActive = currentListId === l.id;
+                    return (
+                      <button
+                        key={l.id}
+                        onClick={() => updatePersonalTask(task.id, { list: l.id })}
+                        className="px-2.5 py-1 font-bold text-[10px] transition-all active:scale-95"
+                        style={{
+                          borderRadius: 20,
+                          background: isActive ? '#059669' : '#F5F0E8',
+                          color: isActive ? '#fff' : '#8A7A6A',
+                          border: isActive ? 'none' : '1px solid rgba(180,140,80,.12)',
+                        }}
+                      >
+                        {l.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Priority & Delete task */}
               <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: '1px solid rgba(180,140,80,.1)' }}>
@@ -757,11 +789,12 @@ export const TasksView = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const inputRef = useRef(null);
 
-  // Construct lists
+  // Construct lists. The store seeds a `personal` doc into cl_taskLists, so we
+  // filter it out here to avoid showing "המשימות שלי" twice.
   const lists = [
     { id: 'favorites', name: t('favorites') },
     { id: 'personal', name: t('defaultListName') },
-    ...(data?.taskLists || [])
+    ...(data?.taskLists || []).filter((l) => l.id !== 'personal')
   ];
 
   // Filter tasks based on activeTab
